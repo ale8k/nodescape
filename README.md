@@ -6,7 +6,6 @@ A Runescape private server written in JavaScript running on the NodeJS chromium 
 I used a number of resources to get this running:
 
 - https://explv.github.io/
-- Graham from rune-server.ee: https://www.rune-server.ee/runescape-development/rs2-server/help/
-691785-player-update-protocol-could-use-little-guidance-p.html
+- Graham from rune-server.ee: https://www.rune-server.ee/runescape-development/rs2-server/help/691785-player-update-protocol-could-use-little-guidance-p.html
 - https://rsps.fandom.com/wiki/Data_Types
 - https://rsps.fandom.com/wiki/317_Protocol
