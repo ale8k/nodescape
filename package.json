@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/Server.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon",
+    "start:dev": "ts-node src/Server.ts",
+    "start": "node dist/Server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alexander Kilroy",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.3",
+    "@types/node": "^13.9.0",
+    "nodemon": "^2.0.2",
+    "ts-lint": "^4.5.1",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@types/long": "^4.0.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "long": "^4.0.0"
+  },
+  "engines": {
+    "node": "13.9.0"
+  }
+}

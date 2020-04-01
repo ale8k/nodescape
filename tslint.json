@@ -1,0 +1,60 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+		"class-name": true,
+		"comment-format": [
+            false,
+			"check-space",
+			"check-lowercase"
+		],
+		"ban-types": false,
+		"curly": true,
+		"eofline": true,
+		"indent": [true, "spaces"],
+		"interface-name": true,
+		"jsdoc-format": true,
+		"max-line-length": [true, 140],
+		"no-any": true,
+		"no-arg": true,
+		"no-bitwise": false,
+		"no-construct": false,
+		"no-constructor-vars": true,
+		"no-shadowed-variable": true,
+		"no-duplicate-variable": true,
+		"no-empty": false,
+		"no-eval": true,
+		"no-require-imports": false,
+		"no-trailing-comma": true,
+		"no-trailing-whitespace": true,
+		"no-unreachable": true,
+		"no-unused-variable": true,
+		"no-unused-expression": false,
+		"no-use-before-declare": true,
+		"no-var-keyword": true,
+		"no-console": false,
+		"one-line": [true,
+			"check-catch",
+			"check-else",
+			"check-open-brace",
+			"check-whitespace"
+		],
+		"quotemark": [true, "double"],
+		"radix": false,
+		"semicolon": true,
+		"triple-equals": [true, "allow-null-check"],
+		"use-strict": [true, "check-module"],
+		"variable-name": [true, "allow-leading-underscore"],
+		"whitespace": [false,
+			"check-branch",
+			"check-decl",
+			"check-operator",
+			"check-separator",
+			"check-type"
+		]
+	},
+    "rulesDirectory": []
+}
