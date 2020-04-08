@@ -10,10 +10,10 @@ import { shortToBytes } from "../utils";
  * @info This packet is a fixed size packet of 4 bytes.
  * @author ale8k
  */
-export default function LoadMapZone73(c: Cryption, xcoord: number, ycoord: number): Buffer {
+export default function LoadMapZone73(key: number, xcoord: number, ycoord: number): Buffer {
     const x = shortToBytes(xcoord);
     const y = shortToBytes(ycoord);
-    const b = Buffer.from([c.getNextKey(), ...x, ...y]);
+    const b = Buffer.from([73 + key, ...x, ...y]);
     // the 317 client removes +128 to the x coords second byte,
     // so we're adding it here
     b[2] += 128;

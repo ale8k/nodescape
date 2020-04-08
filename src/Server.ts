@@ -1,7 +1,8 @@
 import * as net from "net";
 import * as Long from "long";
 import Cryption from "./Cryption";
-import { LoadMapZone73 } from "./packets";
+import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets";
+import { setBit } from "./utils";
 
 /**
  * Entry point for the server
@@ -75,9 +76,10 @@ class Server {
 
                     if (test === true) {
                         // 73: Load the map zone
-                        socket.write(LoadMapZone73(this.outStreamCryption, 404, 404));
+                        socket.write(LoadMapZone73(this.outStreamCryption.getNextKey(), 404, 404));
 
-
+                        // 83: Update local player
+                        socket.write(UpdateLocalPlayer81(this.outStreamCryption.getNextKey()));
                     }
 
                 }
