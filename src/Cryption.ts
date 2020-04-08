@@ -33,7 +33,7 @@ export default class Cryption {
 
     private generateNextKeySet(): void {
         this.cryptVar2 += ++this.cryptVar3;
-        for(let i: number = 0; i < 256; i++) {{
+        for(let i: number = 0; i < 256; i++) {
             const j: number = this.cryptArray[i];
 
             if((i & 3) === 0) {
@@ -50,7 +50,7 @@ export default class Cryption {
             let k: number;
             this.cryptArray[i] = k = this.cryptArray[(j & 1020) >> 2] + this.cryptVar1 + this.cryptVar2;
             this.keySetArray[i] = this.cryptVar2 = this.cryptArray[(k >> 8 & 1020) >> 2] + j;
-        }}
+        }
     }
 
     public initializeKeySet(): void {
