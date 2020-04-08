@@ -1,8 +1,7 @@
 import * as net from "net";
 import * as Long from "long";
 import Cryption from "./Cryption";
-import LoadMapZone73 from "./packets/LoadMapZone73";
-import { shortToBytes } from "./utils";
+import { LoadMapZone73 } from "./packets";
 
 /**
  * Entry point for the server
@@ -76,42 +75,8 @@ class Server {
 
                     if (test === true) {
                         let b = Buffer.alloc(0);
-                        /**
-                         * 73: Loads map region
-                         * This actually takes the 8x8 of the 'zone', not the tile. A tile consists of 8x8 zones,
-                         * a zone is 8x8 single tiles. So, we get a tile position relative to a zone.
-                         *
-                         *
-                         * From Graham:
-                         * 8x8 tiles = a zone. This is the granularity used in a bunch of packets
-                         * (e.g. for sending ground items, projectiles, constructing dynamic/instanced maps, etc.)
-                         * 64x64 tiles (or 8x8 zones) = a single map. This is the granularity used on disk in the cache.
-                         * 104x104 tiles (or 13x13 zones) = the area that the client keeps in RAM at any one time.
-                         *
-                         * See: https://explv.github.io/?centreX=3120&centreY=3300&centreZ=0&zoom=9 for info
-                         *
-                         * To simplify, there's 64x64 tiles in a 'region', Please note tile index starts at 0, so it's actually 63x63(0)
-                         * 8x8 tiles is a zone, and 8x(8x8tiles) creates a map of 64x64 tiles.
-                         *
-                         * The client stores 104x104 tiles (or 13x13 zones) at a time in the ram.
-                         *
-                         * You'll also find +/- 6 calculations in some servers (and perhaps the client too) -
-                         * this is because some code uses zone coordinates relative to the top left of the area,
-                         * some relative to the centre.
-                         * When the player is within 16 tiles of the edge the server sends the packet
-                         * to reload the area around the player's current zone.
-                         */
-                        b = Buffer.alloc(5);
-                        b[0] = 73 + this.outStreamCryption.getNextKey();
-                        // we need to write little endians here so we can suffix the second byte with
-                        // of the first co-ordinate short with +128 (the client removes this on client side)
-                        b[1] = 1;
-                        b[2] = 147 + 128;
-                        b.writeInt16BE(404, 3);
-                        console.log("read here alex");
-                        console.log(b.toJSON());
-                        LoadMapZone73(this.outStreamCryption, 404, 404);
-                        socket.write(b);
+                        // 73: Load the map zone
+                        socket.write(LoadMapZone73(this.outStreamCryption, 404, 404));
 
                         /**
                          * 81: Initialise player
@@ -204,7 +169,6 @@ class Server {
 
         }).listen(43594, () => {
             console.log("Server running");
-            console.log(shortToBytes(469));
         });
     }
 

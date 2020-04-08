@@ -17,8 +17,7 @@ export default function LoadMapZone73(c: Cryption, xcoord: number, ycoord: numbe
     // the 317 client removes +128 to the x coords second byte,
     // so we're adding it here
     b[2] += 128;
-    console.log(b.toJSON());
-    return Buffer.from([]);
+    return b;
 }
 
 // additional info about packet 73:
