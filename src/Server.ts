@@ -95,91 +95,87 @@ class Server {
                         // of the first co-ordinate short with +128 (the client removes this on client side)
                         b[1] = 1;
                         b[2] = 147 + 128;
-                        b.writeInt16BE(403, 3);
+                        b.writeInt16BE(404, 3);
                         socket.write(b);
 
                         /**
                          * 81: Initialise player
                          */
-                        b = Buffer.alloc(9);
+                        b = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
                         b[0] = 81 + this.outStreamCryption.getNextKey();
                         // Packet size, VARIABLE_SIZE : SHORT
-                        b.writeInt16BE(6, 1);
+                        // Acts as a placeholder until we know our packet size
+                        // either 5 or includes this (i.e., 5 + 2 + 1)
+                        b[1] = 0;
+                        b[2] = 5;
 
+                        /**
+                         * Our player movements: client method117
+                         */
                         // update our player or not
                         this.setBit(b, 3, 7, 1);
-                        // VALUE: 3 - Type 3, update our players plane level
-                        this.setBit(b, 3, 6, 1);
-                        this.setBit(b, 3, 5, 1);
-                        // setting plane level here, 0-3 (we use 0 for now)
+
+                        // Movement type
+                        this.setBit(b, 3, 6, 0);
+                        this.setBit(b, 3, 5, 0);
+
+                        /**
+                         * Other player movements: client method134
+                         * We skip this currently as there is no other players to update
+                         */
+                        // how many 'other' players to update
                         this.setBit(b, 3, 4, 0);
                         this.setBit(b, 3, 3, 0);
-                        // clear awaitig-point queue, i.e., remove our further steps left to do by client. Like when teleing
-                        this.setBit(b, 3, 2, 1);
-                        // is there an update required? (i.e., logged in, update our player)
-                        this.setBit(b, 3, 1, 1);
-                        // x
+                        this.setBit(b, 3, 2, 0);
+                        this.setBit(b, 3, 1, 0);
                         this.setBit(b, 3, 0, 0);
                         this.setBit(b, 4, 7, 0);
-                        this.setBit(b, 4, 6, 1);
+                        this.setBit(b, 4, 6, 0);
                         this.setBit(b, 4, 5, 0);
-                        this.setBit(b, 4, 4, 1);
+
+                        /**
+                         * Player list updating: client method91
+                         */
+                        // 11 bit value representing next player in the update list
+                        // the client checks if this exists, if it does, it'll update appearance
+                        // for this player next
+                        this.setBit(b, 4, 4, 0);
                         this.setBit(b, 4, 3, 0);
-                        this.setBit(b, 4, 2, 1);
-                        // y
+                        this.setBit(b, 4, 2, 0);
                         this.setBit(b, 4, 1, 0);
                         this.setBit(b, 4, 0, 0);
-                        this.setBit(b, 5, 7, 1);
+                        this.setBit(b, 5, 7, 0);
                         this.setBit(b, 5, 6, 0);
-                        this.setBit(b, 5, 5, 1);
+                        this.setBit(b, 5, 5, 0);
                         this.setBit(b, 5, 4, 0);
-                        this.setBit(b, 5, 3, 1);
-                        // How many other players the client needs to update,
-                        // currently no multiplayer so none,
-                        // this will need some considerable thought lol
-                        this.setBit(b, 5, 2, 0);
+                        this.setBit(b, 5, 3, 0);
+                        this.setBit(b, 5, 2, 1);
+
+                        // Appearance updating, can't do this cause it's null... wtf lol.
+
+                        // Location updating starts here
+
+                        // think this tells client if it had a chunk in the update list,
+                        // imma just say yeah for now lol
                         this.setBit(b, 5, 1, 0);
+
+                        // clear awaiting point queue, like when teleing. (no)
                         this.setBit(b, 5, 0, 0);
+
+                        // x coord
                         this.setBit(b, 6, 7, 0);
                         this.setBit(b, 6, 6, 0);
-                        this.setBit(b, 6, 5, 0);
-                        this.setBit(b, 6, 4, 0);
-                        this.setBit(b, 6, 3, 0);
-                        // player list updating, not really sure here. Used wL's 2047 value
-                        this.setBit(b, 6, 2, 1);
-                        this.setBit(b, 6, 1, 1);
+                        this.setBit(b, 6, 5, 1);
+                        this.setBit(b, 6, 4, 1);
+                        this.setBit(b, 6, 3, 1);
+                        // y coord
+                        this.setBit(b, 6, 2, 0);
+                        this.setBit(b, 6, 1, 0);
                         this.setBit(b, 6, 0, 1);
                         this.setBit(b, 7, 7, 1);
                         this.setBit(b, 7, 6, 1);
-                        this.setBit(b, 7, 5, 1);
-                        this.setBit(b, 7, 4, 1);
-                        this.setBit(b, 7, 3, 1);
-                        this.setBit(b, 7, 2, 1);
-                        this.setBit(b, 7, 1, 1);
-                        this.setBit(b, 7, 0, 1);
-                        // initial player update done
-                        // b[8] is empty byte, without it packet is being rejected?
+
                         socket.write(b);
-
-                        /**
-                         * 253: Send message to client
-                         */
-                        // b = Buffer.alloc(5);
-                        // b[0] = 253 + this.outStreamCryption.getNextKey();
-                        // b.writeInt8(1, 1);
-                        // b.writeInt8(33, 2);
-                        // socket.write(b);
-
-                        /**
-                         * 24: Send message to client
-                         */
-                        b = Buffer.alloc(3);
-                        b[0] = 24 + this.outStreamCryption.getNextKey();
-                        // b.writeInt8(1, 1);
-                        // b.writeInt8(33, 2);
-                        socket.write(b);
-
-
                     }
 
                 }
