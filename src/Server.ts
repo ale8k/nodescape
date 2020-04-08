@@ -1,8 +1,13 @@
 import * as net from "net";
 import * as Long from "long";
 import Cryption from "./Cryption";
+import LoadMapZone73 from "./packets/LoadMapZone73";
+import { shortToBytes } from "./utils";
 
-
+/**
+ * Entry point for the server
+ * @author ale8k
+ */
 class Server {
     // TODO: Implement code 16 for reconnection
     private loginProtocolStage: number = 0;
@@ -83,6 +88,13 @@ class Server {
                          * 64x64 tiles (or 8x8 zones) = a single map. This is the granularity used on disk in the cache.
                          * 104x104 tiles (or 13x13 zones) = the area that the client keeps in RAM at any one time.
                          *
+                         * See: https://explv.github.io/?centreX=3120&centreY=3300&centreZ=0&zoom=9 for info
+                         *
+                         * To simplify, there's 64x64 tiles in a 'region', Please note tile index starts at 0, so it's actually 63x63(0)
+                         * 8x8 tiles is a zone, and 8x(8x8tiles) creates a map of 64x64 tiles.
+                         *
+                         * The client stores 104x104 tiles (or 13x13 zones) at a time in the ram.
+                         *
                          * You'll also find +/- 6 calculations in some servers (and perhaps the client too) -
                          * this is because some code uses zone coordinates relative to the top left of the area,
                          * some relative to the centre.
@@ -96,6 +108,9 @@ class Server {
                         b[1] = 1;
                         b[2] = 147 + 128;
                         b.writeInt16BE(404, 3);
+                        console.log("read here alex");
+                        console.log(b.toJSON());
+                        LoadMapZone73(this.outStreamCryption, 404, 404);
                         socket.write(b);
 
                         /**
@@ -187,7 +202,10 @@ class Server {
                 console.log("Ended");
             });
 
-        }).listen(43594, () => console.log("Server running"));
+        }).listen(43594, () => {
+            console.log("Server running");
+            console.log(shortToBytes(469));
+        });
     }
 
     /**
