@@ -104,6 +104,12 @@ export default function UpdateLocalPlayer81(
     // block flag updating (method49), so this actually happens on the next packet, not this one!
     // silly doc didn't explain this lol
 
+    if (updatePlayersAppearance) {
+        console.log("boop");
+    } else {
+
+    }
+
     // So we skip to whether or not the client has a chunk
     // in the update block list, our block flag list, which it doesn't initially.
     // So this is 'no' the first time around and 'yes' the next.
@@ -119,38 +125,49 @@ export default function UpdateLocalPlayer81(
     bitArr.push(clearAwaitingPointQueue);
 
     // X/Y for other player (s) relative to our player
-    bitArr.push(...convertToFixedBitArray(12, 5));
-    bitArr.push(...convertToFixedBitArray(12, 5));
+    //bitArr.push(...convertToFixedBitArray(12, 5));
+    //bitArr.push(...convertToFixedBitArray(12, 5));
 
     // this ends the player list updating process
 
-
-
     /**
-     * WRITING END
+     * METHOD 49 (Actually 107 really)
      */
-    // The size of the written bits
-    let bitArrSize = Math.ceil(bitArr.length / 8); 
-    // our offset is therefore our basepacket + bitarr size, i.e., idx's 0,1,2 = 3. 3,4,5,6,7 = 5. Offset = 8
-    let offset = bitArrSize; 
-    
+    // It actually reads a single byte, which is the flag of updating we wish
+    // to perform on our / other players. It's all done here. The update mask we're
+    // currently supporting is 0x10, appearance update.
+    /**
+     * Masks written in bit format, to make it easier for us to write them:
+     * Please note, they're all done in 8 bit formats or 16 bit if 0x40 is called,
+     * They're also all little endian. Ofc for 0x10, this doesn't matter.
+     * 
+     * 0x10: 10000
+     */
+
+
     /**
      * Create our buffer
      */
+
+    // The size of the written bits in bytes
+    let bitArrSize = Math.ceil(bitArr.length / 8); 
+
+    // our offset is therefore our bitarrsize + any further bytes to be written
+    let offset = bitArrSize; 
+
     // our opcode is 1 byte, and packet size is a short, 3 bytes total
     let basePacketSize = 3; 
 
-    // set buffer size
+    // set buffer size, this includes our bits + any further bytes we gonna write
     const buf = Buffer.alloc(offset + basePacketSize + 1);
 
     // our encrypted opcode
     buf[0] = 81 + key;
 
-    // set packet size
+    // set packet size including all bits and bytes
     buf.writeInt16BE((offset + 1), 1);
 
     // write the bits
-    // we know we gotta start at index 3, because opcode + size = 3 bytes
     let bitIndex = 7;
     let byteIndex = 3;
 
@@ -164,6 +181,8 @@ export default function UpdateLocalPlayer81(
             byteIndex += 1;
         }
     }
+
+    console.log("Final offset is: " + offset);
 
     return buf;
 }

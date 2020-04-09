@@ -9,6 +9,9 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.zip.CRC32;
+
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+
 import sign.signlink;
 
 public final class client extends Applet_Sub1
@@ -2208,11 +2211,13 @@ public final class client extends Applet_Sub1
         else
             return;
         // begin block updating
+        // anint893 is all players in our list
         for(int j = 0; j < anInt893; j++)
         {
             int k = anIntArray894[j];
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[k];
             int l = class30_sub2_sub2.method408();
+            //System.out.println("Method 49 reads with method408, output is: " + l);
             if((l & 0x40) != 0)
                 l += class30_sub2_sub2.method408() << 8;
             method107(l, k, class30_sub2_sub2, aByte923, class30_sub2_sub4_sub1_sub2);
@@ -7257,7 +7262,7 @@ public final class client extends Applet_Sub1
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
-
+            System.out.println("Player list updating 11bit ID: " + j);
             // 2047 max player count, allows us to break past this
             if(j == 2047) {
                 break;
@@ -7273,23 +7278,26 @@ public final class client extends Applet_Sub1
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] == null) {
                 // add player instance to player array
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] = new Class30_Sub2_Sub4_Sub1_Sub2();
-                System.out.println("player " + j + " added to update buffer");
-                System.out.println("this should have a value: " + aClass30_Sub2_Sub2Array895[j]);
+                //System.out.println("player " + j + " added to update buffer");
+                //System.out.println("this should have a value: " + aClass30_Sub2_Sub2Array895[j]);
                 // for some reason this is always gonna be null, but i wanna update my dudes appearance lol
                 // i think this is because our player is null until our block flag update
                 if(aClass30_Sub2_Sub2Array895[j] != null) {
                     // Appearance loop, I believe
+                    System.out.println("Updating players appearance for player IDX: " + j);
                     aClass30_Sub2_Sub4_Sub1_Sub2Array890[j].method451(0, aClass30_Sub2_Sub2Array895[j]);
                 }
             }
-            // player index array
-            anIntArray892[anInt891++] = j;
-            // take current open stream and replace with this player stream
-            Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[j];
 
             /**
              * LOCATION UPDATING
              */
+            // adds player to local player list
+            anIntArray892[anInt891++] = j;
+            // Sets the player stream
+            Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[j];
+
+
             class30_sub2_sub4_sub1_sub2.anInt1537 = anInt1161;
 
             // It then reads a 1 bit quantity that defines whether or not the client has a chunk in the player update block list.
@@ -7299,13 +7307,13 @@ public final class client extends Applet_Sub1
             // can update their appearance from then on and other
             // block flag updates
             int k = class30_sub2_sub2_1083.method419(1, 0);
-
+            System.out.println("Update block flag cached?: " + k);
             if(k == 1)
                 anIntArray894[anInt893++] = j;
 
             // clear awaiting point queue, like when telleing 
             int l = class30_sub2_sub2_1083.method419(1, 0);
-
+            System.out.println("Clear awaiting-point queue?: " + l);
             // players x/y
             // this is all other players co-ordinates relative to our players,
             // we don't actually have any 'other' players though...
@@ -8442,6 +8450,7 @@ public final class client extends Applet_Sub1
 
     private final void method107(int i, int j, Class30_Sub2_Sub2 class30_sub2_sub2, byte byte0, Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2)
     {
+        //System.out.println("Packet size in method 49 is currently: " + i);
         if(byte0 != 25)
             aClass19ArrayArrayArray827 = null;
         if((i & 0x400) != 0)
@@ -9096,7 +9105,7 @@ public final class client extends Applet_Sub1
             // if we clear await queue, and our coords are 1
             // set false? no idea
             aClass30_Sub2_Sub4_Sub1_Sub2_1126.method445(l2, k2, j1 == 1, false);
-            System.out.println("Movement type: 3");
+            //System.out.println("Movement type: 3");
         }
     }
 
@@ -9888,7 +9897,7 @@ public final class client extends Applet_Sub1
         // how many other player movements to update
         int j = class30_sub2_sub2.method419(8, 0);
         // i'm not sure if this is in our zone or in the server entirely?
-        System.out.println("There are: " + anInt891 + " other players");
+        //System.out.println("There are: " + anInt891 + " other players");
 
         if(j < anInt891) {
             for(int k = j; k < anInt891; k++)
