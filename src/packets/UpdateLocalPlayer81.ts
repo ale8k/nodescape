@@ -99,6 +99,7 @@ export default function UpdateLocalPlayer81(
     bitArr.push(...convertToFixedBitArray((255 - 48), 8));
     // gender
     bitArr.push(...convertToFixedBitArray(0, 8));
+    bitArr.push(...convertToFixedBitArray(0, 8));
     // overhead icon id
     bitArr.push(...convertToFixedBitArray(0, 8));
     // 12 bytes for equipment (0 means nothing)
@@ -106,24 +107,29 @@ export default function UpdateLocalPlayer81(
         bitArr.push(...convertToFixedBitArray(0, 8));
     }
     // body part colours
-    for (let i = 0; i < 5; i++) {
-        bitArr.push(...convertToFixedBitArray(0, 16));
-    }
+    bitArr.push(...convertToFixedBitArray(7, 16));
+    bitArr.push(...convertToFixedBitArray(8, 16));
+    bitArr.push(...convertToFixedBitArray(9, 16));
+    bitArr.push(...convertToFixedBitArray(5, 16));
+    bitArr.push(...convertToFixedBitArray(0, 16));
     // anim indices
-    for (let i = 0; i < 7; i++) {
-        bitArr.push(...convertToFixedBitArray(0, 16));
-    }
+    bitArr.push(...convertToFixedBitArray(0x328, 16)); // standing still
+    bitArr.push(...convertToFixedBitArray(0x337, 16)); // turning while standing
+    bitArr.push(...convertToFixedBitArray(0x333, 16)); // walking
+    bitArr.push(...convertToFixedBitArray(0x334, 16)); // turning around (backwards)
+    bitArr.push(...convertToFixedBitArray(0x335, 16)); // turning a quarter-way clockwise
+    bitArr.push(...convertToFixedBitArray(0x336, 16)); // turning a quarter-way counter clockwise
+    bitArr.push(...convertToFixedBitArray(0x338, 16)); // running
     // players name long
-    bitArr.push(...convertToFixedBitArray(0, 64));
+    bitArr.push(...convertToFixedBitArray(1, 64));
     // players combat level
-    bitArr.push(...convertToFixedBitArray(0, 8));
+    bitArr.push(...convertToFixedBitArray(10, 8));
     // players skill level
-    bitArr.push(...convertToFixedBitArray(0, 8));
+    bitArr.push(...convertToFixedBitArray(3, 8));
 
     /**
      * Create our buffer
      */
-
     // The size of the written bits in bytes
     let bitArrSize = Math.ceil(bitArr.length / 8); 
     // our offset is therefore our bitarrsize + any further bytes to be written

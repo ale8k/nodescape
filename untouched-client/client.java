@@ -8601,12 +8601,10 @@ public final class client extends Applet_Sub1
             // reads our buffer, basically we can log this out if all is working right
             class30_sub2_sub2.method417(j1, aByte920, 0, abyte0);
             System.out.println();
-            
+
             for (int ii = 0; ii < class30_sub2_sub2_1.aByteArray1405.length; ii++) {
                 System.out.println(class30_sub2_sub2_1.aByteArray1405[ii]);
             }
-
-
 
             // playerSynchronizationBuffers[index] = appearanceBuffer;
             aClass30_Sub2_Sub2Array895[j] = class30_sub2_sub2_1;
