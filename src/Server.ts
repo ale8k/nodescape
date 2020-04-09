@@ -76,7 +76,13 @@ class Server {
 
                     if (test === true) {
                         // 73: Load the map zone
-                        socket.write(LoadMapZone73(this.outStreamCryption.getNextKey(), 404, 404));
+                        socket.write(
+                            LoadMapZone73(
+                                this.outStreamCryption.getNextKey(),
+                                406, // higher = east, lower = west  // x
+                                406 // higher = north, lower = south // y coord
+                            )
+                        );
 
                         // UpdateLocalPlayer81(
                         //     this.outStreamCryption.getNextKey(),
@@ -91,8 +97,12 @@ class Server {
                                 0, // planelevel
                                 1, // clear await queue
                                 1, // update required
-                                21, // xcoord
-                                21 // y coord
+                                21, // ycoord
+                                21,  // xcoord
+                                0, // updateNPlayers movements
+                                2047, // player list updating bit
+                                1, // gender
+                                0, // overhead id
                             )
                         );
                     }

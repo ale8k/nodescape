@@ -2202,7 +2202,7 @@ public final class client extends Applet_Sub1
     }
 
     private final void method49(int i, byte byte0, Class30_Sub2_Sub2 class30_sub2_sub2) {
-        System.out.println("Method 49 called");
+        System.out.println("METHOD 49 CALLED");
         if(byte0 == 2)
             byte0 = 0;
         else
@@ -7236,11 +7236,11 @@ public final class client extends Applet_Sub1
     /**
      * Player list updating, this nasty loop goes through every player
      * @param class30_sub2_sub2_1083 the input stream
-     * @param i no idea
-     * @param byte0 a value representing 8
+     * @param i expected packet size
+     * @param byte0 a value representing 8?
      */
     private final void method91(Class30_Sub2_Sub2 class30_sub2_sub2_1083, int i, byte byte0) {
-
+        System.out.println("METHOD 91 CALLED");
         if(byte0 == 8)
             byte0 = 0;
         else
@@ -7250,7 +7250,7 @@ public final class client extends Applet_Sub1
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
 
-            // 2047 max player count
+            // 2047 max player count, allows us to break past this
             if(j == 2047) {
                 break;
             }
@@ -8987,10 +8987,11 @@ public final class client extends Applet_Sub1
      * Handles 'our' player movements
      * method419: reads x amount bits, unsure of second arg
      * @param class30_sub2_sub2
-     * @param i
+     * @param i expected packet size
      * @param byte0
      */
     private final void method117(Class30_Sub2_Sub2 class30_sub2_sub2, int i, byte byte0) {
+        System.out.println("METHOD 117 CALLED");
         // no idea 
         class30_sub2_sub2.method418(anInt1118);
         // sets the next opcode, not really sure why though?
@@ -9052,15 +9053,21 @@ public final class client extends Applet_Sub1
             System.out.println("Movement type: 2");
             return;
         }
-        if(k == 3)
-        {
+        if(k == 3) {
+            // our plane level, 0-3
             anInt918 = class30_sub2_sub2.method419(2, 0);
+            // clear awaiting point queue
             int j1 = class30_sub2_sub2.method419(1, 0);
+            // update required?
             int i2 = class30_sub2_sub2.method419(1, 0);
+            // not sure why it checks the 2nd bit here?
             if(i2 == 1)
                 anIntArray894[anInt893++] = anInt889;
+            // our zone co-ordinates
             int k2 = class30_sub2_sub2.method419(7, 0);
             int l2 = class30_sub2_sub2.method419(7, 0);
+            // if we clear await queue, and our coords are 1
+            // set false? no idea
             aClass30_Sub2_Sub4_Sub1_Sub2_1126.method445(l2, k2, j1 == 1, false);
             System.out.println("Movement type: 3");
         }
@@ -9846,11 +9853,15 @@ public final class client extends Applet_Sub1
     /**
      * Updates other player movements (currently unused by server)
      * @param byte0
-     * @param i
+     * @param i expected packet size
      * @param class30_sub2_sub2
      */
     private final void method134(byte byte0, int i, Class30_Sub2_Sub2 class30_sub2_sub2) {
+        System.out.println("METHOD 134 CALLED");
+        // how many other player movements to update
         int j = class30_sub2_sub2.method419(8, 0);
+        // i'm not sure if this is in our zone or in the server entirely?
+        System.out.println("There are: " + anInt891 + " other players");
 
         if(j < anInt891) {
             for(int k = j; k < anInt891; k++)
@@ -9862,7 +9873,9 @@ public final class client extends Applet_Sub1
             throw new RuntimeException("eek");
         }
 
-        // resets anInt891, but it's 0 anyway...
+        // resets anInt891 to check our suggest amount (j) to the actual amount > (anInt891)
+        // i think...
+        // for now we say 0 player in j, so this will not run thankfully!
         anInt891 = 0;
 
         for(int l = 0; l < j; l++) {
@@ -10624,10 +10637,10 @@ public final class client extends Applet_Sub1
      * @param i no idea
      * @param class30_sub2_sub2 The reading stream for the client
      */
-    private final void method143(int i, Class30_Sub2_Sub2 class30_sub2_sub2_1083)
-    {
+    private final void method143(int i, Class30_Sub2_Sub2 class30_sub2_sub2_1083) {
+        System.out.println("\n");
         anInt893 = 0;
-        System.out.println(class30_sub2_sub2_1083.anInt1406);
+        System.out.println("Packet size: " + class30_sub2_sub2_1083.anInt1406);
         // Our player movement updates
         method117(class30_sub2_sub2_1083, i, (byte)5); 
         // Other player movement updates
@@ -10643,7 +10656,8 @@ public final class client extends Applet_Sub1
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[l] = null;
         }
 
-        System.out.println(class30_sub2_sub2_1083.anInt1406);
+        System.out.println("Final packet size: " + class30_sub2_sub2_1083.anInt1406 + " should equal: " + i);
+
         if(class30_sub2_sub2_1083.anInt1406 != i) {
             signlink.reporterror("Error packet size mismatch in getplayer pos: " + class30_sub2_sub2_1083.anInt1406 + " packet size: " + i);
             throw new RuntimeException("eek");

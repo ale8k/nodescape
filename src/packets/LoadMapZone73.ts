@@ -1,4 +1,3 @@
-import Cryption from "../Cryption";
 import { shortToBytes } from "../utils";
 
 /**

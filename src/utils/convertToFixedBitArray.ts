@@ -6,7 +6,7 @@ import { convertToBitArray } from ".";
  * it would output [0, 0, 0, 1, 1]
  * @param num the number to convert into a bit arr
  * @param amount the amount of bits to emit
- * @author ale8k.
+ * @author ale8k
  */
 export default function convertToFixedBitArray(num: number, amount: number) {
     const bitArr = convertToBitArray(num);
