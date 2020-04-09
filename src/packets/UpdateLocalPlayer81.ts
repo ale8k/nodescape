@@ -125,25 +125,14 @@ export default function UpdateLocalPlayer81(
     bitArr.push(clearAwaitingPointQueue);
 
     // X/Y for other player (s) relative to our player
-    //bitArr.push(...convertToFixedBitArray(12, 5));
-    //bitArr.push(...convertToFixedBitArray(12, 5));
+    bitArr.push(...convertToFixedBitArray(12, 5));
+    bitArr.push(...convertToFixedBitArray(12, 5));
 
     // this ends the player list updating process
 
     /**
      * METHOD 49 (Actually 107 really)
      */
-    // It actually reads a single byte, which is the flag of updating we wish
-    // to perform on our / other players. It's all done here. The update mask we're
-    // currently supporting is 0x10, appearance update.
-    /**
-     * Masks written in bit format, to make it easier for us to write them:
-     * Please note, they're all done in 8 bit formats or 16 bit if 0x40 is called,
-     * They're also all little endian. Ofc for 0x10, this doesn't matter.
-     * 
-     * 0x10: 10000
-     */
-
 
     /**
      * Create our buffer

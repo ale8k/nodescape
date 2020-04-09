@@ -2217,7 +2217,7 @@ public final class client extends Applet_Sub1
             int k = anIntArray894[j];
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[k];
             int l = class30_sub2_sub2.method408();
-            //System.out.println("Method 49 reads with method408, output is: " + l);
+            System.out.println("Update flag: " + l);
             if((l & 0x40) != 0)
                 l += class30_sub2_sub2.method408() << 8;
             method107(l, k, class30_sub2_sub2, aByte923, class30_sub2_sub4_sub1_sub2);
@@ -7262,6 +7262,7 @@ public final class client extends Applet_Sub1
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
+            System.out.println("\n");
             System.out.println("Player list updating 11bit ID: " + j);
             // 2047 max player count, allows us to break past this
             if(j == 2047) {
@@ -7318,18 +7319,19 @@ public final class client extends Applet_Sub1
             // this is all other players co-ordinates relative to our players,
             // we don't actually have any 'other' players though...
             int i1 = class30_sub2_sub2_1083.method419(5, 0);
+            System.out.println("Update player to X co-ordinate: " + i1);
 
             if(i1 > 15)
                 i1 -= 32;
 
             int j1 = class30_sub2_sub2_1083.method419(5, 0);
-
+            System.out.println("Update player to Y co-ordinate: " + j1);
             if(j1 > 15)
                 j1 -= 32;
 
             class30_sub2_sub4_sub1_sub2.method445(((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1500[0] + j1, ((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1501[0] + i1, l == 1, false);
         }
-
+        System.out.println("\n");
         class30_sub2_sub2_1083.method420(true);
     }
 
