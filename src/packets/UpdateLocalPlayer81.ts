@@ -1,7 +1,21 @@
 
 import { setBit, convertToBitArray, convertToFixedBitArray } from "../utils";
 import convertTo8Bit from "src/utils/convertToFixedBitArray";
-
+/**
+ * Updates the local player in a given zone (8x8 set of tiles in a region)
+ * The packet is dynamically sized based on the bits received 
+ * @param key the encrypted opcode
+ * @param updateOurPlayer 
+ * @param movementType 
+ * @param planeHeight 
+ * @param clearAwaitingPointQueue 
+ * @param updateRequired 
+ * @param xcoord 
+ * @param ycoord 
+ * @param updateNPlayers 
+ * @param playerListUpdating 
+ * @author ale8k
+ */
 export default function UpdateLocalPlayer81(
         key: number, 
         updateOurPlayer: number,
@@ -14,15 +28,6 @@ export default function UpdateLocalPlayer81(
         updateNPlayers?: number,
         playerListUpdating?: number,
     ) {
-
-    const buf = Buffer.alloc(100);
-    // our encrypted opcode
-    buf[0] = 81 + key;
-    // packet size placeholder
-    buf.writeInt16BE(0, 1);
-    // offset of the packet start
-    let offset = 3;
-    
 
     /**
      * begin bit writing here:
@@ -37,7 +42,7 @@ export default function UpdateLocalPlayer81(
     bitArr.push(updateOurPlayer);
     
     // set our movement type and corresponding expected bits
-    bitArr.push(...convertToBitArray(movementType));
+    bitArr.push(...convertToFixedBitArray(movementType, 2));
 
     switch (movementType) {
         case 0:
@@ -50,7 +55,7 @@ export default function UpdateLocalPlayer81(
             // set the player's plane/height level 
             // TODO: this obviously needs to be dynamic, for now, 
             // we hardcode height 3
-            bitArr.push(...convertToBitArray(3));
+            bitArr.push(...convertToFixedBitArray(planeHeight as number, 2));
             break;
     }
 
@@ -64,8 +69,8 @@ export default function UpdateLocalPlayer81(
     // our x/y coordinate relative to the 'region (Graham refers to this as a map)'
     // a map is 64x64 tiles.
     // the client reads these in 7 bit values
-    bitArr.push(...convertToFixedBitArray(10, 7));
-    bitArr.push(...convertToFixedBitArray(10, 7));
+    bitArr.push(...convertToFixedBitArray(xcoord as number, 7));
+    bitArr.push(...convertToFixedBitArray(ycoord as number, 7));
 
     // update other player movements, it reads this in an 8 bit value
     // TODO: finish the bit writing for this
@@ -78,67 +83,33 @@ export default function UpdateLocalPlayer81(
     bitArr.push(...convertToFixedBitArray(2047, 11));
     //console.log(bitArr);
 
+    /**
+     * Create our buffer
+     */
+    const buf = Buffer.alloc(Math.ceil(bitArr.length / 8) + 4);
+    // our encrypted opcode
+    buf[0] = 81 + key;
 
-    // //NodeJS doesn't have dynamic buffers...
-    // const b = Buffer.alloc(9);
-    // // set our encrypted opcode
-    // b[0] = 81 + key;
-    // // placeholder for packet size
-    // b.writeInt16BE(6, 1);
-    // // track our offset now, as we're beginning packet creation
-    // let offfset = 3;
-    // // update our player or not
-    // setBit(b, 3, 7, 1);
-    // // VALUE: 3 - Type 3, update our players plane level
-    // setBit(b, 3, 6, 1);
-    // setBit(b, 3, 5, 1);
-    // // setting plane level here, 0-3 (we use 0 for now)
-    // setBit(b, 3, 4, 0);
-    // setBit(b, 3, 3, 0);
-    // // clear awaitig-point queue, i.e., remove our further steps left to do by client. Like when teleing
-    // setBit(b, 3, 2, 1);
-    // // is there an update required? (i.e., logged in, update our player)
-    // setBit(b, 3, 1, 1);
-    // // x
-    // setBit(b, 3, 0, 0);
-    // setBit(b, 4, 7, 0);
-    // setBit(b, 4, 6, 1);
-    // setBit(b, 4, 5, 0);
-    // setBit(b, 4, 4, 1);
-    // setBit(b, 4, 3, 0);
-    // setBit(b, 4, 2, 1);
-    // // y
-    // setBit(b, 4, 1, 0);
-    // setBit(b, 4, 0, 0);
-    // setBit(b, 5, 7, 1);
-    // setBit(b, 5, 6, 0);
-    // setBit(b, 5, 5, 1);
-    // setBit(b, 5, 4, 0);
-    // setBit(b, 5, 3, 1);
-    // // How many other players the client needs to update,
-    // // currently no multiplayer so none,
-    // // this will need some considerable thought lol
-    // setBit(b, 5, 2, 0);
-    // setBit(b, 5, 1, 0);
-    // setBit(b, 5, 0, 0);
-    // setBit(b, 6, 7, 0);
-    // setBit(b, 6, 6, 0);
-    // setBit(b, 6, 5, 0);
-    // setBit(b, 6, 4, 0);
-    // setBit(b, 6, 3, 0);
-    // // player list updating, not really sure here. Used wL's 2047 value
-    // setBit(b, 6, 2, 1);
-    // setBit(b, 6, 1, 1);
-    // setBit(b, 6, 0, 1);
-    // setBit(b, 7, 7, 1);
-    // setBit(b, 7, 6, 1);
-    // setBit(b, 7, 5, 1);
-    // setBit(b, 7, 4, 1);
-    // setBit(b, 7, 3, 1);
-    // setBit(b, 7, 2, 1);
-    // setBit(b, 7, 1, 1);
-    // setBit(b, 7, 0, 1);
-    // // initial player update done
-    // // b[8] is empty byte, without it packet is being rejected?
-    // return b;
+    // packet size placeholder
+    // set packet size now we know what it is
+    buf.writeInt16BE(Math.ceil(bitArr.length / 8) + 1, 1);
+
+    // write the bits
+    // we know we gotta start at index 3, because opcode + size = 3 bytes
+    let bitIndex = 7;
+    let byteIndex = 3;
+
+    // something is wrong here, it's not writing correctly
+    for (let i = 0; i < bitArr.length; i++) {
+        setBit(buf, byteIndex, bitIndex, bitArr[i] as number);
+        console.log("Writing byte index:" + byteIndex + ", and bit index:" + bitIndex);
+        bitIndex -= 1;
+
+        if (bitIndex <= -1) {
+            bitIndex = 7;
+            byteIndex += 1;
+        }
+    }
+
+    return buf;
 }

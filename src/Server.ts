@@ -78,17 +78,23 @@ class Server {
                         // 73: Load the map zone
                         socket.write(LoadMapZone73(this.outStreamCryption.getNextKey(), 404, 404));
 
-                        UpdateLocalPlayer81(
-                            this.outStreamCryption.getNextKey(),
-                            1, 3, 3, 0, 0, 3, 3
-                        );
-                        // 83: Update local player
-                        // socket.write(
-                        //     UpdateLocalPlayer81(
-                        //         this.outStreamCryption.getNextKey(),
-                        //         1, 3, 3, 0, 0, 3, 3
-                        //     )
+                        // UpdateLocalPlayer81(
+                        //     this.outStreamCryption.getNextKey(),
+                        //     1, 3, 3, 0, 0, 3, 3
                         // );
+                        // 83: Update local player
+                        socket.write(
+                            UpdateLocalPlayer81(
+                                this.outStreamCryption.getNextKey(),
+                                1, // update our player
+                                3, // move type
+                                0, // planelevel
+                                1, // clear await queue
+                                1, // update required
+                                21, // xcoord
+                                21 // y coord
+                            )
+                        );
                     }
 
                 }
