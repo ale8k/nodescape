@@ -4,6 +4,15 @@ import convertTo8Bit from "src/utils/convertToFixedBitArray";
 import * as Long from "long";
 
 /**
+ * Our first packet only considers methods 117, our player
+ * and method 49, the bit mask.
+ * 
+ * Because our bitmask is set in the first packet,
+ * our next packet can consider method134, appearance updating,
+ * because we have a mask prepared.
+ */
+
+/**
  * Updates the local player in a given zone (8x8 set of tiles in a region)
  * The packet is dynamically sized based on the bits received 
  * @param key the encrypted opcode
@@ -41,24 +50,17 @@ export default function UpdateLocalPlayer81(
 
     /**
      * Begin bit writing here:
-     *
-     * it works like so, we keep pushing bits to the bit array
-     * once its complete, we call writeBits(buf, bitArr, 3) passing our buffer,
-     * the bit array, and an index to start from. The method writes to it and returns it
-     * back to us - it may also returns the index to continue from whereever it left off
      */
     let bitArr = [];
 
     /**
      * METHOD 117
      */
-
     // Update our player or not
     bitArr.push(updateOurPlayer);
-    
+
     // Set our movement type and corresponding expected bits
     bitArr.push(...convertToFixedBitArray(movementType, 2));
-
     switch (movementType) {
         case 0:
             break;
@@ -73,13 +75,10 @@ export default function UpdateLocalPlayer81(
             bitArr.push(...convertToFixedBitArray(planeHeight as number, 2));
             break;
     }
-
     // Clear awaiting point queue
     bitArr.push(clearAwaitingPointQueue);
-
     // Update required bit, need more info on this
     bitArr.push(updateRequired);
-
     // our x/y coordinate of player (7bit)
     bitArr.push(...convertToFixedBitArray(ycoord as number, 7));
     bitArr.push(...convertToFixedBitArray(xcoord as number, 7));
@@ -87,52 +86,18 @@ export default function UpdateLocalPlayer81(
     /**
      * METHOD 134
      */
-
-    // We're updating 0 other players, allows us to skip this method and play
-    // single player
-    // How many other players movements will be updated (8bit)
     bitArr.push(...convertToFixedBitArray(updateNPlayers as number, 8));
   
     /**
      * METHOD 91
      */
-
-    // Player list updating (11bit), we setting player 1 and ONLY 1
     bitArr.push(...convertToFixedBitArray(playerListUpdating as number, 11));
-
-    // next it WOULD update the appearance, but the stream needs setting in our
-    // block flag updating (method49), so this actually happens on the next packet, not this one!
-    // silly doc didn't explain this lol
-
-    if (updatePlayersAppearance) {
-        console.log("boop");
-    } else {
-
-    }
-
-    // So we skip to whether or not the client has a chunk
-    // in the update block list, our block flag list, which it doesn't initially.
-    // So this is 'no' the first time around and 'yes' the next.
-    bitArr.push(playerIsInUpdateBlockList as number);
-
-    /**
-     * WE MAY ACTUALLY NEED TO SKIP THESE BITS, NOT SURE THEY'RE RELEVANT
-     * AS WE DON'T HAVE MULTIPLAYER RIGHT NOW
-     */
-    // Clear awaiting point queue for other player (s) relative to our player
-    // we don't have any bloody players though lol
-    // figure out why it checks this for the other players here
-    bitArr.push(clearAwaitingPointQueue);
-
-    // X/Y for other player (s) relative to our player
-    bitArr.push(...convertToFixedBitArray(12, 5));
-    bitArr.push(...convertToFixedBitArray(12, 5));
-
-    // this ends the player list updating process
 
     /**
      * METHOD 49 (Actually 107 really)
      */
+    console.log(Math.ceil(bitArr.length / 8));
+    
 
     /**
      * Create our buffer
@@ -140,22 +105,16 @@ export default function UpdateLocalPlayer81(
 
     // The size of the written bits in bytes
     let bitArrSize = Math.ceil(bitArr.length / 8); 
-
     // our offset is therefore our bitarrsize + any further bytes to be written
     let offset = bitArrSize; 
-
     // our opcode is 1 byte, and packet size is a short, 3 bytes total
     let basePacketSize = 3; 
-
     // set buffer size, this includes our bits + any further bytes we gonna write
     const buf = Buffer.alloc(offset + basePacketSize + 1);
-
     // our encrypted opcode
     buf[0] = 81 + key;
-
     // set packet size including all bits and bytes
     buf.writeInt16BE((offset + 1), 1);
-
     // write the bits
     let bitIndex = 7;
     let byteIndex = 3;

@@ -2204,6 +2204,10 @@ public final class client extends Applet_Sub1
         return false;
     }
 
+    /**
+     * Block flag updating, basically tells the client who's ready
+     * for updates and whatnot. Only aware of appearance (0x10) so far
+     */
     private final void method49(int i, byte byte0, Class30_Sub2_Sub2 class30_sub2_sub2) {
         System.out.println("METHOD 49 CALLED");
         if(byte0 == 2)
@@ -2212,8 +2216,8 @@ public final class client extends Applet_Sub1
             return;
         // begin block updating
         // anint893 is all players in our list
-        for(int j = 0; j < anInt893; j++)
-        {
+        // so it looks through every player in our local list, like every single one lol
+        for(int j = 0; j < anInt893; j++) {
             int k = anIntArray894[j];
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[k];
             int l = class30_sub2_sub2.method408();
@@ -7262,7 +7266,6 @@ public final class client extends Applet_Sub1
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
-            System.out.println("\n");
             System.out.println("Player list updating 11bit ID: " + j);
             // 2047 max player count, allows us to break past this
             if(j == 2047) {
@@ -7331,7 +7334,7 @@ public final class client extends Applet_Sub1
 
             class30_sub2_sub4_sub1_sub2.method445(((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1500[0] + j1, ((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1501[0] + i1, l == 1, false);
         }
-        System.out.println("\n");
+        System.out.println("Out of loop now");
         class30_sub2_sub2_1083.method420(true);
     }
 
