@@ -100,9 +100,9 @@ class Server {
                                 21, // ycoord
                                 21,  // xcoord
                                 0, // updateNPlayers movements
-                                2047, // player list updating bit
-                                1, // gender
-                                0, // overhead id
+                                10, // player list updating bit
+                                false,
+                                0, // update block list
                             )
                         );
                     }

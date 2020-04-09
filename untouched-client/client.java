@@ -7235,6 +7235,9 @@ public final class client extends Applet_Sub1
 
     /**
      * Player list updating, this nasty loop goes through every player
+     * This includes both the appearance updates and location updates
+     * for all players in the local list (cache), it's honestly
+     * monolithic. It may be worth attempting a refactor on this eventually.
      * @param class30_sub2_sub2_1083 the input stream
      * @param i expected packet size
      * @param byte0 a value representing 8?
@@ -7246,6 +7249,11 @@ public final class client extends Applet_Sub1
         else
             anInt1119 = -50;
 
+        /**
+         * anInt1407 is our bit position, this loop will run until it receives bits passed
+         * packet size.i.e., 39 + 11 = 50. i
+         * As such this only runs once, despite what it appears to do.
+         */
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
@@ -7255,13 +7263,20 @@ public final class client extends Applet_Sub1
                 break;
             }
             
+            /**
+             * APPEARANCE UPDATING:
+             * Checks if there's a cached buffer, aka a literal fucking stream
+             * for our player. There isn't on the first packet because this is set
+             * in method49, our update block flags... Jesus.
+             */
             // if player is not in array...
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] == null) {
-                // add player to player array
+                // add player instance to player array
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] = new Class30_Sub2_Sub4_Sub1_Sub2();
                 System.out.println("player " + j + " added to update buffer");
                 System.out.println("this should have a value: " + aClass30_Sub2_Sub2Array895[j]);
                 // for some reason this is always gonna be null, but i wanna update my dudes appearance lol
+                // i think this is because our player is null until our block flag update
                 if(aClass30_Sub2_Sub2Array895[j] != null) {
                     // Appearance loop, I believe
                     aClass30_Sub2_Sub4_Sub1_Sub2Array890[j].method451(0, aClass30_Sub2_Sub2Array895[j]);
@@ -7272,16 +7287,28 @@ public final class client extends Applet_Sub1
             // take current open stream and replace with this player stream
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[j];
 
+            /**
+             * LOCATION UPDATING
+             */
             class30_sub2_sub4_sub1_sub2.anInt1537 = anInt1161;
-            // think this tells client if it had a chunk in the update list,
-            // imma just say yeah for now lol
+
+            // It then reads a 1 bit quantity that defines whether or not the client has a chunk in the player update block list.
+            // I think this checks if method49 has run before... 
+            // It hasn't so we'll say no. But next packet we send,
+            // it has, so we'll update this to true and therefore the player
+            // can update their appearance from then on and other
+            // block flag updates
             int k = class30_sub2_sub2_1083.method419(1, 0);
 
             if(k == 1)
                 anIntArray894[anInt893++] = j;
+
             // clear awaiting point queue, like when telleing 
             int l = class30_sub2_sub2_1083.method419(1, 0);
+
             // players x/y
+            // this is all other players co-ordinates relative to our players,
+            // we don't actually have any 'other' players though...
             int i1 = class30_sub2_sub2_1083.method419(5, 0);
 
             if(i1 > 15)

@@ -30,9 +30,13 @@ export default function UpdateLocalPlayer81(
         xcoord?: number,
         updateNPlayers?: number,
         playerListUpdating?: number,
+        updatePlayersAppearance?: boolean,
+        playerIsInUpdateBlockList?: number,
+
         // byte args
         gender?: number,
         overheadId?: number
+
     ) {
 
     /**
@@ -45,12 +49,9 @@ export default function UpdateLocalPlayer81(
      */
     let bitArr = [];
 
-
-
-
-    // METHOD117
-
-
+    /**
+     * METHOD 117
+     */
 
     // Update our player or not
     bitArr.push(updateOurPlayer);
@@ -83,28 +84,51 @@ export default function UpdateLocalPlayer81(
     bitArr.push(...convertToFixedBitArray(ycoord as number, 7));
     bitArr.push(...convertToFixedBitArray(xcoord as number, 7));
 
-    
-
-
-    // METHOD 134
-
+    /**
+     * METHOD 134
+     */
 
     // We're updating 0 other players, allows us to skip this method and play
     // single player
     // How many other players movements will be updated (8bit)
     bitArr.push(...convertToFixedBitArray(updateNPlayers as number, 8));
+  
+    /**
+     * METHOD 91
+     */
 
-
-    // METHOD 91
-
-
-    // Player list updating (11bit)
+    // Player list updating (11bit), we setting player 1 and ONLY 1
     bitArr.push(...convertToFixedBitArray(playerListUpdating as number, 11));
 
+    // next it WOULD update the appearance, but the stream needs setting in our
+    // block flag updating (method49), so this actually happens on the next packet, not this one!
+    // silly doc didn't explain this lol
+
+    // So we skip to whether or not the client has a chunk
+    // in the update block list, our block flag list, which it doesn't initially.
+    // So this is 'no' the first time around and 'yes' the next.
+    bitArr.push(playerIsInUpdateBlockList as number);
+
+    /**
+     * WE MAY ACTUALLY NEED TO SKIP THESE BITS, NOT SURE THEY'RE RELEVANT
+     * AS WE DON'T HAVE MULTIPLAYER RIGHT NOW
+     */
+    // Clear awaiting point queue for other player (s) relative to our player
+    // we don't have any bloody players though lol
+    // figure out why it checks this for the other players here
+    bitArr.push(clearAwaitingPointQueue);
+
+    // X/Y for other player (s) relative to our player
+    bitArr.push(...convertToFixedBitArray(12, 5));
+    bitArr.push(...convertToFixedBitArray(12, 5));
+
+    // this ends the player list updating process
 
 
 
-
+    /**
+     * WRITING END
+     */
     // The size of the written bits
     let bitArrSize = Math.ceil(bitArr.length / 8); 
     // our offset is therefore our basepacket + bitarr size, i.e., idx's 0,1,2 = 3. 3,4,5,6,7 = 5. Offset = 8

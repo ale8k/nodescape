@@ -90,12 +90,23 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
     public final void method451(int i, Class30_Sub2_Sub2 class30_sub2_sub2)
     {
         class30_sub2_sub2.anInt1406 = 0;
+        /**
+         * PLayers gender byte
+         */
         anInt1702 = class30_sub2_sub2.method408();
+        /**
+         * Players overhead icon byte
+         */
         anInt1706 = class30_sub2_sub2.method408();
+        
         if(i != 0)
             return;
         aClass5_1698 = null;
         anInt1701 = 0;
+
+        /**
+         * Our equipment loop
+         */
         for(int j = 0; j < 12; j++)
         {
             int k = class30_sub2_sub2.method408();
@@ -119,6 +130,9 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
             }
         }
 
+        /**
+         * Our colour loop
+         */
         for(int l = 0; l < 5; l++)
         {
             int j1 = class30_sub2_sub2.method408();
@@ -127,6 +141,10 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
             anIntArray1700[l] = j1;
         }
 
+        /**
+         * No idea why this isn't a loop, but these 7 unsigned shorts
+         * are our anims indices.
+         */
         super.anInt1511 = class30_sub2_sub2.method410();
         if(super.anInt1511 == 65535)
             super.anInt1511 = -1;
@@ -148,9 +166,22 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
         super.anInt1505 = class30_sub2_sub2.method410();
         if(super.anInt1505 == 65535)
             super.anInt1505 = -1;
+        
+        /**
+         * No idea what this is
+         */
         aString1703 = Class50.method587(-45804, Class50.method584(class30_sub2_sub2.method414(-35089), (byte)-99));
+        /**
+         * Reads as long representing the players name
+         */
         anInt1705 = class30_sub2_sub2.method408();
+        /**
+         * Reads a short, but it's actually looking at the 2 bytes here
+         * 1 for the players skill level and 1 for the combat level
+         * The docs on rsps fandom are wrong
+         */
         anInt1723 = class30_sub2_sub2.method410();
+
         aBoolean1710 = true;
         aLong1718 = 0L;
         for(int k1 = 0; k1 < 12; k1++)
