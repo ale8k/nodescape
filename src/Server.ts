@@ -84,11 +84,6 @@ class Server {
                             )
                         );
 
-                        // UpdateLocalPlayer81(
-                        //     this.outStreamCryption.getNextKey(),
-                        //     1, 3, 3, 0, 0, 3, 3
-                        // );
-                        // 83: Update local player
                         socket.write(
                             UpdateLocalPlayer81(
                                 this.outStreamCryption.getNextKey(),
@@ -101,10 +96,12 @@ class Server {
                                 21,  // xcoord
                                 0, // updateNPlayers movements
                                 2047, // player list updating bit
-                                false,
-                                0, // update block list
                             )
                         );
+
+
+
+
                     }
 
                 }

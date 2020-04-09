@@ -39,13 +39,6 @@ export default function UpdateLocalPlayer81(
         xcoord?: number,
         updateNPlayers?: number,
         playerListUpdating?: number,
-        updatePlayersAppearance?: boolean,
-        playerIsInUpdateBlockList?: number,
-
-        // byte args
-        gender?: number,
-        overheadId?: number
-
     ) {
 
     /**
@@ -95,9 +88,37 @@ export default function UpdateLocalPlayer81(
 
     /**
      * METHOD 49 (Actually 107 really)
+     * 
+     * 0x10
+     * The 0x10 mask updates appearance of the player in exact same way as in updating player list. 
+     * Only difference is that appearance is updated from a set-sized buffer filled from the current buffer.
+     * An unsigned inversed byte is read first which describes appearance buffer size, and the buffer is filled.
      */
-    console.log(Math.ceil(bitArr.length / 8));
-    
+    bitArr.push(...convertToFixedBitArray(0x10, 8)); 
+    // size, reads backwards. fuck knows why
+    bitArr.push(...convertToFixedBitArray((255 - 48), 8));
+    // gender
+    bitArr.push(...convertToFixedBitArray(0, 8));
+    // overhead icon id
+    bitArr.push(...convertToFixedBitArray(0, 8));
+    // 12 bytes for equipment (0 means nothing)
+    for (let i = 0; i < 12; i++) {
+        bitArr.push(...convertToFixedBitArray(0, 8));
+    }
+    // body part colours
+    for (let i = 0; i < 5; i++) {
+        bitArr.push(...convertToFixedBitArray(0, 16));
+    }
+    // anim indices
+    for (let i = 0; i < 7; i++) {
+        bitArr.push(...convertToFixedBitArray(0, 16));
+    }
+    // players name long
+    bitArr.push(...convertToFixedBitArray(0, 64));
+    // players combat level
+    bitArr.push(...convertToFixedBitArray(0, 8));
+    // players skill level
+    bitArr.push(...convertToFixedBitArray(0, 8));
 
     /**
      * Create our buffer

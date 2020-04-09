@@ -8579,13 +8579,38 @@ public final class client extends Applet_Sub1
             if(((Class30_Sub2_Sub4_Sub1) (class30_sub2_sub4_sub1_sub2)).anInt1502 == 65535)
                 class30_sub2_sub4_sub1_sub2.anInt1502 = -1;
         }
+        /*
+        if ((mask & 0x10) != 0) {
+			int length = buffer.readNegUByte();
+			byte[] data = new byte[length];
+			Buffer appearanceBuffer = new Buffer(data);
+			buffer.readData(data, 0, length);
+			playerSynchronizationBuffers[index] = appearanceBuffer;
+			player.updateAppearance(appearanceBuffer);
+        }
+        */
         if((i & 0x10) != 0)
         {
+            // reads a (i.e., backwards byte lol) neg ubyte representing the size of our appearance
+            // buffer we gonna send
             int j1 = class30_sub2_sub2.method427(false);
+            // the byte[] data for our buffer
             byte abyte0[] = new byte[j1];
+            // the appearance buffer instantiation
             Class30_Sub2_Sub2 class30_sub2_sub2_1 = new Class30_Sub2_Sub2(abyte0, 891);
+            // reads our buffer, basically we can log this out if all is working right
             class30_sub2_sub2.method417(j1, aByte920, 0, abyte0);
+            System.out.println();
+            
+            for (int ii = 0; ii < class30_sub2_sub2_1.aByteArray1405.length; ii++) {
+                System.out.println(class30_sub2_sub2_1.aByteArray1405[ii]);
+            }
+
+
+
+            // playerSynchronizationBuffers[index] = appearanceBuffer;
             aClass30_Sub2_Sub2Array895[j] = class30_sub2_sub2_1;
+            // player.updateAppearance(appearanceBuffer);
             class30_sub2_sub4_sub1_sub2.method451(0, class30_sub2_sub2_1);
         }
         if((i & 2) != 0)
@@ -10690,7 +10715,7 @@ public final class client extends Applet_Sub1
         method91(class30_sub2_sub2_1083, i, (byte)8);  
         // Player update block flag-based updates
         method49(i, (byte)2, class30_sub2_sub2_1083);  
-
+        System.out.println("Gone through 4 steps of updating");
         for(int k = 0; k < anInt839; k++) {
             int l = anIntArray840[k];
             if(((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2Array890[l])).anInt1537 != anInt1161)
