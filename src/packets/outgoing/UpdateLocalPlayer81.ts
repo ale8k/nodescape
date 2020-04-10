@@ -186,7 +186,7 @@ export default function UpdateLocalPlayer81(
         }
     }
 
-    console.log("Final offset is: " + offset);
+    //console.log("Final offset is: " + offset);
 
     return buf;
 }
