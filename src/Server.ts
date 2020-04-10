@@ -12,6 +12,7 @@ class Server {
     // TODO: Implement code 16 for reconnection
     private loginProtocolStage: number = 0;
     private outStreamCryption: Cryption;
+    private isTheInitialLoad: boolean = true;
 
     // When reading the packets, please note it goes data -> frame header
     // Can flip the array but idk if it matters
@@ -33,6 +34,7 @@ class Server {
                 if (data.toJSON().data.length > 3) {
                     console.log(data.toJSON(), "\n");
                 }
+
                 if (this.loginProtocolStage === 0) {
 
                     console.log("Server 1st response:");
@@ -73,37 +75,41 @@ class Server {
                     socket.write(Buffer.from([2, 0, 0]));
 
                 } else if (this.loginProtocolStage === 2) {
+                    // Send our initial 73 & 81 packets once upon load
+                    if (this.isTheInitialLoad === true) {
+                        // 73: Load the map zone
+                        socket.write(
+                            LoadMapZone73(
+                                this.outStreamCryption.getNextKey(),
+                                406, // higher = east, lower = west  // x
+                                406 // higher = north, lower = south // y coord
+                            )
+                        );
 
-                    // 73: Load the map zone
-                    socket.write(
-                        LoadMapZone73(
-                            this.outStreamCryption.getNextKey(),
-                            406, // higher = east, lower = west  // x
-                            406 // higher = north, lower = south // y coord
-                        )
-                    );
-
-                    // 83: Update our player (eventually will update others...)
-                    socket.write(
-                        UpdateLocalPlayer81(
-                            this.outStreamCryption.getNextKey(),
-                            1, // update our player
-                            3, // move type
-                            0, // planelevel
-                            1, // clear await queue
-                            1, // update required
-                            21, // ycoord
-                            21,  // xcoord
-                            0, // updateNPlayers movements
-                            2047, // player list updating bit
-                        )
-                    );
+                        // 83: Update our player (eventually will update others...)
+                        socket.write(
+                            UpdateLocalPlayer81(
+                                this.outStreamCryption.getNextKey(),
+                                1, // update our player
+                                3, // move type
+                                0, // planelevel
+                                1, // clear await queue
+                                1, // update required
+                                21, // ycoord
+                                21,  // xcoord
+                                0, // updateNPlayers movements
+                                2047, // player list updating bit
+                            )
+                        );
+                        this.isTheInitialLoad = false;
+                    }
 
                 }
             });
 
             socket.on("close", (err) => {
                 this.loginProtocolStage = 0;
+                this.isTheInitialLoad = true;
                 console.log("Ended");
             });
 

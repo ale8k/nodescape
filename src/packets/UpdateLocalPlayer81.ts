@@ -113,15 +113,6 @@ export default function UpdateLocalPlayer81(
 
     // 12 bytes for equipment (0 means nothing)
     /**
-     * original:
-     * 0  0x100
-     * 18 0x100
-     * 26 0x100
-     * 33 0x100
-     * 36 0x100
-     * 42 0x100
-     * 10 0x100
-     * 
      * Rune Pl8 - 1127 + 0x200
      * Rune Chain - 1113
      * Rune Full Helm - 1163
@@ -135,11 +126,11 @@ export default function UpdateLocalPlayer81(
     bitArr.push(...convertToFixedBitArray(1059 + 0x200, 16)); // gloves 33 + 0x100
     bitArr.push(...convertToFixedBitArray(1079 + 0x200, 16)); // legs 36 + 0x100
     bitArr.push(...convertToFixedBitArray(4131 + 0x200, 16)); // boots 42 + 0x100
-    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16)); // what's this
+    bitArr.push(...convertToFixedBitArray(10 + 0x100, 16)); // what's this 10 + 0x100
     bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
     bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
     bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
-    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16)); // beard
     bitArr.push(...convertToFixedBitArray(1163 + 0x200, 16)); //helm
     
     // body part colours
