@@ -17,7 +17,7 @@
 		"indent": [true, "spaces"],
 		"interface-name": true,
 		"jsdoc-format": true,
-		"max-line-length": [true, 140],
+		"max-line-length": [true, 400],
 		"no-any": true,
 		"no-arg": true,
 		"no-bitwise": false,

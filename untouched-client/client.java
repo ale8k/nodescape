@@ -5931,8 +5931,8 @@ public final class client extends Applet_Sub1
                 aLong1215 = aClass30_Sub2_Sub2_1083.method414(-35089);
                 // gens the session key for the client
                 int ai[] = new int[4];
-                ai[0] = (int)(Math.random() * 99999999D);
-                ai[1] = (int)(Math.random() * 99999999D);
+                ai[0] = (int)(0);
+                ai[1] = (int)(69);
                 ai[2] = (int)(aLong1215 >> 32);
                 ai[3] = (int)aLong1215;
 
@@ -12334,11 +12334,11 @@ public final class client extends Applet_Sub1
     }
 
         // rsa exponent
-        private static BigInteger aBigInteger1032 = new BigInteger("1");
+        private static BigInteger aBigInteger1032 = new BigInteger("5");
         // ????
         private static String aString1162 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"\243$%^&*()-_=+[{]};:'@#~,<.>/?\\| ";
         // rsa mod
-        private static BigInteger aBigInteger856 = new BigInteger("7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789");
+        private static BigInteger aBigInteger856 = new BigInteger("14");
 
     private int anInt822;
     private static byte aByte823 = 77;

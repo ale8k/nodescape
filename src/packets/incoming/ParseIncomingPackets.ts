@@ -1,4 +1,5 @@
-import Cryption from "src/IsaacCipher";
+import IsaacCipher from "src/IsaacCipher";
+import * as Long from "long";
 
 /**
  * Reads 'any' packet and attempts to parse it.
@@ -16,14 +17,11 @@ import Cryption from "src/IsaacCipher";
  *
  * @param buffer the incoming buffer
  */
-export default function ParseIncomingPackets(buffer: Buffer, inStreamDecryption: Cryption, outStreamEncryption: Cryption) {
-    // Overflow to get correct encrypt val, i.e., undo what the client is doing
-    //const opcode = buffer[0] & 0xff;
-    //console.log(buffer[0] - inStreamDecryption.nextKey());
+export default function ParseIncomingPackets(buffer: Buffer, inStreamDecryption: IsaacCipher) {
+    // only works for first 2 packets...???
+    const encryptedOpcode = buffer[0] & 0xff;
+    const decryptedOpcode = encryptedOpcode - inStreamDecryption.nextKey() & 0xff;
 
-
-    /**
-     * 164: Regular walk
-     */
-
+    console.log(decryptedOpcode);
+    console.log(buffer.toJSON());
 }
