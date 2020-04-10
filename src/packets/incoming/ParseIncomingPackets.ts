@@ -40,18 +40,18 @@ export default function ParseIncomingPackets(
     );
 
     // 83: Update our player (eventually will update others...)
-    socket.write(
-        UpdateLocalPlayer81(
-            outStreamEncryption.nextKey(),
-            1, // update our player
-            3, // move type
-            0, // planelevel
-            1, // clear await queuee
-            1, // update required
-            21, // ycoord
-            21,  // xcoord
-            0, // updateNPlayers movements
-            2047, // player list updating bit
-        )
-    );
+    // socket.write(
+    //     UpdateLocalPlayer81(
+    //         outStreamEncryption.nextKey(),
+    //         1, // update our player
+    //         3, // move type
+    //         0, // planelevel
+    //         1, // clear await queuee
+    //         1, // update required
+    //         21, // ycoord
+    //         21,  // xcoord
+    //         0, // updateNPlayers movements
+    //         2047, // player list updating bit
+    //     )
+    // );
 }

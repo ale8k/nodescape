@@ -1,4 +1,5 @@
 import * as net from "net";
+import { Socket } from "net";
 import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
 import { ParseIncomingPackets } from "./packets/incoming";
@@ -6,6 +7,24 @@ import LoginHandler from "./login/LoginHandler";
 import PacketHandler from "./packets/PacketHandler";
 import { EventEmitter } from "events";
 
+/**
+ * After some good research,
+ * I'm gonna have to listen to the data separately to my emitting.
+ * They've got to be out of sync, the client expects data on 600ms turnover,
+ * yet can emit multiple to us within 600ms. So...
+ * We gotta concat each new piece of data and only emit it via emitter after 600ms is up.
+ * After the 600ms is up, we obviously clear our cached buffer and prepare it to
+ * stock up on the next 10billion clicks people do.
+ *
+ * SO:
+ * socket.on("data") -> emits "queue-data", this will performs a Buffer.concat and store it in a field
+ * called 'cachedBuffer'. That's all for the socket data event, on the flip side:
+ *
+ * we'll ghave an event emitter run every 600ms, it'll read the cachedBuffer and respond to each packet
+ * appropriately (ideally).
+ *
+ * This should clear up my asynchronous / quick emit issues.
+ */
 
 /**
  * Entry point for the server
@@ -19,6 +38,7 @@ class Server {
      */
     private _gameEmitter: EventEmitter = new EventEmitter();
 
+
     constructor() {
         this.startServer();
     }
@@ -27,7 +47,7 @@ class Server {
         let inStreamDecryption: IsaacCipher;
         let outStreamEncryption: IsaacCipher;
         let loginProtocolStage = 0;
-        net.createServer((socket: net.Socket) => {
+        net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
             /**
              * Entry point
@@ -36,6 +56,7 @@ class Server {
             socket.on("data", (data) => console.log("Server byte[0]: " + data[0]));
             // new LoginHandler(socket, this._gameEmitter);
             // new PacketHandler(socket, this._gameEmitter);
+
 
             socket.on("data", (data) => {
                 if (loginProtocolStage === 0) {
