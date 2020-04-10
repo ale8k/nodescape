@@ -2222,8 +2222,11 @@ public final class client extends Applet_Sub1
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[k];
             int l = class30_sub2_sub2.method408();
             System.out.println("Update flag: " + l);
-            if((l & 0x40) != 0)
+            if((l & 0x40) != 0) {
+                System.out.println("This is running?");
                 l += class30_sub2_sub2.method408() << 8;
+            }
+            
             method107(l, k, class30_sub2_sub2, aByte923, class30_sub2_sub4_sub1_sub2);
         }
 
@@ -8602,9 +8605,9 @@ public final class client extends Applet_Sub1
             class30_sub2_sub2.method417(j1, aByte920, 0, abyte0);
             System.out.println();
 
-            for (int ii = 0; ii < class30_sub2_sub2_1.aByteArray1405.length; ii++) {
-                System.out.println(class30_sub2_sub2_1.aByteArray1405[ii]);
-            }
+            // for (int ii = 0; ii < class30_sub2_sub2_1.aByteArray1405.length; ii++) {
+            //     System.out.println(class30_sub2_sub2_1.aByteArray1405[ii]);
+            // }
 
             // playerSynchronizationBuffers[index] = appearanceBuffer;
             aClass30_Sub2_Sub2Array895[j] = class30_sub2_sub2_1;

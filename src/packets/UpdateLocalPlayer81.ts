@@ -93,25 +93,62 @@ export default function UpdateLocalPlayer81(
      * The 0x10 mask updates appearance of the player in exact same way as in updating player list. 
      * Only difference is that appearance is updated from a set-sized buffer filled from the current buffer.
      * An unsigned inversed byte is read first which describes appearance buffer size, and the buffer is filled.
+     * 
+     * Ubyte: gender
+     * Ubyte: overhead icon id
+     * Loop: 12 times, high bytes for armour
+     * Loop: 5 times,  colour of body parts
+     * Loop: 7 times, anim idx's
+     * Long: player name
+     * Ubyte: combat level
+     * Ubyte: skill level
      */
     bitArr.push(...convertToFixedBitArray(0x10, 8)); 
     // size, reads backwards. fuck knows why
-    bitArr.push(...convertToFixedBitArray((255 - 48), 8));
+    bitArr.push(...convertToFixedBitArray((255 - 55), 8));
     // gender
-    bitArr.push(...convertToFixedBitArray(0, 8));
     bitArr.push(...convertToFixedBitArray(0, 8));
     // overhead icon id
     bitArr.push(...convertToFixedBitArray(0, 8));
+
     // 12 bytes for equipment (0 means nothing)
-    for (let i = 0; i < 12; i++) {
-        bitArr.push(...convertToFixedBitArray(0, 8));
-    }
+    /**
+     * original:
+     * 0  0x100
+     * 18 0x100
+     * 26 0x100
+     * 33 0x100
+     * 36 0x100
+     * 42 0x100
+     * 10 0x100
+     * 
+     * Rune Pl8 - 1127 + 0x200
+     * Rune Chain - 1113
+     * Rune Full Helm - 1163
+     * Rune Med helm - 1147
+     * rune 2h sword - 1319
+     * Rune Pl8 legs - 1079
+     */
+    bitArr.push(...convertToFixedBitArray(1183 + 0x200, 16)); // shield 0 + 0x100
+    bitArr.push(...convertToFixedBitArray(1127 + 0x200, 16)); // body 18 + 0x100
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16)); // arms 26 + 0x100
+    bitArr.push(...convertToFixedBitArray(1059 + 0x200, 16)); // gloves 33 + 0x100
+    bitArr.push(...convertToFixedBitArray(1079 + 0x200, 16)); // legs 36 + 0x100
+    bitArr.push(...convertToFixedBitArray(4131 + 0x200, 16)); // boots 42 + 0x100
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16)); // what's this
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
+    bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
+    bitArr.push(...convertToFixedBitArray(1163 + 0x200, 16)); //helm
+    
     // body part colours
-    bitArr.push(...convertToFixedBitArray(7, 16));
-    bitArr.push(...convertToFixedBitArray(8, 16));
-    bitArr.push(...convertToFixedBitArray(9, 16));
-    bitArr.push(...convertToFixedBitArray(5, 16));
-    bitArr.push(...convertToFixedBitArray(0, 16));
+    bitArr.push(...convertToFixedBitArray(7, 8)); // hair colour
+    bitArr.push(...convertToFixedBitArray(4, 8)); // torso
+    bitArr.push(...convertToFixedBitArray(9, 8)); // leg
+    bitArr.push(...convertToFixedBitArray(5, 8)); // feet
+    bitArr.push(...convertToFixedBitArray(0, 8)); // skin
+
     // anim indices
     bitArr.push(...convertToFixedBitArray(0x328, 16)); // standing still
     bitArr.push(...convertToFixedBitArray(0x337, 16)); // turning while standing
@@ -120,12 +157,13 @@ export default function UpdateLocalPlayer81(
     bitArr.push(...convertToFixedBitArray(0x335, 16)); // turning a quarter-way clockwise
     bitArr.push(...convertToFixedBitArray(0x336, 16)); // turning a quarter-way counter clockwise
     bitArr.push(...convertToFixedBitArray(0x338, 16)); // running
+
     // players name long
     bitArr.push(...convertToFixedBitArray(1, 64));
     // players combat level
     bitArr.push(...convertToFixedBitArray(10, 8));
     // players skill level
-    bitArr.push(...convertToFixedBitArray(3, 8));
+    bitArr.push(...convertToFixedBitArray(0, 16));
 
     /**
      * Create our buffer
@@ -137,11 +175,11 @@ export default function UpdateLocalPlayer81(
     // our opcode is 1 byte, and packet size is a short, 3 bytes total
     let basePacketSize = 3; 
     // set buffer size, this includes our bits + any further bytes we gonna write
-    const buf = Buffer.alloc(offset + basePacketSize + 1);
+    const buf = Buffer.alloc(offset + basePacketSize);
     // our encrypted opcode
     buf[0] = 81 + key;
     // set packet size including all bits and bytes
-    buf.writeInt16BE((offset + 1), 1);
+    buf.writeInt16BE((offset), 1);
     // write the bits
     let bitIndex = 7;
     let byteIndex = 3;
