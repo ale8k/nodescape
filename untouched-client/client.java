@@ -5880,6 +5880,16 @@ public final class client extends Applet_Sub1
         return ((i & 0xff00ff) * l + (j & 0xff00ff) * k & 0xff00ff00) + ((i & 0xff00) * l + (j & 0xff00) * k & 0xff0000) >> 8;
     }
 
+    /**
+     * Login
+     * Handles the entire login procedure,
+     * I notice here after it instantiates the game stream
+     * it actually provides all encoding and seeding 
+     * directly here, can also see that 'byte 10' lol.
+     * @param s name
+     * @param s1 password
+     * @param flag reconnecting?
+     */
     public final void method84(String s, String s1, boolean flag)
     {
         signlink.errorname = s;
@@ -5891,38 +5901,58 @@ public final class client extends Applet_Sub1
                 aString1267 = "Connecting to server...";
                 method135(true, false);
             }
+
             aClass24_1168 = new Class24(this, -978, method19(43594 + anInt958));
             long l = Class50.method583(s);
             int i = (int)(l >> 16 & 31L);
             aClass30_Sub2_Sub2_1192.anInt1406 = 0;
+            // sends a single byte of 14
             aClass30_Sub2_Sub2_1192.method398(14);
+            // name hash?
             aClass30_Sub2_Sub2_1192.method398(i);
+            // writes to us
             aClass24_1168.method271(2, 0, aClass30_Sub2_Sub2_1192.aByteArray1405, 0);
+            // reads our initial response
             for(int j = 0; j < 8; j++)
                 aClass24_1168.method268();
 
+            // sets the read to k
             int k = aClass24_1168.method268();
+            // performs hard code to i1, idk why
             int i1 = k;
-            if(k == 0)
-            {
+            // 0 = new connection
+            if(k == 0) {
+                // skips our 8 and grabs the read of our initial response from
+                // the server, i.e., server key & rsp code
                 aClass24_1168.method270(aClass30_Sub2_Sub2_1083.aByteArray1405, 0, 8);
                 aClass30_Sub2_Sub2_1083.anInt1406 = 0;
+                // reads the server key, so aLong1215 is the server key
+                // for sure
                 aLong1215 = aClass30_Sub2_Sub2_1083.method414(-35089);
+                // gens the session key for the client
                 int ai[] = new int[4];
                 ai[0] = (int)(Math.random() * 99999999D);
                 ai[1] = (int)(Math.random() * 99999999D);
                 ai[2] = (int)(aLong1215 >> 32);
                 ai[3] = (int)aLong1215;
+
+                // the fabulous byte 10 lol
                 aClass30_Sub2_Sub2_1192.anInt1406 = 0;
                 aClass30_Sub2_Sub2_1192.method398(10);
+                // writes the session key (client) to us
                 aClass30_Sub2_Sub2_1192.method402(ai[0]);
                 aClass30_Sub2_Sub2_1192.method402(ai[1]);
                 aClass30_Sub2_Sub2_1192.method402(ai[2]);
                 aClass30_Sub2_Sub2_1192.method402(ai[3]);
+                //  not sure what this is? user id i think...
                 aClass30_Sub2_Sub2_1192.method402(signlink.uid);
+                // writes name to us
                 aClass30_Sub2_Sub2_1192.method405(s);
+                // writes pwd to us
                 aClass30_Sub2_Sub2_1192.method405(s1);
+                // encodes end block with rsa!
                 aClass30_Sub2_Sub2_1192.method423(aBigInteger1032, aBigInteger856, (byte)0);
+                // end?
                 aClass30_Sub2_Sub2_847.anInt1406 = 0;
                 if(flag)
                     aClass30_Sub2_Sub2_847.method398(18);
@@ -12303,6 +12333,13 @@ public final class client extends Applet_Sub1
         anInt1289 = -1;
     }
 
+        // rsa exponent
+        private static BigInteger aBigInteger1032 = new BigInteger("1");
+        // ????
+        private static String aString1162 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"\243$%^&*()-_=+[{]};:'@#~,<.>/?\\| ";
+        // rsa mod
+        private static BigInteger aBigInteger856 = new BigInteger("7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789");
+
     private int anInt822;
     private static byte aByte823 = 77;
     private long aLong824;
@@ -12337,7 +12374,7 @@ public final class client extends Applet_Sub1
     private int anIntArray853[];
     private static int anInt854;
     private int anInt855;
-    private static BigInteger aBigInteger856 = new BigInteger("7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789");
+
     private int anInt857;
     private int anInt858;
     private int anInt859;
@@ -12530,7 +12567,6 @@ public final class client extends Applet_Sub1
     private Class30_Sub2_Sub1_Sub2 aClass30_Sub2_Sub1_Sub2_1029;
     private int anIntArray1030[];
     private boolean aBoolean1031;
-    private static BigInteger aBigInteger1032 = new BigInteger("58778699976184461502525193738213253649000149147835990136706041084440742975821");
     private Class30_Sub2_Sub1_Sub1 aClass30_Sub2_Sub1_Sub1Array1033[];
     private int anInt1034;
     private int anInt1035;
@@ -12663,7 +12699,6 @@ public final class client extends Applet_Sub1
     private boolean aBoolean1159;
     private boolean aBoolean1160;
     static int anInt1161;
-    private static String aString1162 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"\243$%^&*()-_=+[{]};:'@#~,<.>/?\\| ";
     private Class15 aClass15_1163;
     private Class15 aClass15_1164;
     private Class15 aClass15_1165;

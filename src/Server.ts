@@ -1,7 +1,8 @@
 import * as net from "net";
 import * as Long from "long";
-import Cryption from "./Cryption";
-import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets";
+import Cryption from "./IsaacCipher";
+import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
+import { ParseIncomingPackets } from "./packets/incoming";
 import * as utils from "./utils";
 
 /**
@@ -11,7 +12,8 @@ import * as utils from "./utils";
 class Server {
     // TODO: Implement code 16 for reconnection
     private loginProtocolStage: number = 0;
-    private outStreamCryption: Cryption;
+    private outStreamEncryption: Cryption;
+    private inStreamDecryption: Cryption;
     private isTheInitialLoad: boolean = true;
 
     // When reading the packets, please note it goes data -> frame header
@@ -31,9 +33,6 @@ class Server {
             socket.on("data", (data) => {
 
                 console.log("_");
-                if (data.toJSON().data.length > 3) {
-                    console.log(data.toJSON(), "\n");
-                }
 
                 if (this.loginProtocolStage === 0) {
 
@@ -68,19 +67,29 @@ class Server {
                         (serverSessionKey.shiftRight(32).toInt()) + 50,
                         (serverSessionKey.toInt()) + 50
                     ];
-                    // prepare outstream key gen
-                    // TODO: include 'instream' and setup 'instream' cryption so we can read packets
-                    this.outStreamCryption = new Cryption(sessionKey);
+                    // Our key gen for the out stream
+                    this.outStreamEncryption = new Cryption(sessionKey);
+                    // Our key gen for the in stream
+                    this.inStreamDecryption = new Cryption(sessionKey);
                     // Write out our response, player status and whether to log or not
                     socket.write(Buffer.from([2, 0, 0]));
 
                 } else if (this.loginProtocolStage === 2) {
+
+                    /**
+                     * Incoming packet parsing
+                     */
+                    ParseIncomingPackets(data, this.inStreamDecryption, this.outStreamEncryption);
+
+                    /**
+                     * Outgoing packet sending & encrypting
+                     */
                     // Send our initial 73 & 81 packets once upon load
                     if (this.isTheInitialLoad === true) {
                         // 73: Load the map zone
                         socket.write(
                             LoadMapZone73(
-                                this.outStreamCryption.getNextKey(),
+                                this.outStreamEncryption.nextKey(),
                                 406, // higher = east, lower = west  // x
                                 406 // higher = north, lower = south // y coord
                             )
@@ -89,7 +98,7 @@ class Server {
                         // 83: Update our player (eventually will update others...)
                         socket.write(
                             UpdateLocalPlayer81(
-                                this.outStreamCryption.getNextKey(),
+                                this.outStreamEncryption.nextKey(),
                                 1, // update our player
                                 3, // move type
                                 0, // planelevel

@@ -1,4 +1,4 @@
-import { shortToBytes } from "../utils";
+import { shortToBytes } from "../../utils";
 
 /**
  * Creates packet 73.

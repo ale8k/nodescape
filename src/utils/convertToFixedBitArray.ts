@@ -8,7 +8,7 @@ import { convertToBitArray } from ".";
  * @param amount the amount of bits to emit
  * @author ale8k
  */
-export default function convertToFixedBitArray(num: number, amount: number) {
+export default function convertToFixedBitArray(num: number, amount: number): number[] {
     const bitArr = convertToBitArray(num);
     const bitArrLength = bitArr.length; // remembers the initial length
 

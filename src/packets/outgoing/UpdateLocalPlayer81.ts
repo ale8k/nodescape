@@ -1,12 +1,12 @@
 
-import { setBit, convertToBitArray, convertToFixedBitArray } from "../utils";
+import { setBit, convertToBitArray, convertToFixedBitArray } from "../../utils";
 import convertTo8Bit from "src/utils/convertToFixedBitArray";
 import * as Long from "long";
 
 /**
  * Our first packet only considers methods 117, our player
  * and method 49, the bit mask.
- * 
+ *
  * Because our bitmask is set in the first packet,
  * our next packet can consider method134, appearance updating,
  * because we have a mask prepared.
@@ -14,24 +14,24 @@ import * as Long from "long";
 
 /**
  * Updates the local player in a given zone (8x8 set of tiles in a region)
- * The packet is dynamically sized based on the bits received 
+ * The packet is dynamically sized based on the bits received
  * @param key the encrypted opcode
- * @param updateOurPlayer 
- * @param movementType 
- * @param planeHeight 
- * @param clearAwaitingPointQueue 
- * @param updateRequired 
- * @param ycoord 
- * @param xcoord 
- * @param updateNPlayers 
- * @param playerListUpdating 
+ * @param updateOurPlayer
+ * @param movementType
+ * @param planeHeight
+ * @param clearAwaitingPointQueue
+ * @param updateRequired
+ * @param ycoord
+ * @param xcoord
+ * @param updateNPlayers
+ * @param playerListUpdating
  * @author ale8k
  */
 export default function UpdateLocalPlayer81(
-        key: number, 
+        key: number,
         // bit args
         updateOurPlayer: number,
-        movementType: number, 
+        movementType: number,
         planeHeight?: number,
         clearAwaitingPointQueue?: number,
         updateRequired?: number,
@@ -44,7 +44,7 @@ export default function UpdateLocalPlayer81(
     /**
      * Begin bit writing here:
      */
-    let bitArr = [];
+    const bitArr = [];
 
     /**
      * METHOD 117
@@ -62,8 +62,8 @@ export default function UpdateLocalPlayer81(
         case 2:
             break;
         case 3:
-            // set the player's plane/height level 
-            // TODO: this obviously needs to be dynamic, for now, 
+            // set the player's plane/height level
+            // TODO: this obviously needs to be dynamic, for now,
             // we hardcode height 3
             bitArr.push(...convertToFixedBitArray(planeHeight as number, 2));
             break;
@@ -80,7 +80,7 @@ export default function UpdateLocalPlayer81(
      * METHOD 134
      */
     bitArr.push(...convertToFixedBitArray(updateNPlayers as number, 8));
-  
+
     /**
      * METHOD 91
      */
@@ -88,12 +88,12 @@ export default function UpdateLocalPlayer81(
 
     /**
      * METHOD 49 (Actually 107 really)
-     * 
+     *
      * 0x10
-     * The 0x10 mask updates appearance of the player in exact same way as in updating player list. 
+     * The 0x10 mask updates appearance of the player in exact same way as in updating player list.
      * Only difference is that appearance is updated from a set-sized buffer filled from the current buffer.
      * An unsigned inversed byte is read first which describes appearance buffer size, and the buffer is filled.
-     * 
+     *
      * Ubyte: gender
      * Ubyte: overhead icon id
      * Loop: 12 times, high bytes for armour
@@ -103,7 +103,7 @@ export default function UpdateLocalPlayer81(
      * Ubyte: combat level
      * Ubyte: skill level
      */
-    bitArr.push(...convertToFixedBitArray(0x10, 8)); 
+    bitArr.push(...convertToFixedBitArray(0x10, 8));
     // size, reads backwards. fuck knows why
     bitArr.push(...convertToFixedBitArray((255 - 55), 8));
     // gender
@@ -132,7 +132,7 @@ export default function UpdateLocalPlayer81(
     bitArr.push(...convertToFixedBitArray(0 + 0x100, 16));
     bitArr.push(...convertToFixedBitArray(0 + 0x100, 16)); // beard
     bitArr.push(...convertToFixedBitArray(1163 + 0x200, 16)); //helm
-    
+
     // body part colours
     bitArr.push(...convertToFixedBitArray(7, 8)); // hair colour
     bitArr.push(...convertToFixedBitArray(4, 8)); // torso
@@ -160,11 +160,11 @@ export default function UpdateLocalPlayer81(
      * Create our buffer
      */
     // The size of the written bits in bytes
-    let bitArrSize = Math.ceil(bitArr.length / 8); 
+    const bitArrSize = Math.ceil(bitArr.length / 8);
     // our offset is therefore our bitarrsize + any further bytes to be written
-    let offset = bitArrSize; 
+    const offset = bitArrSize;
     // our opcode is 1 byte, and packet size is a short, 3 bytes total
-    let basePacketSize = 3; 
+    const basePacketSize = 3;
     // set buffer size, this includes our bits + any further bytes we gonna write
     const buf = Buffer.alloc(offset + basePacketSize);
     // our encrypted opcode

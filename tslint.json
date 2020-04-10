@@ -36,6 +36,7 @@
 		"no-use-before-declare": true,
 		"no-var-keyword": true,
 		"no-console": false,
+		"prefer-for-of": false,
 		"one-line": [true,
 			"check-catch",
 			"check-else",
