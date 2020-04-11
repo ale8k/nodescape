@@ -102,7 +102,6 @@ export default function UpdateLocalPlayer81(
     // overhead icon id
     bitArr.push(...convertToFixedBitArray(0, 8));
 
-    // 12 bytes for equipment (0 means nothing)
     /**
      * Rune Pl8 - 1127 + 0x200
      * Rune Chain - 1113
@@ -168,7 +167,6 @@ export default function UpdateLocalPlayer81(
 
     for (let i = 0; i < bitArr.length; i++) {
         setBit(buf, byteIndex, bitIndex, bitArr[i] as number);
-        // console.log("Writing byte index:" + byteIndex + ", and bit index:" + bitIndex);
         bitIndex -= 1;
 
         if (bitIndex <= -1) {
@@ -176,8 +174,5 @@ export default function UpdateLocalPlayer81(
             byteIndex += 1;
         }
     }
-
-    //console.log("Final offset is: " + offset);
-
     return buf;
 }

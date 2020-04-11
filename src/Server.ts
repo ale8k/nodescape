@@ -5,6 +5,7 @@ import IsaacCipher from "./packets/IsaacCipher";
 import { ParseIncomingPackets } from "./packets/incoming";
 import { EventEmitter } from "events";
 import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
+import GameIds from "./GameIds";
 
 enum LoginState {
     FirstResponse,
@@ -54,6 +55,11 @@ class Server {
      * it can parse the packets and return timely
      */
     private _packetParserEventEmitter: EventEmitter = new EventEmitter();
+    /**
+     * Only used during login completion, sends a bunch of packets
+     * required on login, i.e., region, sidebars etc.
+     */
+    private _loginSetUpEventEmitter: EventEmitter = new EventEmitter();
     /**
      * A place for us to store the incoming data outside of our
      * 600ms cycle
@@ -136,35 +142,88 @@ class Server {
                         // come back and send them for us  or some kind of other eventemitter
                         // for now hardcode
 
-
-                        // 71: Set sidebar interface
-
-                        //73: Load the map zone
+                        // 81 Update; our; player (eventually will update others...);
                         socket.write(
-                            LoadMapZone73(
+                            UpdateLocalPlayer81(
                                 this._outStreamEncryption.nextKey(),
-                                406, // higher = east, lower = west  // x
-                                406 // higher = north, lower = south // y coord
+                                1, // update our player
+                                3, // move type
+                                0, // planelevel
+                                1, // clear await queuee
+                                1, // update required
+                                21, // ycoord
+                                21,  // xcoord
+                                0, // updateNPlayers movements
+                                2047, // player list updating bit
                             )
                         );
 
-                        // //81 Update; our; player (eventually will update others...);
-                        // socket.write(
-                        //     UpdateLocalPlayer81(
-                        //         this._outStreamEncryption.nextKey(),
-                        //         1, // update our player
-                        //         3, // move type
-                        //         0, // planelevel
-                        //         1, // clear await queuee
-                        //         1, // update required
-                        //         21, // ycoord
-                        //         21,  // xcoord
-                        //         0, // updateNPlayers movements
-                        //         2047, // player list updating bit
-                        //     )
-                        // );
-
                     });
+                    let b: Buffer;
+                    /**
+                     * Base packets needing to be sent only once after login
+                     */
+
+                    // 71: Set sidebar interface (fixed 4 bytes)
+                    GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
+                        const b = Buffer.alloc(4);
+                        b[0] = 71 + this._outStreamEncryption.nextKey();
+                        b.writeInt16BE(sideBarIconId, 1);
+                        b[3] = sideBarLocationId + 128;
+                        socket.write(b);
+                    });
+
+
+                    // 73: Load the map zone (fixed)
+                    socket.write(
+                        LoadMapZone73(
+                            this._outStreamEncryption.nextKey(),
+                            406, // higher = east, lower = west  // x
+                            406 // higher = north, lower = south // y coord
+                        )
+                    );
+
+                    // 134: Set/Update(?) skill level // sets them all for some reason... :D
+                    // need to play with this more... (i.e., update just 1)
+                    b = Buffer.alloc(7);
+                    new Array(10).fill(0).forEach((zero, i) => {
+                        b[0] = 134 + this._outStreamEncryption.nextKey();
+                        b[1] = i;
+                        // the client reads skill xp updates like this
+                        b[2] = (0 >> 8);
+                        b[3] = (0);
+                        b[4] = (0 >> 24);
+                        b[5] = (0 >> 16);
+                        // skill level?
+                        b[6] = 5;
+                        socket.write(b);
+                    });
+
+
+                    // 176: Opens welcome screen - doesn't appear to work...?
+                    b = Buffer.alloc(11);
+                    b[0] = 176 + this._outStreamEncryption.nextKey();
+                    socket.write(b);
+
+                    // 221: Update friends list status
+                    b = Buffer.alloc(2);
+                    b[0] = 221 + this._outStreamEncryption.nextKey();
+                    b[1] = 2; // 1 doesn't work, idk why, but 2 loads them
+                    socket.write(b);
+
+                    // 253: Write message to chat
+                    const bytes: number[] = [];
+                    "Testing".split("").forEach(char => {
+                        const c: number = char.charCodeAt(0);
+                        bytes.push(c >>> 8);
+                        bytes.push(c & 0xff);
+                    });
+                    console.log(bytes);
+
+
+                    /**
+                     * Begin game loop once everything setup (i.e., accept shit from client)
+                     */
                 } else if (this._loginState === LoginState.LoggedIn) {
                     // the game event callback above should be somewhere down here eventually!
 
