@@ -4,15 +4,6 @@ import convertTo8Bit from "src/utils/convertToFixedBitArray";
 import * as Long from "long";
 
 /**
- * Our first packet only considers methods 117, our player
- * and method 49, the bit mask.
- *
- * Because our bitmask is set in the first packet,
- * our next packet can consider method134, appearance updating,
- * because we have a mask prepared.
- */
-
-/**
  * Updates the local player in a given zone (8x8 set of tiles in a region)
  * The packet is dynamically sized based on the bits received
  * @param key the encrypted opcode

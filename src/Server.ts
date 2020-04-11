@@ -4,7 +4,7 @@ import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
 import { ParseIncomingPackets } from "./packets/incoming";
 import { EventEmitter } from "events";
-import { LoadMapZone73 } from "./packets/outgoing";
+import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
 
 enum LoginState {
     FirstResponse,
@@ -37,36 +37,28 @@ enum ResponseCode {
 }
 
 /**
- * After some good research,
- * I'm gonna have to listen to the data separately to my emitting.
- * They've got to be out of sync, the client expects data on 600ms turnover,
- * yet can emit multiple to us within 600ms. So...
- * We gotta concat each new piece of data and only emit it via emitter after 600ms is up.
- * After the 600ms is up, we obviously clear our cached buffer and prepare it to
- * stock up on the next 10billion clicks people do.
- *
- * SO:
- * socket.on("data") -> emits "queue-data", this will performs a Buffer.concat and store it in a field
- * called 'cachedBuffer'. That's all for the socket data event, on the flip side:
- *
- * we'll ghave an event emitter run every 600ms, it'll read the cachedBuffer and respond to each packet
- * appropriately (ideally).
- *
- * This should clear up my asynchronous / quick emit issues.
- */
-
-/**
  * Entry point for the server
  * @author ale8k
  */
 class Server {
-    private readonly _server: net.Server;
     private _loginState: LoginState = LoginState.FirstResponse;
     private _inStreamDecryption: IsaacCipher;
     private _outStreamEncryption: IsaacCipher;
+
+    /**
+     * The emitter which handles directing incoming and outgoing packets
+     */
     private _gameLoopEventEmitter: EventEmitter = new EventEmitter();
-    private _inStreamCacheBuffer: Buffer = Buffer.alloc(20);
-    private _inStreamCacheBufferOffset: number = 0;
+    /**
+     * The game loop emitter emits to this, such that
+     * it can parse the packets and return timely
+     */
+    private _packetParserEventEmitter: EventEmitter = new EventEmitter();
+    /**
+     * A place for us to store the incoming data outside of our
+     * 600ms cycle
+     */
+    private _inStreamCacheBuffer: Buffer[] = [];
 
     public startServer(): void {
 
@@ -117,54 +109,68 @@ class Server {
                     setInterval(() => {
                         this._gameLoopEventEmitter.emit("tick");
                     }, 600);
-                    // on every tick, reset our offset
-                    // and map all the shit out of our buffer into a new buffer
-                    // wipe the cache buffer
-                    // then just log the mapped one
+
+                    /**
+                     * So I need to read opcode, parse packet, and repeat.
+                     * not cache opcodes lol
+                     * so take all data, store it in one big array
+                     * then once 600ms is up, pass this big array to the parser
+                     * for now we'll have it identify and return the opcode and the packet size
+                     *
+                     * also checkout buf.equals ->, may help me detmermine copies and stuff
+                     *
+                     * change of plan, we parse the opcodes here and then send them to the packet parser
+                     *
+                     */
                     this._gameLoopEventEmitter.on("tick", () => {
-                        this._inStreamCacheBufferOffset = 0;
-                        //this._inStreamCacheBuffer.fill(0);
-                        console.log(this._inStreamCacheBuffer.toJSON());
+                        const decryptedList = this._inStreamCacheBuffer.map(buffer => {
+                            buffer[0] = ((buffer[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
+                            console.log(buffer.toJSON());
+                            return buffer;
+                        });
+                        console.log("_");
+                        this._inStreamCacheBuffer = [];
+
+                        // we need to send packets here too actually
+                        // so uhm i send one now, in real situation packet parser would
+                        // come back and send them for us  or some kind of other eventemitter
+                        // for now hardcode
+
+
+                        // 71: Set sidebar interface
+
+                        //73: Load the map zone
+                        socket.write(
+                            LoadMapZone73(
+                                this._outStreamEncryption.nextKey(),
+                                406, // higher = east, lower = west  // x
+                                406 // higher = north, lower = south // y coord
+                            )
+                        );
+
+                        // //81 Update; our; player (eventually will update others...);
+                        // socket.write(
+                        //     UpdateLocalPlayer81(
+                        //         this._outStreamEncryption.nextKey(),
+                        //         1, // update our player
+                        //         3, // move type
+                        //         0, // planelevel
+                        //         1, // clear await queuee
+                        //         1, // update required
+                        //         21, // ycoord
+                        //         21,  // xcoord
+                        //         0, // updateNPlayers movements
+                        //         2047, // player list updating bit
+                        //     )
+                        // );
+
                     });
                 } else if (this._loginState === LoginState.LoggedIn) {
-                    /**
-                     * Incoming packet parsing
-                     */
-                    //ParseIncomingPackets(data, this._inStreamDecryption);
-                    //console.log((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
+                    // the game event callback above should be somewhere down here eventually!
 
-                    // Continually writes each opcode that comes in
-                    // to the cache buffer
-                    this._inStreamCacheBuffer.writeUInt8(data[0], this._inStreamCacheBufferOffset++);
-
-
-
-
-                    // Just some testing for rendering player packet
-                    // //73: Load the map zone
-                    // socket.write(
-                    //     LoadMapZone73(
-                    //         this._outStreamEncryption.nextKey(),
-                    //         406, // higher = east, lower = west  // x
-                    //         406 // higher = north, lower = south // y coord
-                    //     )
-                    // );
-
-                    // //83;: Update; our; player (eventually will update others...);
-                    // socket.write(
-                    //     UpdateLocalPlayer81(
-                    //         outStreamEncryption.nextKey(),
-                    //         1, // update our player
-                    //         3, // move type
-                    //         0, // planelevel
-                    //         1, // clear await queuee
-                    //         1, // update required
-                    //         21, // ycoord
-                    //         21,  // xcoord
-                    //         0, // updateNPlayers movements
-                    //         2047, // player list updating bit
-                    //     )
-                    // );
+                    // now we're logged in, we are willing to push incoming packets
+                    // to our buffer
+                    this._inStreamCacheBuffer.push(data);
 
                 }
             });

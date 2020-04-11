@@ -3,20 +3,8 @@ import { Socket } from "net";
 import { UpdateLocalPlayer81, LoadMapZone73 } from "../outgoing";
 
 /**
- * Reads 'any' packet and attempts to parse it.
- * After parsing the opcode, it'll proceed to the corresponding
- * method associated with parsing that particular packet.
+ * I'm just hardcoding each packet and size here for us
  *
- * Current packet id/opcode's supported:
- *  248: Map walk (Variable byte)
- *  241: Mouse blick (Fixed 4)
- *  210: Region change (Fixed 0) // don't really get how this works
- *  164: Regular walk (Variable byte)
- *  98: Walk on command (Variable byte) // this may be complex to do...
- *  86: Camera movement (Fixed 4)
- *  0: Idle (Fixed 0) // need to figure a way to allow this to determine our game loop!!
- *
- * @param buffer the incoming buffer
  */
 export default function ParseIncomingPackets(
     buffer: Buffer,
