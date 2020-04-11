@@ -143,26 +143,39 @@ class Server {
                         // for now hardcode
 
                         // 81 Update; our; player (eventually will update others...);
-                        socket.write(
-                            UpdateLocalPlayer81(
-                                this._outStreamEncryption.nextKey(),
-                                1, // update our player
-                                3, // move type
-                                0, // planelevel
-                                1, // clear await queuee
-                                1, // update required
-                                21, // ycoord
-                                21,  // xcoord
-                                0, // updateNPlayers movements
-                                2047, // player list updating bit
-                            )
-                        );
+                        // socket.write(
+                        //     UpdateLocalPlayer81(
+                        //         this._outStreamEncryption.nextKey(),
+                        //         1, // update our player
+                        //         3, // move type
+                        //         0, // planelevel
+                        //         1, // clear await queuee
+                        //         1, // update required
+                        //         21, // ycoord
+                        //         21,  // xcoord
+                        //         0, // updateNPlayers movements
+                        //         2047, // player list updating bit
+                        //     )
+                        // );
 
                     });
                     let b: Buffer;
                     /**
                      * Base packets needing to be sent only once after login
                      */
+
+                    // 34: Update an item into the players inventory...
+                    // Wouldn't this rely on the inv stack packet...?
+                    // Pretty sure this doesn't update items, or if it does
+                    // it something to do with skills llike fletching maybe
+
+                    // 53: Inv stack size
+                    // I think this actually sets the items in the inventory,
+                    // not set the stack size...
+
+                    // 72: Clears a shop inventory I think? I don't get the client code
+
+                    // 248: Inventory background maybe? Like trading?
 
                     // 71: Set sidebar interface (fixed 4 bytes)
                     GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
@@ -182,6 +195,9 @@ class Server {
                             406 // higher = north, lower = south // y coord
                         )
                     );
+
+                    // 109: Logout, gonna try attach this to the packet received from the client
+                    // for initial packet parsing
 
                     // 134: Set/Update(?) skill level // sets them all for some reason... :D
                     // need to play with this more... (i.e., update just 1)
@@ -212,14 +228,18 @@ class Server {
                     socket.write(b);
 
                     // 253: Write message to chat
-                    const bytes: number[] = [];
+                    // needa check why my string no render
+                    const bytes: number[] = [10];
                     "Testing".split("").forEach(char => {
                         const c: number = char.charCodeAt(0);
                         bytes.push(c >>> 8);
                         bytes.push(c & 0xff);
                     });
                     console.log(bytes);
-
+                    b = Buffer.alloc((bytes.length + 2));
+                    b[0] = 253 + this._outStreamEncryption.nextKey();
+                    b[1] = bytes.length;
+                    socket.write(b);
 
                     /**
                      * Begin game loop once everything setup (i.e., accept shit from client)
