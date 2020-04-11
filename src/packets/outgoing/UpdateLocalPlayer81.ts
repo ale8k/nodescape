@@ -38,6 +38,7 @@ export default function UpdateLocalPlayer81(
      * METHOD 117
      */
     // Update our player or not
+    // if this is off, it'll skip the entire block lol
     bitArr.push(updateOurPlayer);
     if (updateOurPlayer !== 0) {
         // Set our movement type and corresponding expected bits

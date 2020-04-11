@@ -146,11 +146,11 @@ class Server {
                         socket.write(
                             UpdateLocalPlayer81(
                                 this._outStreamEncryption.nextKey(),
-                                1, // update our player
-                                3, // move type
+                                0, // update our player
+                                3, // move type // skip movement altogether
                                 0, // planelevel
-                                1, // clear await queuee
-                                0, // update required
+                                1, // clear await queuee // only this is read in this configuration ----
+                                0, // update required // send no bitmask on idle
                                 21, // ycoord
                                 21,  // xcoord
                                 0, // updateNPlayers movements
