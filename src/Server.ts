@@ -142,7 +142,7 @@ class Server {
                         // come back and send them for us  or some kind of other eventemitter
                         // for now hardcode
 
-                        // 81 Update; our; player (eventually will update others...);
+                        // //81; Update; our; player (eventually will update others...);
                         // socket.write(
                         //     UpdateLocalPlayer81(
                         //         this._outStreamEncryption.nextKey(),
@@ -229,7 +229,7 @@ class Server {
 
                     // 253: Write message to chat
                     // needa check why my string no render
-                    const bytes: number[] = [10];
+                    const bytes: number[] = [];
                     "Testing".split("").forEach(char => {
                         const c: number = char.charCodeAt(0);
                         bytes.push(c >>> 8);
@@ -239,6 +239,9 @@ class Server {
                     b = Buffer.alloc((bytes.length + 2));
                     b[0] = 253 + this._outStreamEncryption.nextKey();
                     b[1] = bytes.length;
+                    b.forEach((byte, i) => {
+                        b[(i + 2)] = bytes[(i)];
+                    });
                     socket.write(b);
 
                     /**
