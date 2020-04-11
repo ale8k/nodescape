@@ -65,7 +65,8 @@ class Server {
     private _inStreamDecryption: IsaacCipher;
     private _outStreamEncryption: IsaacCipher;
     private _gameLoopEventEmitter: EventEmitter = new EventEmitter();
-    private inStreamCacheBuffer: Buffer;
+    private _inStreamCacheBuffer: Buffer = Buffer.alloc(20);
+    private _inStreamCacheBufferOffset: number = 0;
 
     public startServer(): void {
 
@@ -108,14 +109,33 @@ class Server {
                     socket.write(Buffer.from([2, 0, 0]));
                     this._loginState = LoginState.LoggedIn;
                     console.log("Second client request received and second server response sent");
+
+                    /**
+                     * Opcode buffer cache testing:
+                     */
+                    // game tick, prob need better place to put this honestly
+                    setInterval(() => {
+                        this._gameLoopEventEmitter.emit("tick");
+                    }, 600);
+                    // on every tick, reset our offset
+                    // and map all the shit out of our buffer into a new buffer
+                    // wipe the cache buffer
+                    // then just log the mapped one
+                    this._gameLoopEventEmitter.on("tick", () => {
+                        this._inStreamCacheBufferOffset = 0;
+                        //this._inStreamCacheBuffer.fill(0);
+                        console.log(this._inStreamCacheBuffer.toJSON());
+                    });
                 } else if (this._loginState === LoginState.LoggedIn) {
                     /**
                      * Incoming packet parsing
                      */
                     //ParseIncomingPackets(data, this._inStreamDecryption);
-                    console.log((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
+                    //console.log((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
 
-
+                    // Continually writes each opcode that comes in
+                    // to the cache buffer
+                    this._inStreamCacheBuffer.writeUInt8(data[0], this._inStreamCacheBufferOffset++);
 
 
 
