@@ -20,38 +20,10 @@ import { UpdateLocalPlayer81, LoadMapZone73 } from "../outgoing";
  */
 export default function ParseIncomingPackets(
     buffer: Buffer,
-    inStreamDecryption: IsaacCipher,
-    socket: Socket,
-    outStreamEncryption: IsaacCipher) {
+    inStreamDecryption: IsaacCipher) {
 
-    //const encryptedOpcode = buffer[0] & 0xff;
-    //const decryptedOpcode = encryptedOpcode - inStreamDecryption.nextKey() & 0xff;
-    //console.log(decryptedOpcode);
+    const encryptedOpcode = buffer[0] & 0xff;
+    const decryptedOpcode = encryptedOpcode - inStreamDecryption.nextKey() & 0xff;
+    console.log(decryptedOpcode);
 
-    console.log("Opcode parsed: " + ((buffer[0] & 0xff) - inStreamDecryption.nextKey() & 0xff));
-
-    // 73: Load the map zone
-    socket.write(
-        LoadMapZone73(
-            outStreamEncryption.nextKey(),
-            406, // higher = east, lower = west  // x
-            406 // higher = north, lower = south // y coord
-        )
-    );
-
-    // 83: Update our player (eventually will update others...)
-    // socket.write(
-    //     UpdateLocalPlayer81(
-    //         outStreamEncryption.nextKey(),
-    //         1, // update our player
-    //         3, // move type
-    //         0, // planelevel
-    //         1, // clear await queuee
-    //         1, // update required
-    //         21, // ycoord
-    //         21,  // xcoord
-    //         0, // updateNPlayers movements
-    //         2047, // player list updating bit
-    //     )
-    // );
 }

@@ -3,9 +3,38 @@ import { Socket } from "net";
 import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
 import { ParseIncomingPackets } from "./packets/incoming";
-import LoginHandler from "./login/LoginHandler";
-import PacketHandler from "./packets/PacketHandler";
 import { EventEmitter } from "events";
+import { LoadMapZone73 } from "./packets/outgoing";
+
+enum LoginState {
+    FirstResponse,
+    SecondResponse,
+    LoggedIn
+}
+
+enum ConnectionStatus {
+    NewSession = 14,
+    Reconnecting = 16
+}
+
+enum ResponseCode {
+    TryAgainFailure = -1,
+    NewSession = 0,
+    TryAgainFailure2 = 1,
+    SuccessfulLogin = 2,
+    InvalidUserOrPass = 3,
+    AccountBanned = 4,
+    AccountStillLoggedIn = 5,
+    RuneScapeUpdated = 6,
+    WorldFull = 7,
+    ServerDown = 8,
+    LoginLimit = 9,
+    BadSessionID = 10,
+    LoginRejected = 11,
+    Memembers = 12,
+    LoginFailure = 13,
+    ServerUpdated = 14,
+}
 
 /**
  * After some good research,
@@ -31,58 +60,34 @@ import { EventEmitter } from "events";
  * @author ale8k
  */
 class Server {
-    /**
-     * A single observable emitting on a tick system,
-     * also handles the transition between LoginHandler events and
-     * PacketHandler events
-     */
-    private _gameEmitter: EventEmitter = new EventEmitter();
+    private readonly _server: net.Server;
+    private _loginState: LoginState = LoginState.FirstResponse;
+    private _inStreamDecryption: IsaacCipher;
+    private _outStreamEncryption: IsaacCipher;
+    private _gameLoopEventEmitter: EventEmitter = new EventEmitter();
+    private inStreamCacheBuffer: Buffer;
+
+    public startServer(): void {
 
 
-    constructor() {
-        this.startServer();
-    }
-
-    private startServer(): void {
-        let inStreamDecryption: IsaacCipher;
-        let outStreamEncryption: IsaacCipher;
-        let loginProtocolStage = 0;
+        const loginProtocolStage = 0;
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
+
             /**
-             * Entry point
-             * Almost works, the packet decryption doesn't though!
+             * Login data event
              */
-            socket.on("data", (data) => console.log("Server byte[0]: " + data[0]));
-            // new LoginHandler(socket, this._gameEmitter);
-            // new PacketHandler(socket, this._gameEmitter);
-
-
             socket.on("data", (data) => {
-                if (loginProtocolStage === 0) {
-
-                    console.log("Server 1st response:");
-                    loginProtocolStage = 1;
+                if (this._loginState === LoginState.FirstResponse) {
                     const b = Buffer.alloc(17);
-                    // server key is 0, 0, 0, 69
-                    b[15] = 0;
                     b[16] = 69;
                     socket.write(b);
-
-                } else if (loginProtocolStage === 1) {
-
-                    console.log("Server 2nd response:");
-                    loginProtocolStage = 2;
+                    this._loginState = LoginState.SecondResponse;
+                    console.log("First client request received and first server response sent");
+                } else if (this._loginState === LoginState.SecondResponse) {
                     const rsaBlock = data.toJSON().data.slice(43);
-                    // try fromBytesBE if any issues
                     const clientSessionKey = Long.fromBytes(rsaBlock.slice(1, 9));
-                    console.log("Client session key:", clientSessionKey.toBytes());
-
                     const serverSessionKey = Long.fromBytes(rsaBlock.slice(9, 17));
-                    console.log("Server session key:", serverSessionKey.toBytes());
-
-                    console.log("Username: TODO");
-                    console.log("Password: TODO");
 
                     const inSessionKey = [
                         (clientSessionKey.shiftRight(32).toInt()),
@@ -90,23 +95,57 @@ class Server {
                         (serverSessionKey.shiftRight(32).toInt()),
                         (serverSessionKey.toInt())
                     ];
-                    console.log("In session key = " + inSessionKey);
+
                     const sessionKey = [
                         (clientSessionKey.shiftRight(32).toInt()) + 50,
                         (clientSessionKey.toInt()) + 50,
                         (serverSessionKey.shiftRight(32).toInt()) + 50,
                         (serverSessionKey.toInt()) + 50
                     ];
-                    console.log("Out session key = " + sessionKey);
-                    inStreamDecryption = new IsaacCipher(inSessionKey);
-                    outStreamEncryption = new IsaacCipher(sessionKey);
-                    socket.write(Buffer.from([2, 0, 0]));
 
-                } else if (loginProtocolStage === 2) {
+                    this._inStreamDecryption = new IsaacCipher(inSessionKey);
+                    this._outStreamEncryption = new IsaacCipher(sessionKey);
+                    socket.write(Buffer.from([2, 0, 0]));
+                    this._loginState = LoginState.LoggedIn;
+                    console.log("Second client request received and second server response sent");
+                } else if (this._loginState === LoginState.LoggedIn) {
                     /**
                      * Incoming packet parsing
                      */
-                    ParseIncomingPackets(data, inStreamDecryption, socket, outStreamEncryption);
+                    //ParseIncomingPackets(data, this._inStreamDecryption);
+                    console.log((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
+
+
+
+
+
+
+                    // Just some testing for rendering player packet
+                    // //73: Load the map zone
+                    // socket.write(
+                    //     LoadMapZone73(
+                    //         this._outStreamEncryption.nextKey(),
+                    //         406, // higher = east, lower = west  // x
+                    //         406 // higher = north, lower = south // y coord
+                    //     )
+                    // );
+
+                    // //83;: Update; our; player (eventually will update others...);
+                    // socket.write(
+                    //     UpdateLocalPlayer81(
+                    //         outStreamEncryption.nextKey(),
+                    //         1, // update our player
+                    //         3, // move type
+                    //         0, // planelevel
+                    //         1, // clear await queuee
+                    //         1, // update required
+                    //         21, // ycoord
+                    //         21,  // xcoord
+                    //         0, // updateNPlayers movements
+                    //         2047, // player list updating bit
+                    //     )
+                    // );
+
                 }
             });
 
@@ -124,5 +163,5 @@ class Server {
 
 }
 
-new Server();
+new Server().startServer();
 
