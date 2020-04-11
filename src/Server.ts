@@ -161,6 +161,25 @@ class Server {
                     });
                     let b: Buffer;
                     /**
+                     * The packet procedure:
+                     *
+                     * To send once logged in:
+                     * 110, 81, 65 and maybe 85
+                     *
+                     * Upon login:
+                     * 71 - done
+                     * 126 - ?
+                     * 240 - potentially
+                     * 53 - potentially
+                     * 221 -
+                     * 36 -
+                     * 249 - ABSOLUTELY MUST, the client got no idea about us otherwise!
+                     * 107 - absolutely, reset our initial cam position on login
+                     * 253 - welcome msg
+                     * 73 - absolutely, loads our region
+                     * 134 - absolutely, updates our skills
+                     */
+                    /**
                      * Base packets needing to be sent only once after login
                      */
 
@@ -186,6 +205,18 @@ class Server {
                         socket.write(b);
                     });
 
+                    // We needa add our players index to the client list, so this needs to happen nice
+                    // and early (maybe even first...?)
+                    // 249: Sends mem status and player's index in servers playerlist to client
+                    b = Buffer.alloc(4);
+                    b[0] = 249 + this._outStreamEncryption.nextKey();
+                    b[1] = 1 + 128; // one of them -128 removes on client end
+                    // rest of it is a short accepting our id, but its also got that -128 on client side
+                    // again. Really frustrating
+                    b[2] = (1 + 128);
+                    b[3] = (1 >> 8);
+                    socket.write(b);
+                    console.log("Player index sent to client");
 
                     // 73: Load the map zone (fixed)
                     socket.write(
@@ -195,6 +226,7 @@ class Server {
                             406 // higher = north, lower = south // y coord
                         )
                     );
+
 
                     // 109: Logout, gonna try attach this to the packet received from the client
                     // for initial packet parsing
@@ -243,6 +275,24 @@ class Server {
                         b[(i + 2)] = bytes[(i)];
                     });
                     socket.write(b);
+
+                    // 81: Update our player
+                    // Something is wrong with this packet,
+                    // it renders our dude but it fucks up our opcode decryption
+                    // socket.write(
+                    //     UpdateLocalPlayer81(
+                    //         this._outStreamEncryption.nextKey(),
+                    //         1, // update our player
+                    //         3, // move type
+                    //         0, // planelevel
+                    //         1, // clear await queuee
+                    //         1, // update required
+                    //         21, // ycoord
+                    //         21,  // xcoord
+                    //         0, // updateNPlayers movements
+                    //         2047, // player list updating bit
+                    //     )
+                    // );
 
                     /**
                      * Begin game loop once everything setup (i.e., accept shit from client)
