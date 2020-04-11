@@ -142,21 +142,21 @@ class Server {
                         // come back and send them for us  or some kind of other eventemitter
                         // for now hardcode
 
-                        // //81; Update; our; player (eventually will update others...);
-                        // socket.write(
-                        //     UpdateLocalPlayer81(
-                        //         this._outStreamEncryption.nextKey(),
-                        //         1, // update our player
-                        //         3, // move type
-                        //         0, // planelevel
-                        //         1, // clear await queuee
-                        //         1, // update required
-                        //         21, // ycoord
-                        //         21,  // xcoord
-                        //         0, // updateNPlayers movements
-                        //         2047, // player list updating bit
-                        //     )
-                        // );
+                        // 81: Update our player
+                        socket.write(
+                            UpdateLocalPlayer81(
+                                this._outStreamEncryption.nextKey(),
+                                1, // update our player
+                                3, // move type
+                                0, // planelevel
+                                1, // clear await queuee
+                                0, // update required
+                                21, // ycoord
+                                21,  // xcoord
+                                0, // updateNPlayers movements
+                                2047, // player list updating bit
+                            )
+                        );
 
                     });
                     let b: Buffer;
@@ -227,6 +227,11 @@ class Server {
                         )
                     );
 
+                    // 107: Reset camera position
+                    b = Buffer.alloc(1);
+                    b[0] = 107 + this._outStreamEncryption.nextKey();
+                    socket.write(b);
+
 
                     // 109: Logout, gonna try attach this to the packet received from the client
                     // for initial packet parsing
@@ -260,7 +265,7 @@ class Server {
                     socket.write(b);
 
                     // 253: Write message to chat
-                    // needa check why my string no render
+                    // this can cause problems, no idea why
                     const bytes: number[] = [];
                     "Testing".split("").forEach(char => {
                         const c: number = char.charCodeAt(0);
@@ -279,20 +284,22 @@ class Server {
                     // 81: Update our player
                     // Something is wrong with this packet,
                     // it renders our dude but it fucks up our opcode decryption
-                    // socket.write(
-                    //     UpdateLocalPlayer81(
-                    //         this._outStreamEncryption.nextKey(),
-                    //         1, // update our player
-                    //         3, // move type
-                    //         0, // planelevel
-                    //         1, // clear await queuee
-                    //         1, // update required
-                    //         21, // ycoord
-                    //         21,  // xcoord
-                    //         0, // updateNPlayers movements
-                    //         2047, // player list updating bit
-                    //     )
-                    // );
+                    socket.write(
+                        UpdateLocalPlayer81(
+                            this._outStreamEncryption.nextKey(),
+                            1, // update our player
+                            3, // move type
+                            0, // planelevel
+                            1, // clear await queuee
+                            1, // update required - declares whether or not a bitmask should be read, good shit
+                            21, // ycoord
+                            21,  // xcoord
+                            0, // updateNPlayers movements - always skip this
+                            2047, // player list updating bit - always skip this
+                            // bit masks now because update required = 1
+                            // the bit masks are only read if that is 1
+                        )
+                    );
 
                     /**
                      * Begin game loop once everything setup (i.e., accept shit from client)

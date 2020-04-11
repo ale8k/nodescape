@@ -2216,8 +2216,10 @@ public final class client extends Applet_Sub1
             return;
         // begin block updating
         // anint893 is all players in our list
-        // so it looks through every player in our local list, like every single one lol
+        // so it looks through every player in our local list, anInt893 is the list of players
+        // waiting to be updated via the updatedRequired bit in method1 of the packet81 update process.
         for(int j = 0; j < anInt893; j++) {
+            System.out.println("mobs waiting to be updated count: " + anInt893);
             int k = anIntArray894[j];
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[k];
             int l = class30_sub2_sub2.method408();
