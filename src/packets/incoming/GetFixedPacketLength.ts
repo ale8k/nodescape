@@ -68,7 +68,7 @@ export default function GetFixedPacketLength(opcode: number): number {
       return 0 + 1;
     // Region change
     case 210:
-      return 0 + 1;
+      return 4 + 1;
     // Sent when a player reports another player
     case 218:
       return 8 + 1;

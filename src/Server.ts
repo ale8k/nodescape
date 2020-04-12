@@ -167,10 +167,6 @@ class Server {
              * This works by removing the packet from the start
              * of the inStreamBuffer[], and then continues to read until the
              * buffer is empty.
-             *
-             * Will try an alternative method which actually just stored the entire
-             * thing and read progressively, increasing the index because after
-             * opcode 210 it's simply broken.
              */
             // so, we got the buffer full of packets...
             // let's ensure its actually got stuff in
@@ -212,6 +208,24 @@ class Server {
                 }
 
             }
+            // General packet cycle
+            // 81: Update our player
+            socket.write(
+                UpdateLocalPlayer81(
+                    this._outStreamEncryption.nextKey(),
+                    1, // update our player
+                    3, // move type
+                    0, // planelevel
+                    1, // clear await queuee
+                    0, // update required - declares whether or not a bitmask should be read, good shit
+                    21, // ycoord
+                    21,  // xcoord
+                    0, // updateNPlayers movements - always skip this
+                    2047, // player list updating bit - always skip this
+                    // bit masks now because update required = 1
+                    // the bit masks are only read if that is 11
+                )
+            );
         });
 
         // 73: Load the map zone (fixed)
