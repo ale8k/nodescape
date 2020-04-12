@@ -68,6 +68,10 @@ class Server {
      * and our initial packets are sent once...
      */
     private _gameInitialSetupComplete = false;
+    /**
+     * Sets the game cycle rate (600 default)
+     */
+    private _gameCycleRate = 1000;
 
     public startServer(): void {
         net.createServer((socket: Socket) => {
@@ -114,7 +118,7 @@ class Server {
                      */
                     setInterval(() => {
                         this._gameLoopEventEmitter.emit("tick");
-                    }, 600);
+                    }, this._gameCycleRate);
                     socket.write(Buffer.from([2, 0, 0]));
                     this._loginState = LoginState.LoggedIn;
                     console.log("Second client request received and second server response sent");
