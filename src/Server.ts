@@ -1,11 +1,11 @@
 import * as net from "net";
 import { Socket } from "net";
+import { EventEmitter } from "events";
 import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
-import { ParseIncomingPackets } from "./packets/incoming";
-import { EventEmitter } from "events";
 import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
 import GameIds from "./GameIds";
+import { ParsePacketOpcode, GetPacketLength } from "./packets/incoming";
 
 enum LoginState {
     FirstResponse,
@@ -64,7 +64,7 @@ class Server {
      * A place for us to store the incoming data outside of our
      * 600ms cycle
      */
-    private _inStreamCacheBuffer: Buffer[] = [];
+    private _inStreamCacheBuffer: number[] = [];
     /**
      * The player's id. Eventually this will be an array,
      * for multiplayer and handling each socket connection
@@ -129,26 +129,39 @@ class Server {
                      */
                     this._gameLoopEventEmitter.on("tick", () => {
 
-                        console.log("_");
-                        //buffer[0] = ((buffer[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
+                        // reset cache buffer every 600ms
 
-                        // 81: Update our player
-                        // Idle packet, don't update our player, only update other players
-                        // if our player has no update, no bitmask is read because no update required is there.
-                        // socket.write(
-                        //     UpdateLocalPlayer81(
-                        //         this._outStreamEncryption.nextKey(),
-                        //         0, // update our player
-                        //         3, // move type // skip movement altogether
-                        //         0, // planelevel
-                        //         1, // clear await queuee // only this is read in this configuration ----
-                        //         0, // update required // send no bitmask on idle
-                        //         21, // ycoord
-                        //         21,  // xcoord
-                        //         0, // updateNPlayers movements
-                        //         2047, // player list updating bit
-                        //     )
-                        // );
+                        // the client doesnt send the idle packet on 600ms btw!
+                        // check if the length is greater than 0 due to this!
+                        if (this._inStreamCacheBuffer.length > 0) {
+                            /**
+                             * Read an op code,
+                             * check packet size
+                             * print opcode
+                             * remove packet size from array
+                             * repeat until inStreamCacheBuffer empty
+                             */
+                            const testBuffer = [241, 0, 0, 0, 0, 36, 0, 0, 0, 0, 202, 152, 0]; // two packets
+                            console.log("TEST BUFFER: SHOULD SHOW 241, 36");
+                            while (testBuffer.length > 0) {
+                                const opcode = testBuffer[0];
+                                console.log("OPCODE: ", opcode);
+                                //let parsedOpcode = ParsePacketOpcode(opcode, this._inStreamDecryption);
+                                const packetLength = GetPacketLength(opcode);
+                                // 241 = 4, so we got length 4 and opcode
+                                for (let i = 0; i < (packetLength + 1); i++) {
+                                    testBuffer.shift();
+                                }
+                            }
+
+                            //console.log(ParsePacketOpcode(this._inStreamCacheBuffer[index], this._inStreamDecryption));
+                        }
+                        // reset it regardless
+                        this._inStreamCacheBuffer = [];
+                        console.log("_");
+
+
+                        //buffer[0] = ((buffer[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
 
                     });
 
@@ -214,48 +227,28 @@ class Server {
                     b[1] = 2; // 1 doesn't work, idk why, but 2 loads them
                     socket.write(b);
 
-                    // 253: Write message to chat
-                    // this can cause problems, no idea why
-                    // basically sometimes it just gets rejected???
-                    // const bytes: number[] = [];
-                    // "Testing".split("").forEach(char => {
-                    //     const c: number = char.charCodeAt(0);
-                    //     bytes.push(c >>> 8);
-                    //     bytes.push(c & 0xff);
-                    // });
-                    // console.log(bytes);
-                    // b = Buffer.alloc((bytes.length + 2));
-                    // b[0] = 253 + this._outStreamEncryption.nextKey();
-                    // b[1] = bytes.length;
-                    // b.forEach((byte, i) => {
-                    //     b[(i + 2)] = bytes[(i)];
-                    // });
-                    // socket.write(b);
-
                     // 81: Update our player
-                    socket.write(
-                        UpdateLocalPlayer81(
-                            this._outStreamEncryption.nextKey(),
-                            1, // update our player
-                            3, // move type
-                            0, // planelevel
-                            1, // clear await queuee
-                            1, // update required - declares whether or not a bitmask should be read, good shit
-                            21, // ycoord
-                            21,  // xcoord
-                            0, // updateNPlayers movements - always skip this
-                            2047, // player list updating bit - always skip this
-                            // bit masks now because update required = 1
-                            // the bit masks are only read if that is 1
-                        )
-                    );
+                    // socket.write(
+                    //     UpdateLocalPlayer81(
+                    //         this._outStreamEncryption.nextKey(),
+                    //         1, // update our player
+                    //         3, // move type
+                    //         0, // planelevel
+                    //         1, // clear await queuee
+                    //         1, // update required - declares whether or not a bitmask should be read, good shit
+                    //         21, // ycoord
+                    //         21,  // xcoord
+                    //         0, // updateNPlayers movements - always skip this
+                    //         2047, // player list updating bit - always skip this
+                    //         // bit masks now because update required = 1
+                    //         // the bit masks are only read if that is 11
+                    //     )
+                    // );
 
                 /**
                  * Begin game loop once everything setup (i.e., accept shit from client)
                  */
                 } else if (this._loginState === LoginState.LoggedIn) {
-                    console.log(((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff));
-                    console.log(data.toJSON().data);
                     /**
                      * First step, concat all data into one big buffer
                      *
@@ -265,6 +258,11 @@ class Server {
                      *
                      * Then we'll work on responding afterwards
                      */
+                    //console.log(((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff));
+                    //console.log(data.toJSON().data);
+                    // for now we don't clear it, we just track opcode indexes and keep going
+                    this._inStreamCacheBuffer.push(...data.toJSON().data);
+
                 }
             });
 
