@@ -65,6 +65,11 @@ class Server {
      * 600ms cycle
      */
     private _inStreamCacheBuffer: Buffer[] = [];
+    /**
+     * The player's id. Eventually this will be an array,
+     * for multiplayer and handling each socket connection
+     */
+    private _playerId: number;
 
     public startServer(): void {
 
@@ -85,8 +90,11 @@ class Server {
                     console.log("First client request received and first server response sent");
                 } else if (this._loginState === LoginState.SecondResponse) {
                     const rsaBlock = data.toJSON().data.slice(43);
+
                     const clientSessionKey = Long.fromBytes(rsaBlock.slice(1, 9));
                     const serverSessionKey = Long.fromBytes(rsaBlock.slice(9, 17));
+                    this._playerId = rsaBlock[17];
+                    console.log("USERID: ", rsaBlock[17]);
 
                     const inSessionKey = [
                         (clientSessionKey.shiftRight(32).toInt()),
@@ -117,84 +125,38 @@ class Server {
                     }, 600);
 
                     /**
-                     * So I need to read opcode, parse packet, and repeat.
-                     * not cache opcodes lol
-                     * so take all data, store it in one big array
-                     * then once 600ms is up, pass this big array to the parser
-                     * for now we'll have it identify and return the opcode and the packet size
-                     *
-                     * also checkout buf.equals ->, may help me detmermine copies and stuff
-                     *
-                     * change of plan, we parse the opcodes here and then send them to the packet parser
-                     *
+                     * Game loop
                      */
                     this._gameLoopEventEmitter.on("tick", () => {
-                        const decryptedList = this._inStreamCacheBuffer.map(buffer => {
-                            buffer[0] = ((buffer[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
-                            console.log(buffer.toJSON());
-                            return buffer;
-                        });
-                        console.log("_");
-                        this._inStreamCacheBuffer = [];
 
-                        // we need to send packets here too actually
-                        // so uhm i send one now, in real situation packet parser would
-                        // come back and send them for us  or some kind of other eventemitter
-                        // for now hardcode
+                        console.log("_");
+                        //buffer[0] = ((buffer[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
 
                         // 81: Update our player
-                        socket.write(
-                            UpdateLocalPlayer81(
-                                this._outStreamEncryption.nextKey(),
-                                0, // update our player
-                                3, // move type // skip movement altogether
-                                0, // planelevel
-                                1, // clear await queuee // only this is read in this configuration ----
-                                0, // update required // send no bitmask on idle
-                                21, // ycoord
-                                21,  // xcoord
-                                0, // updateNPlayers movements
-                                2047, // player list updating bit
-                            )
-                        );
+                        // Idle packet, don't update our player, only update other players
+                        // if our player has no update, no bitmask is read because no update required is there.
+                        // socket.write(
+                        //     UpdateLocalPlayer81(
+                        //         this._outStreamEncryption.nextKey(),
+                        //         0, // update our player
+                        //         3, // move type // skip movement altogether
+                        //         0, // planelevel
+                        //         1, // clear await queuee // only this is read in this configuration ----
+                        //         0, // update required // send no bitmask on idle
+                        //         21, // ycoord
+                        //         21,  // xcoord
+                        //         0, // updateNPlayers movements
+                        //         2047, // player list updating bit
+                        //     )
+                        // );
 
                     });
+
                     let b: Buffer;
-                    /**
-                     * The packet procedure:
-                     *
-                     * To send once logged in:
-                     * 110, 81, 65 and maybe 85
-                     *
-                     * Upon login:
-                     * 71 - done
-                     * 126 - ?
-                     * 240 - potentially
-                     * 53 - potentially
-                     * 221 -
-                     * 36 -
-                     * 249 - ABSOLUTELY MUST, the client got no idea about us otherwise!
-                     * 107 - absolutely, reset our initial cam position on login
-                     * 253 - welcome msg
-                     * 73 - absolutely, loads our region
-                     * 134 - absolutely, updates our skills
-                     */
+
                     /**
                      * Base packets needing to be sent only once after login
                      */
-
-                    // 34: Update an item into the players inventory...
-                    // Wouldn't this rely on the inv stack packet...?
-                    // Pretty sure this doesn't update items, or if it does
-                    // it something to do with skills llike fletching maybe
-
-                    // 53: Inv stack size
-                    // I think this actually sets the items in the inventory,
-                    // not set the stack size...
-
-                    // 72: Clears a shop inventory I think? I don't get the client code
-
-                    // 248: Inventory background maybe? Like trading?
 
                     // 71: Set sidebar interface (fixed 4 bytes)
                     GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
@@ -205,16 +167,14 @@ class Server {
                         socket.write(b);
                     });
 
-                    // We needa add our players index to the client list, so this needs to happen nice
-                    // and early (maybe even first...?)
                     // 249: Sends mem status and player's index in servers playerlist to client
                     b = Buffer.alloc(4);
                     b[0] = 249 + this._outStreamEncryption.nextKey();
                     b[1] = 1 + 128; // one of them -128 removes on client end
                     // rest of it is a short accepting our id, but its also got that -128 on client side
                     // again. Really frustrating
-                    b[2] = (1 + 128);
-                    b[3] = (1 >> 8);
+                    b[2] = (this._playerId + 128);
+                    b[3] = (this._playerId >> 8);
                     socket.write(b);
                     console.log("Player index sent to client");
 
@@ -232,10 +192,6 @@ class Server {
                     b[0] = 107 + this._outStreamEncryption.nextKey();
                     socket.write(b);
 
-
-                    // 109: Logout, gonna try attach this to the packet received from the client
-                    // for initial packet parsing
-
                     // 134: Set/Update(?) skill level // sets them all for some reason... :D
                     // need to play with this more... (i.e., update just 1)
                     b = Buffer.alloc(7);
@@ -252,12 +208,6 @@ class Server {
                         socket.write(b);
                     });
 
-
-                    // 176: Opens welcome screen - doesn't appear to work...?
-                    b = Buffer.alloc(11);
-                    b[0] = 176 + this._outStreamEncryption.nextKey();
-                    socket.write(b);
-
                     // 221: Update friends list status
                     b = Buffer.alloc(2);
                     b[0] = 221 + this._outStreamEncryption.nextKey();
@@ -266,24 +216,23 @@ class Server {
 
                     // 253: Write message to chat
                     // this can cause problems, no idea why
-                    const bytes: number[] = [];
-                    "Testing".split("").forEach(char => {
-                        const c: number = char.charCodeAt(0);
-                        bytes.push(c >>> 8);
-                        bytes.push(c & 0xff);
-                    });
-                    console.log(bytes);
-                    b = Buffer.alloc((bytes.length + 2));
-                    b[0] = 253 + this._outStreamEncryption.nextKey();
-                    b[1] = bytes.length;
-                    b.forEach((byte, i) => {
-                        b[(i + 2)] = bytes[(i)];
-                    });
-                    socket.write(b);
+                    // basically sometimes it just gets rejected???
+                    // const bytes: number[] = [];
+                    // "Testing".split("").forEach(char => {
+                    //     const c: number = char.charCodeAt(0);
+                    //     bytes.push(c >>> 8);
+                    //     bytes.push(c & 0xff);
+                    // });
+                    // console.log(bytes);
+                    // b = Buffer.alloc((bytes.length + 2));
+                    // b[0] = 253 + this._outStreamEncryption.nextKey();
+                    // b[1] = bytes.length;
+                    // b.forEach((byte, i) => {
+                    //     b[(i + 2)] = bytes[(i)];
+                    // });
+                    // socket.write(b);
 
                     // 81: Update our player
-                    // Something is wrong with this packet,
-                    // it renders our dude but it fucks up our opcode decryption
                     socket.write(
                         UpdateLocalPlayer81(
                             this._outStreamEncryption.nextKey(),
@@ -301,16 +250,21 @@ class Server {
                         )
                     );
 
-                    /**
-                     * Begin game loop once everything setup (i.e., accept shit from client)
-                     */
+                /**
+                 * Begin game loop once everything setup (i.e., accept shit from client)
+                 */
                 } else if (this._loginState === LoginState.LoggedIn) {
-                    // the game event callback above should be somewhere down here eventually!
-
-                    // now we're logged in, we are willing to push incoming packets
-                    // to our buffer
-                    this._inStreamCacheBuffer.push(data);
-
+                    console.log(((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff));
+                    console.log(data.toJSON().data);
+                    /**
+                     * First step, concat all data into one big buffer
+                     *
+                     * 2nd step, read this giant buffer in a burst
+                     * Reading works by -> read opcode, compare opcode to packet length,
+                     * skip that amount of packets, read next opcode
+                     *
+                     * Then we'll work on responding afterwards
+                     */
                 }
             });
 
