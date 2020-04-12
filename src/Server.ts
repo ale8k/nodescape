@@ -42,46 +42,42 @@ enum ResponseCode {
  * @author ale8k
  */
 class Server {
+    /**
+     * Handles the current state of our login procedure
+     */
     private _loginState: LoginState = LoginState.FirstResponse;
+    /**
+     * In stream opcode isaac cipher
+     */
     private _inStreamDecryption: IsaacCipher;
+    /**
+     * Out stream opcode isaac cipher
+     */
     private _outStreamEncryption: IsaacCipher;
-
     /**
      * The emitter which handles directing incoming and outgoing packets
      */
     private _gameLoopEventEmitter: EventEmitter = new EventEmitter();
-    /**
-     * The game loop emitter emits to this, such that
-     * it can parse the packets and return timely
-     */
-    private _packetParserEventEmitter: EventEmitter = new EventEmitter();
-    /**
-     * Only used during login completion, sends a bunch of packets
-     * required on login, i.e., region, sidebars etc.
-     */
-    private _loginSetUpEventEmitter: EventEmitter = new EventEmitter();
     /**
      * A place for us to store the incoming data outside of our
      * 600ms cycle
      */
     private _inStreamCacheBuffer: number[] = [];
     /**
-     * The player's id. Eventually this will be an array,
-     * for multiplayer and handling each socket connection
+     * Some kind of flag to ensure that our emitter call back is added once
+     * and our initial packets are sent once...
      */
-    private _playerId: number;
+    private _gameInitialSetupComplete = false;
 
     public startServer(): void {
-
-
-        const loginProtocolStage = 0;
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
 
             /**
-             * Login data event
+             * Single primary data event
              */
             socket.on("data", (data) => {
+
                 if (this._loginState === LoginState.FirstResponse) {
                     const b = Buffer.alloc(17);
                     b[16] = 69;
@@ -90,10 +86,10 @@ class Server {
                     console.log("First client request received and first server response sent");
                 } else if (this._loginState === LoginState.SecondResponse) {
                     const rsaBlock = data.toJSON().data.slice(43);
-
                     const clientSessionKey = Long.fromBytes(rsaBlock.slice(1, 9));
                     const serverSessionKey = Long.fromBytes(rsaBlock.slice(9, 17));
-                    this._playerId = rsaBlock[17];
+                    // set player id
+                    //this._playerId = rsaBlock[17];
                     console.log("USERID: ", rsaBlock[17]);
 
                     const inSessionKey = [
@@ -112,156 +108,32 @@ class Server {
 
                     this._inStreamDecryption = new IsaacCipher(inSessionKey);
                     this._outStreamEncryption = new IsaacCipher(sessionKey);
+                    /**
+                     * We're happy with logging the user in, so setup game tick
+                     * and send A-OK response
+                     */
+                    setInterval(() => {
+                        this._gameLoopEventEmitter.emit("tick");
+                    }, 600);
                     socket.write(Buffer.from([2, 0, 0]));
                     this._loginState = LoginState.LoggedIn;
                     console.log("Second client request received and second server response sent");
 
-                    /**
-                     * Opcode buffer cache testing:
-                     */
-                    // game tick, prob need better place to put this honestly
-                    setInterval(() => {
-                        this._gameLoopEventEmitter.emit("tick");
-                    }, 600);
-
-                    /**
-                     * Game loop
-                     */
-                    this._gameLoopEventEmitter.on("tick", () => {
-
-                        // reset cache buffer every 600ms
-
-                        // the client doesnt send the idle packet on 600ms btw!
-                        // check if the length is greater than 0 due to this!
-                        if (this._inStreamCacheBuffer.length > 0) {
-                            /**
-                             * Read an op code,
-                             * check packet size
-                             * print opcode
-                             * remove packet size from array
-                             * repeat until inStreamCacheBuffer empty
-                             */
-                            const testBuffer = [241, 0, 0, 0, 0, 36, 0, 0, 0, 0, 202, 152, 0]; // two packets
-                            console.log("TEST BUFFER: SHOULD SHOW 241, 36");
-                            while (testBuffer.length > 0) {
-                                const opcode = testBuffer[0];
-                                console.log("OPCODE: ", opcode);
-                                //let parsedOpcode = ParsePacketOpcode(opcode, this._inStreamDecryption);
-                                const packetLength = GetPacketLength(opcode);
-                                // 241 = 4, so we got length 4 and opcode
-                                for (let i = 0; i < (packetLength + 1); i++) {
-                                    testBuffer.shift();
-                                }
-                            }
-
-                            //console.log(ParsePacketOpcode(this._inStreamCacheBuffer[index], this._inStreamDecryption));
-                        }
-                        // reset it regardless
-                        this._inStreamCacheBuffer = [];
-                        console.log("_");
-
-
-                        //buffer[0] = ((buffer[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff);
-
-                    });
-
-                    let b: Buffer;
-
-                    /**
-                     * Base packets needing to be sent only once after login
-                     */
-
-                    // 71: Set sidebar interface (fixed 4 bytes)
-                    GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
-                        const b = Buffer.alloc(4);
-                        b[0] = 71 + this._outStreamEncryption.nextKey();
-                        b.writeInt16BE(sideBarIconId, 1);
-                        b[3] = sideBarLocationId + 128;
-                        socket.write(b);
-                    });
-
-                    // 249: Sends mem status and player's index in servers playerlist to client
-                    b = Buffer.alloc(4);
-                    b[0] = 249 + this._outStreamEncryption.nextKey();
-                    b[1] = 1 + 128; // one of them -128 removes on client end
-                    // rest of it is a short accepting our id, but its also got that -128 on client side
-                    // again. Really frustrating
-                    b[2] = (this._playerId + 128);
-                    b[3] = (this._playerId >> 8);
-                    socket.write(b);
-                    console.log("Player index sent to client");
-
-                    // 73: Load the map zone (fixed)
-                    socket.write(
-                        LoadMapZone73(
-                            this._outStreamEncryption.nextKey(),
-                            406, // higher = east, lower = west  // x
-                            406 // higher = north, lower = south // y coord
-                        )
-                    );
-
-                    // 107: Reset camera position
-                    b = Buffer.alloc(1);
-                    b[0] = 107 + this._outStreamEncryption.nextKey();
-                    socket.write(b);
-
-                    // 134: Set/Update(?) skill level // sets them all for some reason... :D
-                    // need to play with this more... (i.e., update just 1)
-                    b = Buffer.alloc(7);
-                    new Array(10).fill(0).forEach((zero, i) => {
-                        b[0] = 134 + this._outStreamEncryption.nextKey();
-                        b[1] = i;
-                        // the client reads skill xp updates like this
-                        b[2] = (0 >> 8);
-                        b[3] = (0);
-                        b[4] = (0 >> 24);
-                        b[5] = (0 >> 16);
-                        // skill level?
-                        b[6] = 5;
-                        socket.write(b);
-                    });
-
-                    // 221: Update friends list status
-                    b = Buffer.alloc(2);
-                    b[0] = 221 + this._outStreamEncryption.nextKey();
-                    b[1] = 2; // 1 doesn't work, idk why, but 2 loads them
-                    socket.write(b);
-
-                    // 81: Update our player
-                    // socket.write(
-                    //     UpdateLocalPlayer81(
-                    //         this._outStreamEncryption.nextKey(),
-                    //         1, // update our player
-                    //         3, // move type
-                    //         0, // planelevel
-                    //         1, // clear await queuee
-                    //         1, // update required - declares whether or not a bitmask should be read, good shit
-                    //         21, // ycoord
-                    //         21,  // xcoord
-                    //         0, // updateNPlayers movements - always skip this
-                    //         2047, // player list updating bit - always skip this
-                    //         // bit masks now because update required = 1
-                    //         // the bit masks are only read if that is 11
-                    //     )
-                    // );
-
-                /**
-                 * Begin game loop once everything setup (i.e., accept shit from client)
-                 */
                 } else if (this._loginState === LoginState.LoggedIn) {
                     /**
-                     * First step, concat all data into one big buffer
-                     *
-                     * 2nd step, read this giant buffer in a burst
-                     * Reading works by -> read opcode, compare opcode to packet length,
-                     * skip that amount of packets, read next opcode
-                     *
-                     * Then we'll work on responding afterwards
+                     * Set up the initial game tick callback and send initial packets once
+                     * otherwise just push all incoming data into the instream cache
+                     * // We're done here now
                      */
-                    //console.log(((data[0] & 0xff) - this._inStreamDecryption.nextKey() & 0xff));
-                    //console.log(data.toJSON().data);
-                    // for now we don't clear it, we just track opcode indexes and keep going
-                    this._inStreamCacheBuffer.push(...data.toJSON().data);
+                    if (this._gameInitialSetupComplete === false) {
+                        console.log("Setting up initial game stage!");
+                        // Push the very first game packet to our cache buffer
+                        this._inStreamCacheBuffer.push(...data.toJSON().data);
+                        // setup event listener and send initial packets
+                        this.setupGame(socket);
+                    } else {
+                        this._inStreamCacheBuffer.push(...data.toJSON().data);
+                    }
 
                 }
             });
@@ -269,13 +141,57 @@ class Server {
             /**
              * Close
              */
-            socket.on("close", (err) => {
+            socket.on("close", (e) => {
                 console.log("A client was disconnected...");
             });
 
         }).listen(43594, () => {
             console.log("Server running");
         });
+    }
+
+    /**
+     * Sends initial packets and adds our gameloop
+     * event listener callback
+     * The inStreamBuffer cache increments based on all incoming data
+     * @param socket the primary socket
+     */
+    private setupGame(socket: Socket): void {
+        this._gameLoopEventEmitter.on("tick", () => {
+            console.log("Current cache buffer state: ", this._inStreamCacheBuffer);
+            // so, we got the buffer full of packets...
+            // let's ensure its actually got stuff in
+            while (this._inStreamCacheBuffer.length > 0) {
+                // Grab the first index of our cache buffer
+                // (which will always be the opcode! See below as to why)
+                const eOpcode = this._inStreamCacheBuffer[0];
+                // Parse the opcode
+                const dOpcode = ParsePacketOpcode(eOpcode, this._inStreamDecryption);
+                // Get the packet length for this opcode
+                const pLength = GetPacketLength(dOpcode);
+                console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
+                // Remove this packet from the in stream buffer,
+                // eventually we'll put it into another buffer that'll respond based
+                // on the packet
+                // Also this obviously only works for fixed size packets
+                // P.s. the + 1 is for the opcode lol.
+                for (let i = 0; i < (pLength + 1); i++) {
+                    this._inStreamCacheBuffer.shift();
+                }
+
+            }
+        });
+
+        // 73: Load the map zone (fixed)
+        socket.write(
+            LoadMapZone73(
+                this._outStreamEncryption.nextKey(),
+                406, // higher = east, lower = west  // x
+                406 // higher = north, lower = south // y coord
+            )
+        );
+        console.log("Callback attached and initial packets sent");
+        this._gameInitialSetupComplete = true;
     }
 
 }
