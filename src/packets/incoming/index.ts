@@ -1,4 +1,4 @@
 import ParsePacketOpcode from "./ParsePacketOpcode";
-import GetPacketLength from "./GetPacketLength";
+import GetFixedPacketLength from "./GetFixedPacketLength";
 
-export { ParsePacketOpcode, GetPacketLength };
+export { ParsePacketOpcode, GetFixedPacketLength };

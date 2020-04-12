@@ -5,7 +5,7 @@ import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
 import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
 import GameIds from "./GameIds";
-import { ParsePacketOpcode, GetPacketLength } from "./packets/incoming";
+import { ParsePacketOpcode, GetFixedPacketLength } from "./packets/incoming";
 
 enum LoginState {
     FirstResponse,
@@ -135,6 +135,24 @@ class Server {
                         this._inStreamCacheBuffer.push(...data.toJSON().data);
                     }
 
+                    // 81: Update our player
+                    socket.write(
+                        UpdateLocalPlayer81(
+                            this._outStreamEncryption.nextKey(),
+                            1, // update our player
+                            3, // move type
+                            0, // planelevel
+                            1, // clear await queuee
+                            0, // update required - declares whether or not a bitmask should be read, good shit
+                            21, // ycoord
+                            21,  // xcoord
+                            0, // updateNPlayers movements - always skip this
+                            2047, // player list updating bit - always skip this
+                            // bit masks now because update required = 1
+                            // the bit masks are only read if that is 11
+                        )
+                    );
+
                 }
             });
 
@@ -162,20 +180,39 @@ class Server {
             // so, we got the buffer full of packets...
             // let's ensure its actually got stuff in
             while (this._inStreamCacheBuffer.length > 0) {
+                /**
+                 * Packet 210 expects data? Apparently?
+                 */
                 // Grab the first index of our cache buffer
                 // (which will always be the opcode! See below as to why)
                 const eOpcode = this._inStreamCacheBuffer[0];
                 // Parse the opcode
                 const dOpcode = ParsePacketOpcode(eOpcode, this._inStreamDecryption);
-                // Get the packet length for this opcode
-                const pLength = GetPacketLength(dOpcode);
+                let pLength;
+                // check if its variable length packet, if not just set the fixed length
+                switch (dOpcode) {
+                    // Sent when a player enters a chat message
+                    case 4:
+                    // Walk on command: Sent when player walks due to clicking a door or something
+                    case 98:
+                    // Command in chatbox, i.e., ::something
+                    case 103:
+                    // Sent when dude sends private message
+                    case 126:
+                    // Sent when player clicks a tile to walk normally
+                    case 164:
+                    // Sent when player walks using map (note, it has 14 additional bytes on the end
+                    // presumed to be anticheat that are ignored)
+                    case 248:
+                        pLength = 69999;
+                    default:
+                        pLength = GetFixedPacketLength(dOpcode);
+                }
                 console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
                 // Remove this packet from the in stream buffer,
                 // eventually we'll put it into another buffer that'll respond based
                 // on the packet
-                // Also this obviously only works for fixed size packets
-                // P.s. the + 1 is for the opcode lol.
-                for (let i = 0; i < (pLength + 1); i++) {
+                for (let i = 0; i < (pLength); i++) {
                     this._inStreamCacheBuffer.shift();
                 }
 
@@ -188,6 +225,24 @@ class Server {
                 this._outStreamEncryption.nextKey(),
                 406, // higher = east, lower = west  // x
                 406 // higher = north, lower = south // y coord
+            )
+        );
+
+        // 81: Update our player
+        socket.write(
+            UpdateLocalPlayer81(
+                this._outStreamEncryption.nextKey(),
+                1, // update our player
+                3, // move type
+                0, // planelevel
+                1, // clear await queuee
+                1, // update required - declares whether or not a bitmask should be read, good shit
+                21, // ycoord
+                21,  // xcoord
+                0, // updateNPlayers movements - always skip this
+                2047, // player list updating bit - always skip this
+                // bit masks now because update required = 1
+                // the bit masks are only read if that is 11
             )
         );
         console.log("Callback attached and initial packets sent");
