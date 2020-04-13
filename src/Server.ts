@@ -182,25 +182,34 @@ class Server {
                 // (which will always be the opcode! See below as to why)
                 const eOpcode = this._inStreamCacheBuffer[0];
                 // Parse the opcode
-                const dOpcode = ParsePacketOpcode(eOpcode, this._inStreamDecryption);
+                let dOpcode = ParsePacketOpcode(eOpcode, this._inStreamDecryption);
                 let pLength;
                 // check if its variable length packet, if not just set the fixed length
                 switch (dOpcode) {
+                    // Anti cheat packet for if the users click > 92 tiles from their current tile
+                    case 36: // It's fixed to 5 bytes opcode + int
+                    for (let j = 0; j < 5; j ++) {
+                        this._inStreamCacheBuffer.shift();
+                    }
+                    dOpcode = ParsePacketOpcode(this._inStreamCacheBuffer[0], this._inStreamDecryption);
                     // Sent when a player enters a chat message
-                    case 4:
-                    case 36:
-                    case 45:
+                    case 4: // var byte
+                    case 45: // var byte
                     // Sometimes sends this on idle, I just set length to something big
                     // enough such that it cleans the buffer for us
-                    case 77:
+                    case 77: // var byte
                     // Walk on command: Sent when player walks due to clicking a door or something
-                    case 98:
+                    case 98: // same problem as 36
                     // Command in chatbox, i.e., ::something
                     case 103:
                     // Sent when dude sends private message
                     case 126:
                     // Sent when player clicks a tile to walk normally
                     case 164:
+                        console.log("164 before decryption:", eOpcode);
+                        console.log("Opcode 164 decrypted, here's the packet for it:", dOpcode);
+                        console.log(this._inStreamCacheBuffer);
+
                     case 165:
                     // Sometimes sends this on idle, I just set length to something big
                     // enough such that it cleans the buffer for us
@@ -208,7 +217,7 @@ class Server {
                     case 246:
                     // Sent when player walks using map (note, it has 14 additional bytes on the end
                     // presumed to be anticheat that are ignored)
-                    case 248:
+                    case 248: // same as 98 etc
                         // We just force them to end for now
                         pLength = 69999;
                         break;
