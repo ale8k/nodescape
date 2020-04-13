@@ -328,6 +328,18 @@ class Server {
                 // the bit masks are only read if that is 11
             )
         );
+
+        // 253: Welcome to rs!
+        const text = Buffer.from(" Welcome to DevisleScape! \n").toJSON().data;
+        b = Buffer.alloc(text.length + 2);
+        b[0] = 253 + this._outStreamEncryption.nextKey();
+        b[1] = text.length;
+        let textOffset = 2;
+        text.forEach(byte => {
+            b[textOffset++] = text[(textOffset - 2)];
+        });
+        console.log("Text buffer", b.toJSON());
+        socket.write(b);
     }
 
 }
