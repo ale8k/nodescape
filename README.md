@@ -11,3 +11,4 @@ I used a number of resources to get this running:
 - https://rsps.fandom.com/wiki/317_Protocol
 - Accidental cycle discovery: https://www.rune-server.ee/runescape-development/rs2-server/help/692079-opcode-decryption-how-approach.html
 - Block-flag discovery: https://www.rune-server.ee/runescape-development/rs2-server/help/692068-block-flag-based-updating-0x10-render-failing.html
+- Manually going through the client for packet sizes: https://www.rune-server.ee/runescape-development/rs2-server/informative-threads/692158-317-client-server-packet-list.html

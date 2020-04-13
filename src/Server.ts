@@ -71,7 +71,11 @@ class Server {
     /**
      * Sets the game cycle rate (600 default)
      */
-    private _gameCycleRate = 1000;
+    private _gameCycleRate = 600;
+    /**
+     * The players ID from the RSA login block
+     */
+    private _playerId: number;
 
     public startServer(): void {
         net.createServer((socket: Socket) => {
@@ -93,7 +97,7 @@ class Server {
                     const clientSessionKey = Long.fromBytes(rsaBlock.slice(1, 9));
                     const serverSessionKey = Long.fromBytes(rsaBlock.slice(9, 17));
                     // set player id
-                    //this._playerId = rsaBlock[17];
+                    this._playerId = rsaBlock[17];
                     console.log("USERID: ", rsaBlock[17]);
 
                     const inSessionKey = [
@@ -184,6 +188,11 @@ class Server {
                 switch (dOpcode) {
                     // Sent when a player enters a chat message
                     case 4:
+                    case 36:
+                    case 45:
+                    // Sometimes sends this on idle, I just set length to something big
+                    // enough such that it cleans the buffer for us
+                    case 77:
                     // Walk on command: Sent when player walks due to clicking a door or something
                     case 98:
                     // Command in chatbox, i.e., ::something
@@ -192,10 +201,17 @@ class Server {
                     case 126:
                     // Sent when player clicks a tile to walk normally
                     case 164:
+                    case 165:
+                    // Sometimes sends this on idle, I just set length to something big
+                    // enough such that it cleans the buffer for us
+                    case 226:
+                    case 246:
                     // Sent when player walks using map (note, it has 14 additional bytes on the end
                     // presumed to be anticheat that are ignored)
                     case 248:
+                        // We just force them to end for now
                         pLength = 69999;
+                        break;
                     default:
                         pLength = GetFixedPacketLength(dOpcode);
                 }
@@ -228,6 +244,64 @@ class Server {
             );
         });
 
+        this.sendInitialLoginPackets(socket);
+        console.log("Callback attached and initial packets sent");
+        this._gameInitialSetupComplete = true;
+    }
+
+    /**
+     * Sends all the essential starting packets
+     * @param socket our players socket
+     */
+    private sendInitialLoginPackets(socket: Socket): void {
+        let b = Buffer.alloc(0);
+        // 249: Sends mem status and player's index in servers playerlist to client
+        b = Buffer.alloc(4);
+        b[0] = 249 + this._outStreamEncryption.nextKey();
+        b[1] = 1 + 128; // one of them -128 removes on client end
+        // rest of it is a short accepting our id, but its also got that -128 on client side
+        // again. Really frustrating
+        b[2] = (this._playerId + 128);
+        b[3] = (this._playerId >> 8);
+        socket.write(b);
+        console.log("Player index sent to client");
+
+        // 71: Set sidebar interface (fixed 4 bytes)
+        GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
+            const b = Buffer.alloc(4);
+            b[0] = 71 + this._outStreamEncryption.nextKey();
+            b.writeInt16BE(sideBarIconId, 1);
+            b[3] = sideBarLocationId + 128;
+            socket.write(b);
+        });
+
+        // 134: Set/Update(?) skill level // sets them all for some reason... :D
+        // need to play with this more... (i.e., update just 1)
+        b = Buffer.alloc(7);
+        new Array(10).fill(0).forEach((zero, i) => {
+            b[0] = 134 + this._outStreamEncryption.nextKey();
+            b[1] = i;
+            // the client reads skill xp updates like this
+            b[2] = (0 >> 8);
+            b[3] = (0);
+            b[4] = (0 >> 24);
+            b[5] = (0 >> 16);
+            // skill level?
+            b[6] = 5;
+            socket.write(b);
+        });
+
+        // 221: Update friends list status
+        b = Buffer.alloc(2);
+        b[0] = 221 + this._outStreamEncryption.nextKey();
+        b[1] = 2; // 1 doesn't work, idk why, but 2 loads them
+        socket.write(b);
+
+        // 107: Reset camera position
+        b = Buffer.alloc(1);
+        b[0] = 107 + this._outStreamEncryption.nextKey();
+        socket.write(b);
+
         // 73: Load the map zone (fixed)
         socket.write(
             LoadMapZone73(
@@ -254,8 +328,6 @@ class Server {
                 // the bit masks are only read if that is 11
             )
         );
-        console.log("Callback attached and initial packets sent");
-        this._gameInitialSetupComplete = true;
     }
 
 }
