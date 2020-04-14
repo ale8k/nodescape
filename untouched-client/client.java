@@ -6465,16 +6465,21 @@ public final class client extends Applet_Sub1
                 aClass30_Sub2_Sub2_1192.method397((byte)6, 98);
                 aClass30_Sub2_Sub2_1192.method398(k4 + k4 + 3);
             }
+            System.out.println("-------------------------------------------");
+            System.out.println("x: " + k6 + "regionBaseX: " + anInt1034);
             aClass30_Sub2_Sub2_1192.method433(0, k6 + anInt1034);
             anInt1261 = anIntArray1280[0];
             anInt1262 = anIntArray1281[0];
+            
             for(int j7 = 1; j7 < k4; j7++)
             {
                 i4--;
+                System.out.println("Destion x: "  + (anIntArray1280[i4] - k6));
                 aClass30_Sub2_Sub2_1192.method398(anIntArray1280[i4] - k6);
+                System.out.println("Destion y: "  + (anIntArray1281[i4] - i7));
                 aClass30_Sub2_Sub2_1192.method398(anIntArray1281[i4] - i7);
             }
-
+            System.out.println("y: " + i7 + "regionBaseY: " + anInt1035);
             aClass30_Sub2_Sub2_1192.method431(true, i7 + anInt1035);
             aClass30_Sub2_Sub2_1192.method424(super.anIntArray30[5] != 1 ? 0 : 1, 0);
             return true;
@@ -11111,7 +11116,7 @@ public final class client extends Applet_Sub1
                             k16++;
 
                     }
-
+                    System.out.println("the region++ var is:" + k16);
                     aByteArrayArray1183 = new byte[k16][];
                     aByteArrayArray1247 = new byte[k16][];
                     anIntArray1234 = new int[k16];

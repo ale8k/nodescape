@@ -5,7 +5,9 @@ import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
 import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
 import GameIds from "./GameIds";
-import { ParsePacketOpcode, GetFixedPacketLength } from "./packets/incoming";
+import { ParsePacketOpcode, GetFixedPacketLength, GetVarBytePacketLength, Parse164Walk } from "./packets/incoming";
+
+
 
 enum LoginState {
     FirstResponse,
@@ -76,8 +78,23 @@ class Server {
      * The players ID from the RSA login block
      */
     private _playerId: number;
+    /**
+     * DEBUG X/Y
+     */
+    private x: number = 8;
+    private y: number = 8;
 
     public startServer(): void {
+
+        /**
+         *  73,  5, 8, 11, 136, 12, 0
+         * Client sent 2954 for x, (8 + 2944)
+         * 3208 for y (8 + 3200)
+         */
+
+
+
+        console.log("leshorts: ", this.readLEShortA(12, 0), this.readLEShort(1, 0));
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
 
@@ -166,7 +183,7 @@ class Server {
      */
     private setupGame(socket: Socket): void {
         this._gameLoopEventEmitter.on("tick", () => {
-            console.log("Current cache buffer state: ", this._inStreamCacheBuffer);
+            //console.log("Current cache buffer state: ", this._inStreamCacheBuffer);
             /**
              * This works by removing the packet from the start
              * of the inStreamBuffer[], and then continues to read until the
@@ -188,10 +205,10 @@ class Server {
                 switch (dOpcode) {
                     // Anti cheat packet for if the users click > 92 tiles from their current tile
                     case 36: // It's fixed to 5 bytes opcode + int
-                    for (let j = 0; j < 5; j ++) {
-                        this._inStreamCacheBuffer.shift();
-                    }
-                    dOpcode = ParsePacketOpcode(this._inStreamCacheBuffer[0], this._inStreamDecryption);
+                        for (let j = 0; j < 5; j++) {
+                            this._inStreamCacheBuffer.shift();
+                        }
+                        dOpcode = ParsePacketOpcode(this._inStreamCacheBuffer[0], this._inStreamDecryption);
                     // Sent when a player enters a chat message
                     case 4: // var byte
                     case 45: // var byte
@@ -206,10 +223,8 @@ class Server {
                     case 126:
                     // Sent when player clicks a tile to walk normally
                     case 164:
-                        console.log("164 before decryption:", eOpcode);
-                        console.log("Opcode 164 decrypted, here's the packet for it:", dOpcode);
-                        console.log(this._inStreamCacheBuffer);
-
+                    //Parse164Walk();
+                    //break;
                     case 165:
                     // Sometimes sends this on idle, I just set length to something big
                     // enough such that it cleans the buffer for us
@@ -218,13 +233,19 @@ class Server {
                     // Sent when player walks using map (note, it has 14 additional bytes on the end
                     // presumed to be anticheat that are ignored)
                     case 248: // same as 98 etc
-                        // We just force them to end for now
-                        pLength = 69999;
+                        console.log("Opcode: ", dOpcode, "The payload + size: ", this._inStreamCacheBuffer);
+                        pLength = GetVarBytePacketLength(this._inStreamCacheBuffer);
                         break;
                     default:
                         pLength = GetFixedPacketLength(dOpcode);
+                        break;
+
+                        // After switch, parse packet (function refer to correct function), for now,
+                        // hardcode 164
+                        Parse164Walk;
                 }
-                console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
+                //console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
+                console.log("Initial idle opcode: ", this._inStreamCacheBuffer[0], "Decrypted: ", dOpcode, "Size: ", pLength);
                 // Remove this packet from the in stream buffer,
                 // eventually we'll put it into another buffer that'll respond based
                 // on the packet
@@ -243,9 +264,9 @@ class Server {
                     0, // planelevel
                     1, // clear await queuee
                     0, // update required - declares whether or not a bitmask should be read, good shit
-                    21, // ycoord
-                    21,  // xcoord
-                    0, // updateNPlayers movements - always skip this
+                    this.y, // ycoord
+                    this.x,  // xcoord
+                    0, // updateNPlayers movements - always skip thiss
                     2047, // player list updating bit - always skip this
                     // bit masks now because update required = 1
                     // the bit masks are only read if that is 11
@@ -315,8 +336,8 @@ class Server {
         socket.write(
             LoadMapZone73(
                 this._outStreamEncryption.nextKey(),
-                406, // higher = east, lower = west  // x
-                406 // higher = north, lower = south // y coord
+                374, // higher = east, lower = west  // x  406, 406 works with 21,21 x/y
+                406 // higher = north, lower = south // y coordd
             )
         );
 
@@ -329,8 +350,8 @@ class Server {
                 0, // planelevel
                 1, // clear await queuee
                 1, // update required - declares whether or not a bitmask should be read, good shit
-                21, // ycoord
-                21,  // xcoord
+                this.y, // ycoord
+                this.x,  // xcoord
                 0, // updateNPlayers movements - always skip this
                 2047, // player list updating bit - always skip this
                 // bit masks now because update required = 1
@@ -347,8 +368,27 @@ class Server {
         text.forEach(byte => {
             b[textOffset++] = text[(textOffset - 2)];
         });
-        console.log("Text buffer", b.toJSON());
+        // console.log("Text buffer", b.toJSON());
         socket.write(b);
+    }
+
+    /**
+     * TEST
+     */
+    public readLEShortA(val1: number, val2: number) {
+        let value = ((val1 & 0xff) << 8) + (val2 - 128 & 0xff);
+        if (value > 32767) {
+            value -= 0x10000;
+        }
+        return value;
+    }
+
+    public readLEShort(val1: number, val2: number) {
+        let value = ((val1 & 0xff) << 8) + (val2 & 0xff);
+        if (value > 32767) {
+            value -= 0x10000;
+        }
+        return value;
     }
 
 }

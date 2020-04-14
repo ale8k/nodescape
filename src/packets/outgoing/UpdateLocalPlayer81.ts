@@ -147,7 +147,7 @@ export default function UpdateLocalPlayer81(
         bitArr.push(...convertToFixedBitArray(0x338, 16)); // running
 
         // players name long
-        bitArr.push(...convertToFixedBitArray(1, 64));
+        bitArr.push(...convertToFixedBitArray(303, 64));
         // players combat level
         bitArr.push(...convertToFixedBitArray(10, 8));
         // players skill level

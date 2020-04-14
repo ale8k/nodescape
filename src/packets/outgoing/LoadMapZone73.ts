@@ -21,24 +21,20 @@ export default function LoadMapZone73(key: number, xcoord: number, ycoord: numbe
 
 // additional info about packet 73:
                         /**
+
                          * 73: Loads map region
-                         * This actually takes the 8x8 of the 'zone', not the tile. A tile consists of 8x8 zones,
+                         * This actually takes the 8x8 of the 'zone', not the tile. A tile(region he means) consists of 8x8 zones,
                          * a zone is 8x8 single tiles. So, we get a tile position relative to a zone.
                          *
+                         * 8x8 tiles = 64 tiles, so a zone is 64 tiles
                          *
                          * From Graham:
                          * 8x8 tiles = a zone. This is the granularity used in a bunch of packets
                          * (e.g. for sending ground items, projectiles, constructing dynamic/instanced maps, etc.)
-                         * 64x64 tiles (or 8x8 zones) = a single map. This is the granularity used on disk in the cache.
+                         * 64x64 tiles (or 8x8 zones) = a single map (region on that xplv thing).
+                         * This is the granularity used on disk in the cache.
                          * 104x104 tiles (or 13x13 zones) = the area that the client keeps in RAM at any one time.
-                         *
-                         * See: https://explv.github.io/?centreX=3120&centreY=3300&centreZ=0&zoom=9 for info
-                         *
-                         * To simplify, there's 64x64 tiles in a 'region', Please note tile index starts at 0, so it's actually 63x63(0)
-                         * 8x8 tiles is a zone, and 8x(8x8tiles) creates a map of 64x64 tiles.
-                         *
-                         * The client stores 104x104 tiles (or 13x13 zones) at a time in the ram.
-                         *
+
                          * You'll also find +/- 6 calculations in some servers (and perhaps the client too) -
                          * this is because some code uses zone coordinates relative to the top left of the area,
                          * some relative to the centre.
