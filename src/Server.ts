@@ -86,15 +86,10 @@ class Server {
 
     public startServer(): void {
 
-        /**
-         *  73,  5, 8, 11, 136, 12, 0
-         * Client sent 2954 for x, (8 + 2944)
-         * 3208 for y (8 + 3200)
-         */
+
+        console.log("leshorts: ", this.readLEShortA(8, 11), this.readLEShort(12, 0));
 
 
-
-        console.log("leshorts: ", this.readLEShortA(12, 0), this.readLEShort(1, 0));
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
 
@@ -240,9 +235,12 @@ class Server {
                         pLength = GetFixedPacketLength(dOpcode);
                         break;
 
-                        // After switch, parse packet (function refer to correct function), for now,
-                        // hardcode 164
-                        Parse164Walk;
+
+                }
+                // After switch, parse packet (function refer to correct function), for now,
+                // hardcode 164
+                if (dOpcode === 164) {
+                    Parse164Walk(pLength, this._inStreamCacheBuffer);
                 }
                 //console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
                 console.log("Initial idle opcode: ", this._inStreamCacheBuffer[0], "Decrypted: ", dOpcode, "Size: ", pLength);
@@ -336,8 +334,8 @@ class Server {
         socket.write(
             LoadMapZone73(
                 this._outStreamEncryption.nextKey(),
-                374, // higher = east, lower = west  // x  406, 406 works with 21,21 x/y
-                406 // higher = north, lower = south // y coordd
+                334, // higher = east, lower = west  // x  406, 406 works with 21,21 x/y
+                462 // higher = north, lower = south // y coordd
             )
         );
 
@@ -375,20 +373,29 @@ class Server {
     /**
      * TEST
      */
+    // lets try put it in a buffer...
     public readLEShortA(val1: number, val2: number) {
-        let value = ((val1 & 0xff) << 8) + (val2 - 128 & 0xff);
-        if (value > 32767) {
-            value -= 0x10000;
+        // const test = Buffer.alloc(4);
+        // test[0] = ((val1 & 0xff) << 8);
+        // test[1] = (val2 - 128 & 0xff);
+        // let converted = test.readUInt16BE(0);
+        let converted = ((val1 & 0xff) << 8) + (val2 - 128 & 0xff);
+        if (converted > 32767) {
+            converted -= 0x10000;
         }
-        return value;
+        return converted;
     }
 
     public readLEShort(val1: number, val2: number) {
-        let value = ((val1 & 0xff) << 8) + (val2 & 0xff);
-        if (value > 32767) {
-            value -= 0x10000;
+        // const test = Buffer.alloc(4);
+        // test[0] = ((val1 & 0xff) << 8);
+        // test[1] = (val2 & 0xff);
+        // let converted = test.readUInt16LE(0);
+        let converted = ((val1 & 0xff) << 8) + (val2 & 0xff);
+        if (converted > 32767) {
+            converted -= 0x10000;
         }
-        return value;
+        return converted;
     }
 
 }
