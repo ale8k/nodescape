@@ -1,13 +1,10 @@
-// helpers
-import ParsePacketOpcode from "./ParsePacketOpcode";
-import GetFixedPacketLength from "./GetFixedPacketLength";
-import GetVarBytePacketLength from "./GetVarBytePacketLength";
 // packet parsers
 import { Parse164Walk } from "./packets";
 
+// reader
+import PacketReader from "./PacketReader";
+
 export {
-    ParsePacketOpcode,
-    GetFixedPacketLength,
-    GetVarBytePacketLength,
-    Parse164Walk
+    Parse164Walk,
+    PacketReader
 };

@@ -1,4 +1,4 @@
-import { convertToFixedBitArray } from "../../../utils";
+import { convertToFixedBitArray } from "../../../../utils";
 
 /**
  * METHOD 49 (Actually 107 really)

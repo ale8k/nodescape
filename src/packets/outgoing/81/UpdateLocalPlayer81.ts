@@ -1,4 +1,4 @@
-import { setBit, convertToFixedBitArray } from "../../utils";
+import { setBit, convertToFixedBitArray } from "../../../utils";
 import Append0x10 from "./update-masks/Append0x10";
 /**
  * Updates the local player in a given zone (8x8 set of tiles in a region)
