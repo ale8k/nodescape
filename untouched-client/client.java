@@ -2209,7 +2209,7 @@ public final class client extends Applet_Sub1
      * for updates and whatnot. Only aware of appearance (0x10) so far
      */
     private final void method49(int i, byte byte0, Class30_Sub2_Sub2 class30_sub2_sub2) {
-        System.out.println("METHOD 49 CALLED");
+        // System.out.println("METHOD 49 CALLED");
         if(byte0 == 2)
             byte0 = 0;
         else
@@ -6466,7 +6466,7 @@ public final class client extends Applet_Sub1
                 aClass30_Sub2_Sub2_1192.method398(k4 + k4 + 3);
             }
             System.out.println("-------------------------------------------");
-            System.out.println("x: " + k6 + "regionBaseX: " + anInt1034);
+            System.out.println("Base x summed: " + (k6 + anInt1034));
             aClass30_Sub2_Sub2_1192.method433(0, k6 + anInt1034);
             anInt1261 = anIntArray1280[0];
             anInt1262 = anIntArray1281[0];
@@ -6474,14 +6474,17 @@ public final class client extends Applet_Sub1
             for(int j7 = 1; j7 < k4; j7++)
             {
                 i4--;
-                System.out.println("Destion x: "  + (anIntArray1280[i4] - k6));
-                aClass30_Sub2_Sub2_1192.method398(anIntArray1280[i4] - k6);
-                System.out.println("Destion y: "  + (anIntArray1281[i4] - i7));
+                aClass30_Sub2_Sub2_1192.method398(anIntArray1280[i4] - k6); // x: waypoint-co-ord - mycoord
+                System.out.println("X: " + (anIntArray1280[i4] - k6));
                 aClass30_Sub2_Sub2_1192.method398(anIntArray1281[i4] - i7);
+                System.out.println("Y: " + (anIntArray1281[i4] - i7));
             }
-            System.out.println("y: " + i7 + "regionBaseY: " + anInt1035);
+            System.out.println("Base y summed: " + (i7 + anInt1035));
+            
             aClass30_Sub2_Sub2_1192.method431(true, i7 + anInt1035);
             aClass30_Sub2_Sub2_1192.method424(super.anIntArray30[5] != 1 ? 0 : 1, 0);
+            System.out.println("Base y summed: " + (super.anIntArray30[5] != 1 ? 0 : 1));
+            System.out.println("-------------------------------------------");
             return true;
         }
         return i != 1;
@@ -7292,7 +7295,7 @@ public final class client extends Applet_Sub1
      * @param byte0 a value representing 8?
      */
     private final void method91(Class30_Sub2_Sub2 class30_sub2_sub2_1083, int i, byte byte0) {
-        System.out.println("METHOD 91 CALLED");
+        //System.out.println("METHOD 91 CALLED");
         if(byte0 == 8)
             byte0 = 0;
         else
@@ -7306,7 +7309,7 @@ public final class client extends Applet_Sub1
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
-            System.out.println("Player list updating 11bit ID: " + j);
+            //System.out.println("Player list updating 11bit ID: " + j);
             // 2047 max player count, allows us to break past this
             if(j == 2047) {
                 break;
@@ -7374,7 +7377,7 @@ public final class client extends Applet_Sub1
 
             class30_sub2_sub4_sub1_sub2.method445(((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1500[0] + j1, ((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1501[0] + i1, l == 1, false);
         }
-        System.out.println("Out of loop now");
+        // System.out.println("Out of loop now");
         class30_sub2_sub2_1083.method420(true);
     }
 
@@ -9095,7 +9098,7 @@ public final class client extends Applet_Sub1
      * @param byte0
      */
     private final void method117(Class30_Sub2_Sub2 class30_sub2_sub2, int i, byte byte0) {
-        System.out.println("METHOD 117 CALLED");
+        //System.out.println("METHOD 117 CALLED");
         // no idea 
         class30_sub2_sub2.method418(anInt1118);
         // sets the next opcode, not really sure why though?
@@ -9961,7 +9964,7 @@ public final class client extends Applet_Sub1
      * @param class30_sub2_sub2
      */
     private final void method134(byte byte0, int i, Class30_Sub2_Sub2 class30_sub2_sub2) {
-        System.out.println("METHOD 134 CALLED");
+        //System.out.println("METHOD 134 CALLED");
         // how many other player movements to update
         int j = class30_sub2_sub2.method419(8, 0);
         // i'm not sure if this is in our zone or in the server entirely?
@@ -10742,9 +10745,9 @@ public final class client extends Applet_Sub1
      * @param class30_sub2_sub2 The reading stream for the client
      */
     private final void method143(int i, Class30_Sub2_Sub2 class30_sub2_sub2_1083) {
-        System.out.println("\n");
+        //System.out.println("\n");
         anInt893 = 0;
-        System.out.println("Packet size: " + class30_sub2_sub2_1083.anInt1406);
+        //System.out.println("Packet size: " + class30_sub2_sub2_1083.anInt1406);
         // Our player movement updates
         method117(class30_sub2_sub2_1083, i, (byte)5); 
         // Other player movement updates
@@ -10753,20 +10756,20 @@ public final class client extends Applet_Sub1
         method91(class30_sub2_sub2_1083, i, (byte)8);  
         // Player update block flag-based updates
         method49(i, (byte)2, class30_sub2_sub2_1083);  
-        System.out.println("Gone through 4 steps of updating");
+        //System.out.println("Gone through 4 steps of updating");
         for(int k = 0; k < anInt839; k++) {
             int l = anIntArray840[k];
             if(((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2Array890[l])).anInt1537 != anInt1161)
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[l] = null;
         }
 
-        System.out.println("Final packet size: " + class30_sub2_sub2_1083.anInt1406 + " should equal: " + i);
+        //System.out.println("Final packet size: " + class30_sub2_sub2_1083.anInt1406 + " should equal: " + i);
 
         if(class30_sub2_sub2_1083.anInt1406 != i) {
             signlink.reporterror("Error packet size mismatch in getplayer pos: " + class30_sub2_sub2_1083.anInt1406 + " packet size: " + i);
             throw new RuntimeException("eek");
         }
-        System.out.println("All good, packet size matches up!");
+        //System.out.println("All good, packet size matches up!");
         
         for(int i1 = 0; i1 < anInt891; i1++) {
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[anIntArray892[i1]] == null)
@@ -10861,7 +10864,7 @@ public final class client extends Applet_Sub1
 
             if(opcode == 81)
             {
-                System.out.println("PACKET 81: Updating local player");
+                // System.out.println("PACKET 81: Updating local player");
                 method143(anInt1007, aClass30_Sub2_Sub2_1083);
                 aBoolean1080 = false;
                 opcode = -1;

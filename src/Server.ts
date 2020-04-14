@@ -7,8 +7,6 @@ import { LoadMapZone73, UpdateLocalPlayer81 } from "./packets/outgoing";
 import GameIds from "./GameIds";
 import { ParsePacketOpcode, GetFixedPacketLength, GetVarBytePacketLength, Parse164Walk } from "./packets/incoming";
 
-
-
 enum LoginState {
     FirstResponse,
     SecondResponse,
@@ -85,11 +83,6 @@ class Server {
     private y: number = 8;
 
     public startServer(): void {
-
-
-        console.log("leshorts: ", this.readLEShortA(8, 11), this.readLEShort(12, 0));
-
-
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
 
@@ -228,7 +221,7 @@ class Server {
                     // Sent when player walks using map (note, it has 14 additional bytes on the end
                     // presumed to be anticheat that are ignored)
                     case 248: // same as 98 etc
-                        console.log("Opcode: ", dOpcode, "The payload + size: ", this._inStreamCacheBuffer);
+                       //  console.log("Opcode: ", dOpcode, "The payload + size: ", this._inStreamCacheBuffer);
                         pLength = GetVarBytePacketLength(this._inStreamCacheBuffer);
                         break;
                     default:
@@ -240,10 +233,10 @@ class Server {
                 // After switch, parse packet (function refer to correct function), for now,
                 // hardcode 164
                 if (dOpcode === 164) {
-                    Parse164Walk(pLength, this._inStreamCacheBuffer);
+                    Parse164Walk(pLength, this._inStreamCacheBuffer, this.x, this.y);
                 }
                 //console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
-                console.log("Initial idle opcode: ", this._inStreamCacheBuffer[0], "Decrypted: ", dOpcode, "Size: ", pLength);
+                // console.log("Packet opcode: ", this._inStreamCacheBuffer[0], "Decrypted: ", dOpcode, "Size: ", pLength);
                 // Remove this packet from the in stream buffer,
                 // eventually we'll put it into another buffer that'll respond based
                 // on the packet
@@ -334,8 +327,8 @@ class Server {
         socket.write(
             LoadMapZone73(
                 this._outStreamEncryption.nextKey(),
-                334, // higher = east, lower = west  // x  406, 406 works with 21,21 x/y
-                462 // higher = north, lower = south // y coordd
+                2432, // higher = east, lower = west  // x  406, 406 works with 21,21 x/y
+                3456 // higher = north, lower = south // y coordd
             )
         );
 

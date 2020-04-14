@@ -9,9 +9,11 @@ import { shortToBytes } from "../../utils";
  * @info This packet is a fixed size packet of 4 bytes.
  * @author ale8k
  */
-export default function LoadMapZone73(key: number, xcoord: number, ycoord: number): Buffer {
-    const x = shortToBytes(xcoord);
-    const y = shortToBytes(ycoord);
+export default function LoadMapZone73(key: number, xBaseCoord: number, yBaseCoord: number): Buffer {
+    // (3200 / 8) + 6 = 406
+
+    const x = shortToBytes(((xBaseCoord / 8) + 6));
+    const y = shortToBytes(((yBaseCoord / 8) + 6));
     const b = Buffer.from([73 + key, ...x, ...y]);
     // the 317 client removes +128 to the x coords second byte,
     // so we're adding it here

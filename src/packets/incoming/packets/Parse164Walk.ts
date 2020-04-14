@@ -1,30 +1,31 @@
-
-// First, decrypt X
-// X gives 2 bytes,
-// Byte1 and Byte2
-
-// (Byte2 & 0xff) << 8 = val1, Byte1 - 128 & 0xff = val2
-// val1 + val2 = x base + co-ords
-
-// For Y, take Byte1 from X and use it as
-// val2 for Y
-// Byte1 of Y do (Byte1 & 0xff) << 8
-
-// Now we have y base + co-ords
-
-// Hopefully this works.......
-
-//   250,  5, 200, 10,
-//    72, 14,   0,  4
-
-//      244,  5, 200, 10,
-//    72, 14,   0
-
-//   As for the occasional random thing on the end..
-//   Idk wtf we gonna do!
-//   but we do have the length, so we'll parse this but as for the next byte it can add
-//   not sure how we gonna handle this ? maybe turn it off in the client
-export default function Parse164Walk(length: number, cacheBuffer: number[]) {
+/**
+ * Mushrooms location packet:
+ *   3, 11, 8, 9,   1,  1,
+ * 1,  3, 0, 3, 138, 13,
+ * 0
+ * @param length
+ * @param cacheBuffer
+ * @param currentX
+ * @param currentY
+ */
+export default function Parse164Walk(length: number, cacheBuffer: number[], currentX: number, currentY: number) {
     console.log("Packet 164 come through!");
-    console.log("His length is", length);
+    console.log("His length is", length, "and total packet: ", cacheBuffer);
+    // 8, 9:
+    // 8 - 128 & 0xff = 136
+    // (9 & 0xff) << 8 = 2304
+    // 2440 (correct)
+
+    // Because it's LE, we perform << on second byte!
+    // 138, 13:
+    // 138 & 0xff = 138
+    // (13 & 0xff) << 8 = 3228
+    // 3466 (correct)
+    const payloadLength = cacheBuffer[1];
+    const baseXwithX = (cacheBuffer[2] - 128 & 0xff) + ((cacheBuffer[3] & 0xff) << 8);
+    const baseYwithY = (cacheBuffer[payloadLength - 1] & 0xff) + ((cacheBuffer[payloadLength] & 0xff) << 8);
+    console.log("basex ", baseXwithX, "basey ", baseYwithY);
+
+
+
 }
