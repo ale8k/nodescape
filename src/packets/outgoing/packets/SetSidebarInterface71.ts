@@ -1,4 +1,5 @@
 import { Socket } from "net";
+
 /**
  * Sets a single sidebar icon.
  * Client side it sets up all the UI handlers to allow user-interaction with

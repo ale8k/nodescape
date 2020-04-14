@@ -1,4 +1,5 @@
 import { Socket } from "net";
+
 /**
  * Sends the member status along with the player ID to the client
  * @param key next isaac gen
