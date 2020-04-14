@@ -15,6 +15,30 @@ import Append0x10 from "./update-masks/Append0x10";
  * @param updateNPlayers
  * @param playerListUpdating
  * @author ale8k
+ *
+ *
+ *
+ * P81 Summary:
+ *
+ * Starts with our playermovement
+ * Checks if we wanna update our dude, if not, skips this phase
+ * Otherwise it reads movement type
+ *
+ * 0 - Tell it to do nothing, BUT add us to update list (i.e., read a bitmask)
+ * 1 - Tell dude to move (walk), decide if you want a bitmask
+ * 2 - Tell dude to move (run), decide if you want a bitmask
+ * 3 - Teleport our dude basically, set teleport flag (clears awaitign point queue), decide if you want a bit mask
+ * finally, reads two 7 bit values which are our x/y.
+ *
+ * SYnc others movement
+ * Can skip this by saying there's 0 other players lol
+ *
+ * Update our players bitmasks
+ * can skip this saying 0 players (via 2047 clause)
+ *
+ * Our bitmasks, depending on whether our movement method said if 'update required'
+ * then it'll either run a bitmask or it won't.
+ * We then append a bitmask and that completes the update.
  */
 export default function UpdateLocalPlayer81(
         key: number,
