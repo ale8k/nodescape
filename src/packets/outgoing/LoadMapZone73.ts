@@ -11,7 +11,6 @@ import { shortToBytes } from "../../utils";
  */
 export default function LoadMapZone73(key: number, xBaseCoord: number, yBaseCoord: number): Buffer {
     // (3200 / 8) + 6 = 406
-
     const x = shortToBytes(((xBaseCoord / 8) + 6));
     const y = shortToBytes(((yBaseCoord / 8) + 6));
     const b = Buffer.from([73 + key, ...x, ...y]);
