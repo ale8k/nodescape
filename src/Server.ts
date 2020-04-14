@@ -233,7 +233,25 @@ class Server {
                 // After switch, parse packet (function refer to correct function), for now,
                 // hardcode 164
                 if (dOpcode === 164) {
-                    Parse164Walk(pLength, this._inStreamCacheBuffer, this.x, this.y);
+                    // Parse164Walk(pLength, this._inStreamCacheBuffer, this.x, this.y).forEach(coord => {
+                    //     console.log("Walking to, x: ", coord[0], "and y: ", coord[1]);
+                        socket.write(
+                            UpdateLocalPlayer81(
+                                this._outStreamEncryption.nextKey(),
+                                1, // update our player
+                                3, // move type
+                                0, // planelevel
+                                0, // clear await queuee
+                                0, // update required - declares whether or not a bitmask should be read, good shit
+                                this.y, // ycoord
+                                this.x,  // xcoord
+                                0, // updateNPlayers movements - always skip thiss
+                                2047, // player list updating bit - always skip this
+                                // bit masks now because update required = 1
+                                // the bit masks are only read if that is 11
+                            )
+                        );
+                    //});
                 }
                 //console.log("Opcode for this packet: ", dOpcode, "Packet length: ", pLength);
                 // console.log("Packet opcode: ", this._inStreamCacheBuffer[0], "Decrypted: ", dOpcode, "Size: ", pLength);
@@ -253,12 +271,12 @@ class Server {
                     1, // update our player
                     3, // move type
                     0, // planelevel
-                    1, // clear await queuee
+                    0, // clear await queuee
                     0, // update required - declares whether or not a bitmask should be read, good shit
                     this.y, // ycoord
                     this.x,  // xcoord
                     0, // updateNPlayers movements - always skip thiss
-                    2047, // player list updating bit - always skip this
+                    2047, // player list updating bit - always skip thiss
                     // bit masks now because update required = 1
                     // the bit masks are only read if that is 11
                 )
@@ -339,7 +357,7 @@ class Server {
                 1, // update our player
                 3, // move type
                 0, // planelevel
-                1, // clear await queuee
+                0, // clear await queuee
                 1, // update required - declares whether or not a bitmask should be read, good shit
                 this.y, // ycoord
                 this.x,  // xcoord
