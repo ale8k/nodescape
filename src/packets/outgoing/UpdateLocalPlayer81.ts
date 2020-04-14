@@ -46,7 +46,7 @@ export default function UpdateLocalPlayer81(
         switch (movementType) {
             case 0:
                 // Type 0: Do nothing
-                updateRequired = 1;
+                // Just run an updatemask
                 break;
             case 1:
                 console.log("walk walk");
@@ -64,15 +64,6 @@ export default function UpdateLocalPlayer81(
                 bitArr.push(...convertToFixedBitArray(xcoord as number, 7));
                 break;
         }
-        // Clear awaiting point queue
-
-        // Update required bit, need more info on this
-        // It still carries on reading...
-        // OK it does carry on reading, but the bitmask relies on this!
-        // if the count is 0, then the loop will never run.
-        // i can confirm this but logging it in the client (which ima do now)
-
-        // our x/y coordinate of player (7bit)
 
     }
     /**
@@ -85,14 +76,12 @@ export default function UpdateLocalPlayer81(
      */
     bitArr.push(...convertToFixedBitArray(playerListUpdating as number, 11));
 
-
     /**
      * Update masks
+     * If update required is set, it'll append this mask
      */
     if (updateRequired === 1) {
-        console.log("BIT ARR BEFORE MASK ", bitArr.length);
         Append0x10(bitArr as number[]);
-        console.log("BIT ARR AFTER MASK ",bitArr.length);
     }
 
     /**
