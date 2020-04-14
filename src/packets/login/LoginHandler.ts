@@ -5,8 +5,11 @@ import Server from "../../Server";
 import IsaacCipher from "../IsaacCipher";
 import { EventEmitter } from "events";
 
+/**
+ * Handles the login & game auth procedure via static methods
+ * @author ale8k
+ */
 export default class LoginHandler {
-
     public static sendFirstResponse(socket: Socket): void {
         const b = Buffer.alloc(17);
         b[16] = 69;

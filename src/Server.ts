@@ -1,7 +1,6 @@
 import * as net from "net";
 import { Socket } from "net";
 import { EventEmitter } from "events";
-import * as Long from "long";
 import IsaacCipher from "./packets/IsaacCipher";
 import {
     SetSidebarInterface71,
@@ -28,11 +27,11 @@ export default class Server {
      */
     public static LOGIN_STATE: LoginState = LoginState.FirstResponse;
     /**
-     * In stream opcode isaac cipher
+     * In stream opcode isaac cipher (set by loginhandler)
      */
     public static INSTREAM_DECRYPTION: IsaacCipher;
     /**
-     * Out stream opcode isaac cipher
+     * Out stream opcode isaac cipher (set by loginhandler)
      */
     public static OUTSTREAM_ENCRYPTION: IsaacCipher;
     /**

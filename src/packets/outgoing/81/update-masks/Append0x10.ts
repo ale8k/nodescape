@@ -1,12 +1,6 @@
 import { convertToFixedBitArray } from "../../../../utils";
 
 /**
- * METHOD 49 (Actually 107 really)
- * Handles update masks, if the update required flag is missing within our player updates (method117)
- * then this is skipped entirely, so we can perform a check for that bit here.
- * If its present, execute a big mask (we'll pass it in eventually, for now hardcoded)
- * else just let the packet end
- *
  * 0x10
  * The 0x10 mask updates appearance of the player in exact same way as in updating player list.
  * Only difference is that appearance is updated from a set-sized buffer filled from the current buffer.
