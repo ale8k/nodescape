@@ -65,12 +65,10 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 8;
-    private y: number = 8;
+    private x: number = 21;
+    private y: number = 21;
     private regionx = 3200;
     private regiony = 3200;
-    // testing to see if we set this to try, then send packet on 600ms loop maybe. idk, we see.
-    private isMoving = false;
 
 
     public startServer(): void {
@@ -123,8 +121,11 @@ export default class Server {
         const oe = Server.OUTSTREAM_ENCRYPTION;
 
         let packet: { opcode: number, length: number, payload: number[] };
+
         let destinationX = this.x;
         let destinationY = this.y;
+
+        let playerIsMoving = false;
 
         const idleMovement: IMovement = {
             updatePlayer: 0,
@@ -157,6 +158,11 @@ export default class Server {
 
             }
 
+
+
+            /**
+             * WALKING MOVEMENT
+             */
             // just hard coding the handling for now lol
             // we create a loop of 81 packets based on the 'bytes' given back to us and if none
             // we perform a linear -- or ++ movement until destination x/y is === to our x/y
@@ -166,56 +172,56 @@ export default class Server {
                 const packet164 = Parse164Walk(packet);
                 destinationX = packet164.baseXwithX - this.regionx;
                 destinationY = packet164.baseYwithY - this.regiony;
-                this.isMoving = true;
+                playerIsMoving = true;
             }
-            // check if we moving, if we are the send movement update
-            // else send idle (stood still)
-            // 0 = top left
-            // 1 = top
-            // 2 = top right
-            // 3 = left
-            // 4 = right
-            // 5 = bottom left
-            // 6 = bottom
-            // 7 = bottom right
-            if (this.isMoving) {
+
+            if (playerIsMoving) {
+
+                // handle diagonal t-right/b-right
                 // handle linear x
-                if (this.x !== destinationX) {
-                    if (this.x < destinationX) {
-                        this.x++;
-                        movement.movementData = movement.movementData as movementData1;
-                        movement.movementData.direction = 4;
-                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    } else if (this.x > destinationX) {
-                        this.x--;
-                        movement.movementData = movement.movementData as movementData1;
-                        movement.movementData.direction = 3;
-                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    }
-                    console.log("Our x after movement:", this.x);
+
+                // need to skip the bottom 4 somehow...
+                // until next packet
+                if (this.x < destinationX && this.y < destinationY) {
+                    // 2
+                    // // this.x++;
+                    // // this.y++;
+                    // the bytes in packet 164 are needed to handle this some how!!
+                    (movement.movementData as movementData1).direction = 2;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                    console.log("diagonal!");
                 }
-                // handle linear y
-                if (this.y !== destinationY) {
-                    if (this.y < destinationY) {
-                        this.y++;
-                        movement.movementData = movement.movementData as movementData1;
-                        movement.movementData.direction = 1;
-                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    } else if (this.y > destinationY) {
-                        this.y--;
-                        movement.movementData = movement.movementData as movementData1;
-                        movement.movementData.direction = 6;
-                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    }
-                }
+
+                // if (this.x < destinationX) {
+                //     this.x++;
+                //     (movement.movementData as movementData1).direction = 4;
+                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                // } else if (this.x > destinationX) {
+                //     this.x--;
+                //     (movement.movementData as movementData1).direction = 3;
+                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                // }
+                // console.log("Our x after movement:", this.x);
+
+                // // handle linear y
+                // if (this.y < destinationY) {
+                //     this.y++;
+                //     (movement.movementData as movementData1).direction = 1;
+                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                // } else if (this.y > destinationY) {
+                //     this.y--;
+                //     (movement.movementData as movementData1).direction = 6;
+                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                // }
+
                 // handle region update
                 // if they within 16 tiles of edge of region,
                 // reload next one they closest to
-                if (false) {
+                // if (false) {
 
-                }
+                // }
                 if (this.x === destinationX && this.y === destinationY) {
-                    this.isMoving = false;
+                    playerIsMoving = false;
                 }
             } else {
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
