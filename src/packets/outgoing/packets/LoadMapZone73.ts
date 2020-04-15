@@ -17,7 +17,7 @@ export default function LoadMapZone73(key: number, socket: Socket, xBaseCoord: n
     const y = shortToBytes(((yBaseCoord / 8) + 6));
     const b = Buffer.from([73 + key, ...x, ...y]);
     // the 317 client removes +128 to the x coords second byte,
-    // so we're adding it here
+    // so we're adding it heree
     b[2] += 128;
     socket.write(b);
 }

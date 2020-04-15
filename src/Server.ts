@@ -16,6 +16,7 @@ import GameIds from "./GameIds";
 import { PacketReader } from "./packets/incoming";
 import { LoginState } from "./enums/Login.enum";
 import LoginHandler from "./packets/login/LoginHandler";
+import IMovement, { movementData3 } from "./packets/outgoing/81/interfaces/IMovement";
 
 /**
  * Entry point for the server
@@ -76,6 +77,7 @@ export default class Server {
                 } else if (Server.LOGIN_STATE === LoginState.SecondResponse) {
                     LoginHandler.sendSecondResponse(socket, data, this._gameLoopEventEmitter);
                 } else if (Server.LOGIN_STATE === LoginState.LoggedIn) {
+
                     // Basics we need to setup before generically handling packets
                     if (this._gameInitialSetupComplete === false) {
                         console.log("Setting up initial game stage!");
@@ -109,7 +111,21 @@ export default class Server {
      * @param socket the primary socket
      */
     private setupGame(socket: Socket): void {
+        const oe = Server.OUTSTREAM_ENCRYPTION;
+        const initialMovement: IMovement = {
+            updatePlayer: 1,
+            movementType: 3,
+            movementData: {
+                plane: 0,
+                teleport: 1,
+                updateRequired: 1,
+                x: 8,
+                y: 8
+            } as movementData3
+        };
+
         this._gameLoopEventEmitter.on("tick", () => {
+            console.log("BLOCK: ", this._inStreamCacheBuffer);
             /**
              * This works by removing the packet from the start
              * of the inStreamBuffer[], and then continues to read until the
@@ -126,22 +142,14 @@ export default class Server {
             }
             // General packet cycle
             // 81: Update our player
-            socket.write(
-                UpdateLocalPlayer81(
-                    Server.OUTSTREAM_ENCRYPTION.nextKey(),
-                    1, // update our player
-                    3, // move type
-                    0, // planelevel
-                    0, // clear await queuee
-                    0, // update required - declares whether or not a bitmask should be read, good shit
-                    this.y, // ycoord
-                    this.x,  // xcoord
-                    0, // updateNPlayers movements - always skip thiss
-                    2047, // player list updating bit - always skip thiss
-                    // bit masks now because update required = 1
-                    // the bit masks are only read if that is 11
-                )
-            );
+            // socket: Socket,
+            // key: number,
+            // movement: IMovement,
+            // updateOthersMovements: number,
+            // updateOthersMask: number,
+            // maskId?: number,
+            // maskData?: object
+            UpdateLocalPlayer81(socket, oe.nextKey(), initialMovement, 0, 2047);
         });
 
         this.sendInitialLoginPackets(socket);
@@ -166,8 +174,8 @@ export default class Server {
         });
 
         // 134: Set/Update skill level and xp
-        new Array(10).fill(0).forEach((zero, i) => {
-            SetSkillLevelAndXp134(oe.nextKey(), s, i, 0, 69);
+        new Array(20).fill(0).forEach((zero, i) => {
+            SetSkillLevelAndXp134(oe.nextKey(), s, i, 13700000, 99);
         });
 
         // 221: Update friends list status
@@ -182,23 +190,28 @@ export default class Server {
         // 253: Welcome to rs!
         WriteMessage253(oe.nextKey(), s, "Hi world");
 
+        const initialMovement: IMovement = {
+            updatePlayer: 1,
+            movementType: 3,
+            movementData: {
+                plane: 0,
+                teleport: 1,
+                updateRequired: 1,
+                x: 8,
+                y: 8
+            } as movementData3
+        };
         // 81: Update our player
-        s.write(
-            UpdateLocalPlayer81(
-                Server.OUTSTREAM_ENCRYPTION.nextKey(),
-                1, // update our player
-                3, // move type
-                0, // planelevel
-                0, // clear await queuee
-                1, // update required - declares whether or not a bitmask should be read, good shit
-                this.y, // ycoord
-                this.x,  // xcoord
-                0, // updateNPlayers movements - always skip this
-                2047, // player list updating bit - always skip this
-                // bit masks now because update required = 1
-                // the bit masks are only read if that is 11
-            )
-        );
+        // General packet cycle
+        // 81: Update our player
+        // socket: Socket,
+        // key: number,
+        // movement: IMovement,
+        // updateOthersMovements: number,
+        // updateOthersMask: number,
+        // maskId?: number,
+        // maskData?: object
+        UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }
 

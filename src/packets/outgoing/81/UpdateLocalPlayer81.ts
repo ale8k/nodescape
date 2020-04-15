@@ -1,58 +1,41 @@
 import { setBit, convertToFixedBitArray } from "../../../utils";
 import Append0x10 from "./update-masks/Append0x10";
+import { Socket } from "net";
+import IMovement, { movementData1, movementData2, movementData3 } from "./interfaces/IMovement";
+
 
 /**
- * Updates the local player in a given zone (8x8 set of tiles in a region)
- * The packet is dynamically sized based on the bits received
- * @param key the encrypted opcode
- * @param updateOurPlayer
- * @param movementType
- * @param planeHeight
- * @param clearAwaitingPointQueue
- * @param updateRequired
- * @param ycoord
- * @param xcoord
- * @param updateNPlayers
- * @param playerListUpdating
- * @author ale8k
  *
+ * // 0 and 2047 are to skip multiplayer, for now anyways
+ * // masks which needs 2 ubytes -> test them all out individually and see
+ * // if client calls on specific mask
  *
+ * example 81call
+ * UpdateLocalPlayer81(socket, movementObject, number0, number2047 maskId?, maskObject?);
  *
- * P81 Summary:
+ * {
+ *  updateOurPlayer: 1
+ *  movementType: 3,
+ *  movementData: {
+ *      Uses IMovement interface type embedded
+ *   }
+ * }
  *
- * Starts with our playermovement
- * Checks if we wanna update our dude, if not, skips this phase
- * Otherwise it reads movement type
- *
- * 0 - Tell it to do nothing, BUT add us to update list (i.e., read a bitmask)
- * 1 - Tell dude to move (walk), decide if you want a bitmask
- * 2 - Tell dude to move (run), decide if you want a bitmask
- * 3 - Teleport our dude basically, set teleport flag (clears awaitign point queue), decide if you want a bit mask
- * finally, reads two 7 bit values which are our x/y.
- *
- * SYnc others movement
- * Can skip this by saying there's 0 other players lol
- *
- * Update our players bitmasks
- * can skip this saying 0 players (via 2047 clause)
- *
- * Our bitmasks, depending on whether our movement method said if 'update required'
- * then it'll either run a bitmask or it won't.
- * We then append a bitmask and that completes the update.
+ * Movement data examples:
+ * 0: [],
+ * 1: [direction, updateRequired]
+ * 2: [direction1, direction2, updateRequired]
+ * 3: [plane, teleport, updateRequired, x(7bit), y(7bit)]
  */
 export default function UpdateLocalPlayer81(
-        key: number,
-        // bit args
-        updateOurPlayer: number,
-        movementType: number,
-        planeHeight?: number,
-        clearAwaitingPointQueue?: number,
-        updateRequired?: number,
-        ycoord?: number,
-        xcoord?: number,
-        updateNPlayers?: number,
-        playerListUpdating?: number,
-    ) {
+    socket: Socket,
+    key: number,
+    movement: IMovement,
+    updateOthersMovements: number,
+    updateOthersMask: number,
+    maskId?: number,
+    maskData?: object
+    ): void {
 
     /**
      * Begin bit writing here:
@@ -64,29 +47,33 @@ export default function UpdateLocalPlayer81(
      */
     // Update our player or not
     // if this is off, it'll skip the entire block lol
-    bitArr.push(updateOurPlayer);
-    if (updateOurPlayer !== 0) {
+    bitArr.push(movement.updatePlayer);
+    if (movement.updatePlayer !== 0) {
+        let moveData;
         // Set our movement type and corresponding expected bits
-        bitArr.push(...convertToFixedBitArray(movementType, 2));
-        switch (movementType) {
+        bitArr.push(...convertToFixedBitArray(movement.movementType, 2));
+        switch (movement.movementType) {
             case 0:
                 // Type 0: Do nothing
                 // Just run an updatemask
                 break;
             case 1:
                 console.log("walk walk");
-                bitArr.push(...convertToFixedBitArray(3, 3));
-                bitArr.push(updateRequired);
+                moveData = movement.movementData as movementData1;
+                bitArr.push(...convertToFixedBitArray(moveData.direction, 3));
+                bitArr.push(moveData.updateRequired);
                 break;
             case 2:
+                // TODO
                 break;
             case 3:
                 // Type 3: Set plane height
-                bitArr.push(...convertToFixedBitArray(planeHeight as number, 2));
-                bitArr.push(clearAwaitingPointQueue); // teleport
-                bitArr.push(updateRequired);// whether or not to send mask
-                bitArr.push(...convertToFixedBitArray(ycoord as number, 7));
-                bitArr.push(...convertToFixedBitArray(xcoord as number, 7));
+                moveData = movement.movementData as movementData3;
+                bitArr.push(...convertToFixedBitArray(moveData.plane, 2));
+                bitArr.push(moveData.teleport); // teleport
+                bitArr.push(moveData.updateRequired);// whether or not to send mask
+                bitArr.push(...convertToFixedBitArray(moveData.y as number, 7));
+                bitArr.push(...convertToFixedBitArray(moveData.x as number, 7));
                 break;
         }
 
@@ -94,18 +81,20 @@ export default function UpdateLocalPlayer81(
     /**
      * METHOD 134
      */
-    bitArr.push(...convertToFixedBitArray(updateNPlayers as number, 8));
+    bitArr.push(...convertToFixedBitArray(updateOthersMovements as number, 8));
 
     /**
      * METHOD 91
      */
-    bitArr.push(...convertToFixedBitArray(playerListUpdating as number, 11));
+    bitArr.push(...convertToFixedBitArray(updateOthersMask as number, 11));
 
     /**
      * Update masks
      * If update required is set, it'll append this mask
+     * All movementData types have an updateRequied property,
+     * so we're fine checking it on a nullable. It'll always be there dw.
      */
-    if (updateRequired === 1) {
+    if (movement.movementData?.updateRequired === 1) {
         Append0x10(bitArr as number[]);
     }
 
@@ -137,5 +126,5 @@ export default function UpdateLocalPlayer81(
             byteIndex += 1;
         }
     }
-    return buf;
+    socket.write(buf);
 }
