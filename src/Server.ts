@@ -60,11 +60,17 @@ export default class Server {
 
     /**
      * DEBUG X/Y region X/Y
+     * Also 'moving' flag, cause I think we need to send
+     * a variable kind of 81 and not just 81, idle, 81, idle
+     * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
+     * cycle
      */
     private x: number = 8;
     private y: number = 8;
     private regionx = 3200;
     private regiony = 3200;
+    // testing to see if we set this to try, then send packet on 600ms loop maybe. idk, we see.
+    private isMoving = false;
 
 
     public startServer(): void {
@@ -115,12 +121,25 @@ export default class Server {
      */
     private setupGame(socket: Socket): void {
         const oe = Server.OUTSTREAM_ENCRYPTION;
+
         let packet: { opcode: number, length: number, payload: number[] };
+        let destinationX = this.x;
+        let destinationY = this.y;
 
         const idleMovement: IMovement = {
             updatePlayer: 0,
             movementType: 0
         };
+
+        const movement: IMovement = {
+            updatePlayer: 1,
+            movementType: 1,
+            movementData: {
+                updateRequired: 0,
+                direction: 0
+            }
+        };
+        movement.movementData = movement.movementData as movementData1;
 
         this._gameLoopEventEmitter.on("tick", () => {
             /**
@@ -145,51 +164,62 @@ export default class Server {
             // we then just compare our x/y to it and send p81's until its complete.
             if (packet.opcode === 164) {
                 const packet164 = Parse164Walk(packet);
-                const destinationX = packet164.baseXwithX - this.regionx;
-                const destinationY = packet164.baseYwithY - this.regiony;
-
-                // hardcode movements for now
-                // 0 = top left
-                // 1 = top
-                // 2 = top right
-                // 3 = left
-                // 4 = right
-                // 5 = bottom left
-                // 6 = bottom
-                // 7 = bottom right
-
-                const movementRight: IMovement = {
-                    updatePlayer: 1,
-                    movementType: 1,
-                    movementData: {
-                        updateRequired: 0,
-                        direction: 4 // right
-                    } as movementData1
-                };
-
-                const movementLeft: IMovement = {
-                    updatePlayer: 1,
-                    movementType: 1,
-                    movementData: {
-                        updateRequired: 0,
-                        direction: 3 // left
-                    } as movementData1
-                };
+                destinationX = packet164.baseXwithX - this.regionx;
+                destinationY = packet164.baseYwithY - this.regiony;
+                this.isMoving = true;
+            }
+            // check if we moving, if we are the send movement update
+            // else send idle (stood still)
+            // 0 = top left
+            // 1 = top
+            // 2 = top right
+            // 3 = left
+            // 4 = right
+            // 5 = bottom left
+            // 6 = bottom
+            // 7 = bottom right
+            if (this.isMoving) {
                 // handle linear x
-                while (this.x !== destinationX) {
-                    console.log("Our x is: ", this.x, "should be: ", destinationX);
+                if (this.x !== destinationX) {
                     if (this.x < destinationX) {
                         this.x++;
-                        UpdateLocalPlayer81(socket, oe.nextKey(), movementRight, 0, 2047);
+                        movement.movementData = movement.movementData as movementData1;
+                        movement.movementData.direction = 4;
+                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                     } else if (this.x > destinationX) {
                         this.x--;
-                        UpdateLocalPlayer81(socket, oe.nextKey(), movementLeft, 0, 2047);
+                        movement.movementData = movement.movementData as movementData1;
+                        movement.movementData.direction = 3;
+                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                     }
                     console.log("Our x after movement:", this.x);
                 }
+                // handle linear y
+                if (this.y !== destinationY) {
+                    if (this.y < destinationY) {
+                        this.y++;
+                        movement.movementData = movement.movementData as movementData1;
+                        movement.movementData.direction = 1;
+                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                    } else if (this.y > destinationY) {
+                        this.y--;
+                        movement.movementData = movement.movementData as movementData1;
+                        movement.movementData.direction = 6;
+                        UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                    }
+                }
+                // handle region update
+                // if they within 16 tiles of edge of region,
+                // reload next one they closest to
+                if (false) {
+
+                }
+                if (this.x === destinationX && this.y === destinationY) {
+                    this.isMoving = false;
+                }
+            } else {
+                UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
-            // idle tick packet
-            UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
         });
 
         this.sendInitialLoginPackets(socket);
