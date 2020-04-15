@@ -180,10 +180,19 @@ export default class Server {
                 destinationX = packet164.baseXwithX - this.regionx;
                 destinationY = packet164.baseYwithY - this.regiony;
                 playerIsMoving = true;
+                console.log(packet164);
             }
 
             /**
              * Walking block, refactor later
+             */
+            /**
+             * This is the method in the client for sending the bytes...
+             *  for (int j7 = 1; j7 < waypointCount; j7++) {
+             *     currentIndex--;
+             *     outgoing.writeByte(waypointX[currentIndex] - x);
+             *     outgoing.writeByte(waypointY[currentIndex] - y);
+             *  }
              */
             if (playerIsMoving) {
                 // top right
