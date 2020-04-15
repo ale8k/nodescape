@@ -124,6 +124,13 @@ export default class Server {
 
         let destinationX = this.x;
         let destinationY = this.y;
+        let packet164: {
+            opcode: number;
+            baseXwithX: number;
+            baseYwithY: number;
+            bytes: number[];
+            randomByteOnTheEndLol: number;
+        };
 
         let playerIsMoving = false;
 
@@ -169,50 +176,56 @@ export default class Server {
             // we calc this by taking the basex/y+x/y given back from 164 and take the current region from it
             // we then just compare our x/y to it and send p81's until its complete.
             if (packet.opcode === 164) {
-                const packet164 = Parse164Walk(packet);
+                packet164 = Parse164Walk(packet);
                 destinationX = packet164.baseXwithX - this.regionx;
                 destinationY = packet164.baseYwithY - this.regiony;
                 playerIsMoving = true;
             }
 
+            /**
+             * Walking block, refactor later
+             */
             if (playerIsMoving) {
-
-                // handle diagonal t-right/b-right
-                // handle linear x
-
-                // need to skip the bottom 4 somehow...
-                // until next packet
+                // top right
                 if (this.x < destinationX && this.y < destinationY) {
-                    // 2
-                    // // this.x++;
-                    // // this.y++;
+                    this.x++;
+                    this.y++;
                     // the bytes in packet 164 are needed to handle this some how!!
                     (movement.movementData as movementData1).direction = 2;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    console.log("diagonal!");
                 }
 
-                // if (this.x < destinationX) {
-                //     this.x++;
-                //     (movement.movementData as movementData1).direction = 4;
-                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                // } else if (this.x > destinationX) {
-                //     this.x--;
-                //     (movement.movementData as movementData1).direction = 3;
-                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                // }
-                // console.log("Our x after movement:", this.x);
+                // bottom left
+                if (this.x > destinationX && this.y > destinationY) {
+                    this.x--;
+                    this.y--;
+                    // the bytes in packet 164 are needed to handle this some how!!
+                    (movement.movementData as movementData1).direction = 5;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                }
 
-                // // handle linear y
-                // if (this.y < destinationY) {
-                //     this.y++;
-                //     (movement.movementData as movementData1).direction = 1;
-                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                // } else if (this.y > destinationY) {
-                //     this.y--;
-                //     (movement.movementData as movementData1).direction = 6;
-                //     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                // }
+                // linear x
+                if (this.x < destinationX && this.y === destinationY) {
+                    this.x++;
+                    (movement.movementData as movementData1).direction = 4;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                } else if (this.x > destinationX && this.y === destinationY) {
+                    this.x--;
+                    (movement.movementData as movementData1).direction = 3;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                }
+                console.log("Our x after movement:", this.x);
+
+                // linear y
+                if (this.y < destinationY && this.x === destinationX) {
+                    this.y++;
+                    (movement.movementData as movementData1).direction = 1;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                } else if (this.y > destinationY && this.x === destinationX) {
+                    this.y--;
+                    (movement.movementData as movementData1).direction = 6;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                }
 
                 // handle region update
                 // if they within 16 tiles of edge of region,
@@ -226,6 +239,7 @@ export default class Server {
             } else {
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
+
         });
 
         this.sendInitialLoginPackets(socket);
