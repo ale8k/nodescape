@@ -13,10 +13,10 @@ import {
     WriteMessage253
 } from "./packets/outgoing";
 import GameIds from "./GameIds";
-import { PacketReader } from "./packets/incoming";
+import { PacketReader, Parse164Walk } from "./packets/incoming";
 import { LoginState } from "./enums/Login.enum";
 import LoginHandler from "./packets/login/LoginHandler";
-import IMovement, { movementData3 } from "./packets/outgoing/81/interfaces/IMovement";
+import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/interfaces/IMovement";
 
 /**
  * Entry point for the server
@@ -59,10 +59,13 @@ export default class Server {
     public static PLAYER_ID: number;
 
     /**
-     * DEBUG X/Y
+     * DEBUG X/Y region X/Y
      */
     private x: number = 8;
     private y: number = 8;
+    private regionx = 3200;
+    private regiony = 3200;
+
 
     public startServer(): void {
         net.createServer((socket: Socket) => {
@@ -112,20 +115,14 @@ export default class Server {
      */
     private setupGame(socket: Socket): void {
         const oe = Server.OUTSTREAM_ENCRYPTION;
-        const initialMovement: IMovement = {
-            updatePlayer: 1,
-            movementType: 3,
-            movementData: {
-                plane: 0,
-                teleport: 1,
-                updateRequired: 1,
-                x: 8,
-                y: 8
-            } as movementData3
+        let packet: { opcode: number, length: number, payload: number[] };
+
+        const idleMovement: IMovement = {
+            updatePlayer: 0,
+            movementType: 0
         };
 
         this._gameLoopEventEmitter.on("tick", () => {
-            console.log("BLOCK: ", this._inStreamCacheBuffer);
             /**
              * This works by removing the packet from the start
              * of the inStreamBuffer[], and then continues to read until the
@@ -135,21 +132,64 @@ export default class Server {
                 // debug
                 const eOpcode = this._inStreamCacheBuffer[0];
                 // Gets the packetopcode, length, returns the packet and wipes the buffer
-                const packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
+                packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
                 // debug
                 console.log("Encrypted opcode: ", eOpcode, "Decrypted opcode: ", packet.opcode);
 
             }
-            // General packet cycle
-            // 81: Update our player
-            // socket: Socket,
-            // key: number,
-            // movement: IMovement,
-            // updateOthersMovements: number,
-            // updateOthersMask: number,
-            // maskId?: number,
-            // maskData?: object
-            UpdateLocalPlayer81(socket, oe.nextKey(), initialMovement, 0, 2047);
+
+            // just hard coding the handling for now lol
+            // we create a loop of 81 packets based on the 'bytes' given back to us and if none
+            // we perform a linear -- or ++ movement until destination x/y is === to our x/y
+            // we calc this by taking the basex/y+x/y given back from 164 and take the current region from it
+            // we then just compare our x/y to it and send p81's until its complete.
+            if (packet.opcode === 164) {
+                const packet164 = Parse164Walk(packet);
+                const destinationX = packet164.baseXwithX - this.regionx;
+                const destinationY = packet164.baseYwithY - this.regiony;
+
+                // hardcode movements for now
+                // 0 = top left
+                // 1 = top
+                // 2 = top right
+                // 3 = left
+                // 4 = right
+                // 5 = bottom left
+                // 6 = bottom
+                // 7 = bottom right
+
+                const movementRight: IMovement = {
+                    updatePlayer: 1,
+                    movementType: 1,
+                    movementData: {
+                        updateRequired: 0,
+                        direction: 4 // right
+                    } as movementData1
+                };
+
+                const movementLeft: IMovement = {
+                    updatePlayer: 1,
+                    movementType: 1,
+                    movementData: {
+                        updateRequired: 0,
+                        direction: 3 // left
+                    } as movementData1
+                };
+                // handle linear x
+                while (this.x !== destinationX) {
+                    console.log("Our x is: ", this.x, "should be: ", destinationX);
+                    if (this.x < destinationX) {
+                        this.x++;
+                        UpdateLocalPlayer81(socket, oe.nextKey(), movementRight, 0, 2047);
+                    } else if (this.x > destinationX) {
+                        this.x--;
+                        UpdateLocalPlayer81(socket, oe.nextKey(), movementLeft, 0, 2047);
+                    }
+                    console.log("Our x after movement:", this.x);
+                }
+            }
+            // idle tick packet
+            UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
         });
 
         this.sendInitialLoginPackets(socket);
@@ -185,11 +225,14 @@ export default class Server {
         ResetCamPos107(oe.nextKey(), s);
 
         // 73: Load the map zone (fixed)
-        LoadMapZone73(oe.nextKey(), s, 2432, 3456);
+        LoadMapZone73(oe.nextKey(), s, this.regionx, this.regiony);
 
         // 253: Welcome to rs!
-        WriteMessage253(oe.nextKey(), s, "Hi world");
+        WriteMessage253(oe.nextKey(), s, "Welcome to Runescape!");
 
+        // We send move type 3 to setup the plane the players
+        // currently on (i.e., they could log out on plane1)
+        // and 0x10 mask to get their view.
         const initialMovement: IMovement = {
             updatePlayer: 1,
             movementType: 3,
@@ -197,10 +240,11 @@ export default class Server {
                 plane: 0,
                 teleport: 1,
                 updateRequired: 1,
-                x: 8,
-                y: 8
+                x: this.x,
+                y: this.y
             } as movementData3
         };
+
         // 81: Update our player
         // General packet cycle
         // 81: Update our player

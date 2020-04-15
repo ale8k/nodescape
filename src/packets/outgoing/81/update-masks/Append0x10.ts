@@ -15,8 +15,11 @@ import { convertToFixedBitArray } from "../../../../utils";
  * Long: player name
  * Ubyte: combat level
  * Ubyte: skill level
+ * @author ale8k
  */
-export default function Append0x10(bitArr: number[]): void {
+export default function Append0x10(
+    bitArr: number[]
+    ): void {
     bitArr.push(...convertToFixedBitArray(0x10, 8));
     // size, reads backwards. fuck knows why
     bitArr.push(...convertToFixedBitArray((255 - 55), 8));

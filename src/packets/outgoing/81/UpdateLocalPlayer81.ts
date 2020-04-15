@@ -26,6 +26,7 @@ import IMovement, { movementData1, movementData2, movementData3 } from "./interf
  * 1: [direction, updateRequired]
  * 2: [direction1, direction2, updateRequired]
  * 3: [plane, teleport, updateRequired, x(7bit), y(7bit)]
+ * @author ale8k
  */
 export default function UpdateLocalPlayer81(
     socket: Socket,
@@ -58,7 +59,6 @@ export default function UpdateLocalPlayer81(
                 // Just run an updatemask
                 break;
             case 1:
-                console.log("walk walk");
                 moveData = movement.movementData as movementData1;
                 bitArr.push(...convertToFixedBitArray(moveData.direction, 3));
                 bitArr.push(moveData.updateRequired);

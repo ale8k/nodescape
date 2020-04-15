@@ -1,52 +1,26 @@
 /**
- * Mushrooms location packet:
- *   3, 11, 8, 9,   1,  1,
- * 1,  3, 0, 3, 138, 13,
- * 0
+ * Parses packet 164, retrieves the basex+x, basey+y and additional diaganol bytes
+ * if we clicked in a none linear fashion
  * @param length
  * @param cacheBuffer
- * @param currentX
- * @param currentY
+ * @author ale8k
  */
-export default function Parse164Walk(length: number, cacheBuffer: number[], currentX: number, currentY: number) {
-    console.log("Packet 164 come through!");
-    console.log("His length is", length, "and total packet: ", cacheBuffer);
-    // 8, 9:
-    // 8 - 128 & 0xff = 136
-    // (9 & 0xff) << 8 = 2304
-    // 2440 (correct)
+export default function Parse164Walk({ opcode, length, payload }: { opcode: number, length: number, payload: number[] })
+    : { opcode: number, baseXwithX: number, baseYwithY: number, bytes: number[], randomByteOnTheEndLol: number} {
 
-    // Because it's LE, we perform << on second byte!
-    // 138, 13:
-    // 138 & 0xff = 138
-    // (13 & 0xff) << 8 = 3228
-    // 3466 (correct)
-    const payloadLength = cacheBuffer[1];
-    const baseXwithX = (cacheBuffer[2] - 128 & 0xff) + ((cacheBuffer[3] & 0xff) << 8);
-    console.log(cacheBuffer[payloadLength]);
-    const baseYwithY = (cacheBuffer[payloadLength - 1] & 0xff) + ((cacheBuffer[payloadLength] & 0xff) << 8);
-    console.log("basex ", baseXwithX, "basey ", baseYwithY);
-    const takeOrAddCoords = cacheBuffer[payloadLength + 1];
-    console.log("takeOrAdd: ", takeOrAddCoords); // really not sure?
-    const movementResponseArr = [];
-
-    //  42, 11,
-    //  8, 9,
-    //  1,  1, 1,  3, 0, 3, (pretend theres 1 more lol)
-    //  138, 13,
-    //  0
-    // So I think we check if 0 is neg or poaitive and use that to - or + our current loc with this,
-    // I'm also gonna array these up and use it for building the packet 81 block (maskless) for movement
-    // I bet this is how it works!
-    const bytes = cacheBuffer.slice(4, payloadLength - 1);
-    for (let i = 0; i < Math.ceil(bytes.length); i++) {
-        movementResponseArr.push([
-            bytes[i] + currentX & 0xff,
-            bytes[i + 1] + currentY& 0xff
-        ]);
-        i += 1;
-    }
-    console.log(movementResponseArr);
-    return movementResponseArr;
+    const payloadLength = payload[1];
+    const baseXwithX = (payload[2] - 128 & 0xff) + ((payload[3] & 0xff) << 8);
+    console.log(payload[payloadLength]);
+    const baseYwithY = (payload[payloadLength - 1] & 0xff) + ((payload[payloadLength] & 0xff) << 8);
+    // I think this may indicate we're running? Not sure lol
+    const takeOrAddCoords = payload[payloadLength + 1];
+    const bytes = payload.slice(4, payloadLength - 1);
+    return {
+        opcode,
+        baseXwithX,
+        baseYwithY,
+        bytes,
+        randomByteOnTheEndLol: takeOrAddCoords
+    };
 
 }
