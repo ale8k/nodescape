@@ -67,10 +67,10 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 22;
-    private y: number = 49;
-    private regionx = 3200;
-    private regiony = 3200;
+    private x: number = 42;
+    private y: number = 47;
+    private regionx = 2944;
+    private regiony = 3328;
 
 
     public startServer(): void {
@@ -175,7 +175,13 @@ export default class Server {
             // temp hardcode 164 handling
             if (packet.opcode === 164) {
                 packet164 = Parse164Walk(packet);
-                // if its 0, we know we got no pathing to handle
+                // ok so we need these anyway
+                // so we let this path resolve but then
+                // push each x/y from the byte array over gradually
+                // until theyre complete.
+                // the good bit about this is if a new 164 comes in, we can just
+                // clear the pathArr and let them go to their new co-ord
+                // rather than if this, if that etc which sucks donky dick
                 if (packet164.bytes.length === 0) {
                     destinationX = packet164.baseXwithX - this.regionx;
                     destinationY = packet164.baseYwithY - this.regiony;
@@ -189,12 +195,6 @@ export default class Server {
                         return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
                     });
 
-                    // i think it may need reversing lol
-                    //pathingArr.reverse();
-
-                    // now we have an array of paths to be taken,
-                    // we need to manage path state as each idle packet comes in and trigger this.
-                    // becayse playerIsMoving will be true and so is pathingActive.
                 }
                 playerIsMoving = true;
             }
