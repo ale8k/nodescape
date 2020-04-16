@@ -184,11 +184,16 @@ export default class Server {
                     pathingActive = true;
                     // this allows us to update the pathing dynamically,
                     // as it'll be reset each new p164 & pathing
-                    pathingArr = packet164.bytes;
+
+                    // !! decided we gonna calc each of them here and now
+                    pathingArr = packet164.bytes.map((coord, i) => {
+                        return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
+                    });
+
                     // we also set the initial pathing destination here, just once
                     //destinationX = (pathingArr.shift() as number) + this.x & 0xff;
                     //destinationY = (pathingArr.shift() as number) + this.y & 0xff;
-                    console.log("Pathing activated, going to x: ", destinationX, "and y: ", destinationY);
+                    console.log(colours.FgYellow, "Pathing activated, going to x: " + destinationX + " and y: " + destinationY);
                 }
                 playerIsMoving = true;
             }
@@ -198,14 +203,14 @@ export default class Server {
              */
             if (playerIsMoving) {
                 // check if the pathing array has anything,
-                // if it does, we know we gotta handle path co-ords each run
+                // if it does, we know we gotta handle path co-ords each runn
                 if (pathingActive === true) {
-                    console.log("requires pathing");
+                    //console.log("requires pathing");
                 }
-
+                console.log(colours.Reset, "");
                 // top left
                 if (this.x > destinationX && this.y < destinationY) {
-                    console.log("Top left");
+                    console.log(colours.FgCyan, "Top left");
                     this.x--;
                     this.y++;
                     console.log("Our x: ", this.x, "Our y:", this.y);
