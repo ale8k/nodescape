@@ -207,6 +207,7 @@ export default class Server {
                 // this is where we need to handle which destination will be present at a time
                 // until ofcourse the pathingArr is empty
                 if (pathingActive === true) {
+                    console.log(colours.Reset, "164X: ", packet164.baseXwithX - this.regionx, "164Y: ", packet164.baseYwithY - this.regiony);
                     console.log(colours.Reset, "Path coords: ", pathingArr);
                     console.log(" Random byte is: ", colours.FgRed + packet164.randomByteOnTheEndLol);
 
