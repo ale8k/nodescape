@@ -65,8 +65,8 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 32;
-    private y: number = 29;
+    private x: number = 24;
+    private y: number = 17;
     private regionx = 3200;
     private regiony = 3200;
 
@@ -165,8 +165,6 @@ export default class Server {
 
             }
 
-
-
             /**
              * WALKING MOVEMENT
              */
@@ -180,7 +178,7 @@ export default class Server {
                 destinationX = packet164.baseXwithX - this.regionx;
                 destinationY = packet164.baseYwithY - this.regiony;
                 playerIsMoving = true;
-                console.log(packet164);
+                //console.log(packet164);
             }
 
             /**
@@ -195,42 +193,72 @@ export default class Server {
              *  }
              */
             if (playerIsMoving) {
-                // top right
-                if (this.x < destinationX && this.y < destinationY) {
+                // we perform the bytes check, to see if its a pathed co-ordinate.
+                // refer to walking-pathing.md for more info, it's odd how it works
+                // if there are bytes, we set our destination x/y to the byte x/y
+                // and until our dude is there, then we use the next x/y of the bytes
+                if (packet164.bytes.length > 0) {
+
+                }
+
+                // top left
+                if (this.x > destinationX && this.y < destinationY) {
+                    console.log("Top left");
+                    this.x--;
+                    this.y++;
+                    console.log("Our x: ", this.x, "Our y:", this.y);
+                    console.log("Des x: ", destinationX, "Des y:", destinationY);
+                    // the bytes in packet 164 are needed to handle this some how!!
+                    (movement.movementData as movementData1).direction = 0;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                    // bottom right
+                } else if (this.x < destinationX && this.y > destinationY) {
+                    console.log("Bottom right");
+                    this.x++;
+                    this.y--;
+                    console.log("Our x: ", this.x, "Our y:", this.y);
+                    console.log("Des x: ", destinationX, "Des y:", destinationY);
+                    // the bytes in packet 164 are needed to handle this some how!!
+                    (movement.movementData as movementData1).direction = 7;
+                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                    // top right
+                } else if (this.x < destinationX && this.y < destinationY) {
+                    console.log("Top right");
                     this.x++;
                     this.y++;
                     // the bytes in packet 164 are needed to handle this some how!!
                     (movement.movementData as movementData1).direction = 2;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                }
-
-                // bottom left
-                if (this.x > destinationX && this.y > destinationY) {
+                    // bottom left
+                } else if (this.x > destinationX && this.y > destinationY) {
+                    console.log("Bottom left");
                     this.x--;
                     this.y--;
+                    console.log("Our x: ", this.x, "Our y:", this.y);
+                    console.log("Des x: ", destinationX, "Des y:", destinationY);
                     // the bytes in packet 164 are needed to handle this some how!!
                     (movement.movementData as movementData1).direction = 5;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                }
-
-                // linear x
-                if (this.x < destinationX && this.y === destinationY) {
+                    // right
+                } else if (this.x < destinationX && this.y === destinationY) {
+                    console.log("Right");
                     this.x++;
                     (movement.movementData as movementData1).direction = 4;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                 } else if (this.x > destinationX && this.y === destinationY) {
+                    console.log("Left");
                     this.x--;
                     (movement.movementData as movementData1).direction = 3;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                }
-                console.log("Our x after movement:", this.x);
-
-                // linear y
-                if (this.y < destinationY && this.x === destinationX) {
+                    // top
+                } else if (this.y < destinationY && this.x === destinationX) {
+                    console.log("Top");
                     this.y++;
                     (movement.movementData as movementData1).direction = 1;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                    // bottom
                 } else if (this.y > destinationY && this.x === destinationX) {
+                    console.log("Bottom");
                     this.y--;
                     (movement.movementData as movementData1).direction = 6;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
