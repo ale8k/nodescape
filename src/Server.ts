@@ -65,8 +65,8 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 20;
-    private y: number = 34;
+    private x: number = 32;
+    private y: number = 29;
     private regionx = 3200;
     private regiony = 3200;
 
