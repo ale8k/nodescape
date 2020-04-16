@@ -133,6 +133,7 @@ export default class Server {
         };
 
         let playerIsMoving = false;
+        let pathingActive = false;
 
         const idleMovement: IMovement = {
             updatePlayer: 0,
@@ -175,8 +176,15 @@ export default class Server {
             // we then just compare our x/y to it and send p81's until its complete.
             if (packet.opcode === 164) {
                 packet164 = Parse164Walk(packet);
-                destinationX = packet164.baseXwithX - this.regionx;
-                destinationY = packet164.baseYwithY - this.regiony;
+                // if its 0, we know we got no pathing to handle
+                if (packet164.bytes.length === 0) {
+                    destinationX = packet164.baseXwithX - this.regionx;
+                    destinationY = packet164.baseYwithY - this.regiony;
+                } else {
+                    pathingActive = true;
+                    console.log("Pathing required");
+                    //3 + 20 & 0xff, 253 + 34 & 0xff
+                }
                 playerIsMoving = true;
                 //console.log(packet164);
             }
@@ -184,21 +192,15 @@ export default class Server {
             /**
              * Walking block, refactor later
              */
-            /**
-             * This is the method in the client for sending the bytes...
-             *  for (int j7 = 1; j7 < waypointCount; j7++) {
-             *     currentIndex--;
-             *     outgoing.writeByte(waypointX[currentIndex] - x);
-             *     outgoing.writeByte(waypointY[currentIndex] - y);
-             *  }
-             */
             if (playerIsMoving) {
-                // we perform the bytes check, to see if its a pathed co-ordinate.
-                // refer to walking-pathing.md for more info, it's odd how it works
-                // if there are bytes, we set our destination x/y to the byte x/y
-                // and until our dude is there, then we use the next x/y of the bytes
-                if (packet164.bytes.length > 0) {
-
+                // check if the pathing array has anything,
+                // if it does, we know we gotta handle path co-ords each run
+                if (pathingActive === true) {
+                    // we cant just set these, it's gonna be
+                    // a condition as to which index of x/y we use
+                    destinationX;
+                    destinationY;
+                    // after this, our movement code will run fine and pathing will commence
                 }
 
                 // top left
