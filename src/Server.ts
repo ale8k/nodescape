@@ -233,34 +233,34 @@ export default class Server {
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                     // bottom left
                 } else if (this.x > destinationX && this.y > destinationY) {
-                    console.log("Bottom left");
+                    console.log(colours.FgCyan, "Bottom left");
                     this.x--;
                     this.y--;
-                    console.log("Our x: ", this.x, "Our y:", this.y);
-                    console.log("Des x: ", destinationX, "Des y:", destinationY);
+                    console.log(colours.FgCyan, "Our x: ", this.x, "Our y:", this.y);
+                    console.log(colours.FgCyan, "Des x: ", destinationX, "Des y:", destinationY);
                     // the bytes in packet 164 are needed to handle this some how!!
                     (movement.movementData as movementData1).direction = 5;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                     // right
                 } else if (this.x < destinationX && this.y === destinationY) {
-                    console.log("Right");
+                    console.log(colours.FgCyan, "Right");
                     this.x++;
                     (movement.movementData as movementData1).direction = 4;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                 } else if (this.x > destinationX && this.y === destinationY) {
-                    console.log("Left");
+                    console.log(colours.FgCyan, "Left");
                     this.x--;
                     (movement.movementData as movementData1).direction = 3;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                     // top
                 } else if (this.y < destinationY && this.x === destinationX) {
-                    console.log("Top");
+                    console.log(colours.FgCyan, "Top");
                     this.y++;
                     (movement.movementData as movementData1).direction = 1;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
                     // bottom
                 } else if (this.y > destinationY && this.x === destinationX) {
-                    console.log("Bottom");
+                    console.log(colours.FgCyan, "Bottom");
                     this.y--;
                     (movement.movementData as movementData1).direction = 6;
                     UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
@@ -275,9 +275,9 @@ export default class Server {
                 if (this.x === destinationX && this.y === destinationY) {
                     playerIsMoving = false;
                 }
-                console.log("walking packet sent");
+                console.log(colours.FgMagenta, "Walking packet sent");
             } else {
-                console.log(colours.FgGreen, "idle packet sent");
+                console.log(colours.FgGreen, "Idle packet sent");
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
 
