@@ -134,6 +134,7 @@ export default class Server {
 
         let playerIsMoving = false;
         let pathingActive = false;
+        let pathingArr = [];
 
         const idleMovement: IMovement = {
             updatePlayer: 0,
@@ -182,11 +183,13 @@ export default class Server {
                     destinationY = packet164.baseYwithY - this.regiony;
                 } else {
                     pathingActive = true;
+                    // this allows us to update the pathing dynamically,
+                    // as it'll be reset each new p164 & pathing
+                    pathingArr = packet164.bytes;
                     console.log("Pathing required");
                     //3 + 20 & 0xff, 253 + 34 & 0xff
                 }
                 playerIsMoving = true;
-                //console.log(packet164);
             }
 
             /**
@@ -196,11 +199,15 @@ export default class Server {
                 // check if the pathing array has anything,
                 // if it does, we know we gotta handle path co-ords each run
                 if (pathingActive === true) {
-                    // we cant just set these, it's gonna be
-                    // a condition as to which index of x/y we use
-                    destinationX;
-                    destinationY;
-                    // after this, our movement code will run fine and pathing will commence
+                        // set pathing dest x/y + a check for our x/y to be === to
+                        // path x/y so we know when to set next 2 bytes of our new destination
+
+                        // when we finish last path
+                        if (pathingArr.length === 0) {
+                            // turn pathing off for next run, incase its linear
+                            // that should do it
+                            pathingActive = false;
+                        }
                 }
 
                 // top left
