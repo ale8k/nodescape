@@ -17,6 +17,8 @@ import { PacketReader, Parse164Walk } from "./packets/incoming";
 import { LoginState } from "./enums/Login.enum";
 import LoginHandler from "./packets/login/LoginHandler";
 import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/interfaces/IMovement";
+// DEBUG
+import { colours } from "./ConsoleColours";
 
 /**
  * Entry point for the server
@@ -134,7 +136,7 @@ export default class Server {
 
         let playerIsMoving = false;
         let pathingActive = false;
-        let pathingArr = [];
+        let pathingArr: number[] = [];
 
         const idleMovement: IMovement = {
             updatePlayer: 0,
@@ -163,18 +165,14 @@ export default class Server {
                 // Gets the packetopcode, length, returns the packet and wipes the buffer
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
                 // debug
-                console.log("Encrypted opcode: ", eOpcode, "Decrypted opcode: ", packet.opcode);
+                //console.log("Encrypted opcode: ", eOpcode, "Decrypted opcode: ", packet.opcode);
 
             }
 
             /**
              * WALKING MOVEMENT
              */
-            // just hard coding the handling for now lol
-            // we create a loop of 81 packets based on the 'bytes' given back to us and if none
-            // we perform a linear -- or ++ movement until destination x/y is === to our x/y
-            // we calc this by taking the basex/y+x/y given back from 164 and take the current region from it
-            // we then just compare our x/y to it and send p81's until its complete.
+            // temp hardcode 164 handling
             if (packet.opcode === 164) {
                 packet164 = Parse164Walk(packet);
                 // if its 0, we know we got no pathing to handle
@@ -182,12 +180,15 @@ export default class Server {
                     destinationX = packet164.baseXwithX - this.regionx;
                     destinationY = packet164.baseYwithY - this.regiony;
                 } else {
+                    // turn pathing on
                     pathingActive = true;
                     // this allows us to update the pathing dynamically,
                     // as it'll be reset each new p164 & pathing
                     pathingArr = packet164.bytes;
-                    console.log("Pathing required");
-                    //3 + 20 & 0xff, 253 + 34 & 0xff
+                    // we also set the initial pathing destination here, just once
+                    //destinationX = (pathingArr.shift() as number) + this.x & 0xff;
+                    //destinationY = (pathingArr.shift() as number) + this.y & 0xff;
+                    console.log("Pathing activated, going to x: ", destinationX, "and y: ", destinationY);
                 }
                 playerIsMoving = true;
             }
@@ -199,15 +200,7 @@ export default class Server {
                 // check if the pathing array has anything,
                 // if it does, we know we gotta handle path co-ords each run
                 if (pathingActive === true) {
-                        // set pathing dest x/y + a check for our x/y to be === to
-                        // path x/y so we know when to set next 2 bytes of our new destination
-
-                        // when we finish last path
-                        if (pathingArr.length === 0) {
-                            // turn pathing off for next run, incase its linear
-                            // that should do it
-                            pathingActive = false;
-                        }
+                    console.log("requires pathing");
                 }
 
                 // top left
@@ -282,7 +275,9 @@ export default class Server {
                 if (this.x === destinationX && this.y === destinationY) {
                     playerIsMoving = false;
                 }
+                console.log("walking packet sent");
             } else {
+                console.log(colours.FgGreen, "idle packet sent");
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
 
