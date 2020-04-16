@@ -67,8 +67,8 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 42;
-    private y: number = 47;
+    private x: number = 46;
+    private y: number = 48;
     private regionx = 2944;
     private regiony = 3328;
 
@@ -194,6 +194,9 @@ export default class Server {
                     pathingArr = packet164.bytes.map((coord, i) => {
                         return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
                     });
+                    // shift the initial x/y onto our path arr, as we need these first
+                    destinationX = packet164.baseXwithX - this.regionx;
+                    destinationY = packet164.baseYwithY - this.regiony;
 
                 }
                 playerIsMoving = true;
@@ -203,13 +206,23 @@ export default class Server {
              * Walking block, refactor later
              */
             if (playerIsMoving) {
-                console.log(colours.Reset, "Current x: ", colours.FgBlue + this.x, colours.Reset, "Current y: ", colours.FgBlue + this.y);
+                //console.log(colours.Reset, "Current x: ", colours.FgBlue + this.x, colours.Reset, "Current y: ", colours.FgBlue + this.y);
                 // this is where we need to handle which destination will be present at a time
                 // until ofcourse the pathingArr is empty
                 if (pathingActive === true) {
-                    console.log(colours.Reset, "164X: ", packet164.baseXwithX - this.regionx, "164Y: ", packet164.baseYwithY - this.regiony);
-                    console.log(colours.Reset, "Path coords: ", pathingArr);
-                    console.log(" Random byte is: ", colours.FgRed + packet164.randomByteOnTheEndLol);
+                    //console.log(colours.Reset, "Path coords: ", pathingArr);
+                   // console.log(" Random byte is: ", colours.FgRed + packet164.randomByteOnTheEndLol);
+
+
+
+                   // this is a step in the right direction, when we stop playerIs moving being turned off at bottom
+                    if (this.x === destinationX && this.y === destinationX && pathingArr.length > 0) {
+                        console.log("Updating new path for player");
+                        destinationX = pathingArr.shift() as number;
+                        destinationY = pathingArr.shift() as number;
+                    } else if (pathingArr.length === 0) {
+                        pathingActive = false;
+                    }
 
                 }
                 console.log(colours.Reset, "");
