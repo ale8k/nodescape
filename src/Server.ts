@@ -67,8 +67,8 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 24;
-    private y: number = 17;
+    private x: number = 22;
+    private y: number = 49;
     private regionx = 3200;
     private regiony = 3200;
 
@@ -180,20 +180,21 @@ export default class Server {
                     destinationX = packet164.baseXwithX - this.regionx;
                     destinationY = packet164.baseYwithY - this.regiony;
                 } else {
+                    console.log(colours.Reset, colours.FgWhite + "Pathing arr updated");
                     // turn pathing on
                     pathingActive = true;
-                    // this allows us to update the pathing dynamically,
-                    // as it'll be reset each new p164 & pathing
 
                     // !! decided we gonna calc each of them here and now
                     pathingArr = packet164.bytes.map((coord, i) => {
                         return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
                     });
 
-                    // we also set the initial pathing destination here, just once
-                    //destinationX = (pathingArr.shift() as number) + this.x & 0xff;
-                    //destinationY = (pathingArr.shift() as number) + this.y & 0xff;
-                    console.log(colours.FgYellow, "Pathing activated, going to x: " + destinationX + " and y: " + destinationY);
+                    // i think it may need reversing lol
+                    //pathingArr.reverse();
+
+                    // now we have an array of paths to be taken,
+                    // we need to manage path state as each idle packet comes in and trigger this.
+                    // becayse playerIsMoving will be true and so is pathingActive.
                 }
                 playerIsMoving = true;
             }
@@ -202,12 +203,21 @@ export default class Server {
              * Walking block, refactor later
              */
             if (playerIsMoving) {
-                // check if the pathing array has anything,
-                // if it does, we know we gotta handle path co-ords each runn
+                console.log(colours.Reset, "Current x: ", colours.FgBlue + this.x, colours.Reset, "Current y: ", colours.FgBlue + this.y);
+                // this is where we need to handle which destination will be present at a time
+                // until ofcourse the pathingArr is empty
                 if (pathingActive === true) {
-                    //console.log("requires pathing");
+                    console.log(colours.Reset, "Path coords: ", pathingArr);
+                    console.log(" Random byte is: ", colours.FgRed + packet164.randomByteOnTheEndLol);
+
                 }
                 console.log(colours.Reset, "");
+
+                /**
+                 * Depending on what P164 give us, this may be a straight
+                 * linear dX and dY, otherwise it may be a pathed dX dY which dynamically updates
+                 * upon arriving at a new path destination.
+                 */
                 // top left
                 if (this.x > destinationX && this.y < destinationY) {
                     console.log(colours.FgCyan, "Top left");
