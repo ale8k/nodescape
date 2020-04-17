@@ -67,10 +67,10 @@ export default class Server {
      * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
      * cycle
      */
-    private x: number = 46;
-    private y: number = 48;
-    private regionx = 2944;
-    private regiony = 3328;
+    private x: number = 20;
+    private y: number = 34;
+    private regionx = 3200;
+    private regiony = 3200;
 
 
     public startServer(): void {
@@ -176,11 +176,14 @@ export default class Server {
                     destinationY = packet164.baseYwithY - this.regiony;
                     // we moving now
                     playerIsMoving = true;
+                    // add logic to check if we should -3/+3 on y co-ord
+                    // based on the initial x/y, I think.
                     if (packet164.pathCoords.length > 0) {
                         console.log(colours.FgRed, "Updating pathing!");
                         packet164.pathCoords = packet164.pathCoords.map((coord, i) => {
                             return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
                         });
+                        console.log(packet164.pathCoords);
                     }
                 }
 
@@ -210,22 +213,23 @@ export default class Server {
                     console.log(colours.FgWhite, "Movement finished");
                     playerIsMoving = false;
                     console.log();
+
+                    /**
+                     * Pathing not working right, I'm missing something!!
+                     */
+                    // check for pathing incase its a path based 164
+                    if (packet164.pathCoords.length > 0) {
+                        // set new dx/y
+                        destinationX = packet164.pathCoords.shift() as number;
+                        destinationY = packet164.pathCoords.shift() as number;
+                        // turn movement back on
+                        playerIsMoving = true;
+                        console.log(packet164.pathCoords.length);
+                        packet164.pathCoords.length === 0 ? console.log("Pathing finished") : console.log("Path arr still has: " + packet164.pathCoords.length);
+                    }
                 }
 
-                /**
-                 * Pathing not working right, I'm missing something!!
-                 */
-                // check for pathing incase its a path based 164
-                if (packet164.pathCoords.length > 0) {
-                    console.log();
-                    // set new dx/y
-                    destinationX = packet164.pathCoords.shift() as number;
-                    destinationY = packet164.pathCoords.shift() as number;
-                    // turn movement back on
-                    playerIsMoving = true;
-                    console.log(packet164.pathCoords.length);
-                    packet164.pathCoords.length === 0 ? console.log("Pathing finished") : console.log("Path arr still has: " + packet164.pathCoords.length);
-                }
+
 
                 // update dx/y?
                 // turn movement back on?
