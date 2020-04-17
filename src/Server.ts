@@ -130,13 +130,11 @@ export default class Server {
             opcode: number;
             baseXwithX: number;
             baseYwithY: number;
-            bytes: number[];
+            pathCoords: number[];
             randomByteOnTheEndLol: number;
         };
 
         let playerIsMoving = false;
-        let pathingActive = false;
-        let pathingArr: number[] = [];
 
         const idleMovement: IMovement = {
             updatePlayer: 0,
@@ -161,150 +159,53 @@ export default class Server {
              */
             while (this._inStreamCacheBuffer.length > 0) {
                 // debug
-                const eOpcode = this._inStreamCacheBuffer[0];
+                //const eOpcode = this._inStreamCacheBuffer[0];
                 // Gets the packetopcode, length, returns the packet and wipes the buffer
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
-                // debug
-                //console.log("Encrypted opcode: ", eOpcode, "Decrypted opcode: ", packet.opcode);
-
-            }
-
-            /**
-             * WALKING MOVEMENT
-             */
-            // temp hardcode 164 handling
-            if (packet.opcode === 164) {
-                packet164 = Parse164Walk(packet);
-                // ok so we need these anyway
-                // so we let this path resolve but then
-                // push each x/y from the byte array over gradually
-                // until theyre complete.
-                // the good bit about this is if a new 164 comes in, we can just
-                // clear the pathArr and let them go to their new co-ord
-                // rather than if this, if that etc which sucks donky dick
-                if (packet164.bytes.length === 0) {
-                    destinationX = packet164.baseXwithX - this.regionx;
-                    destinationY = packet164.baseYwithY - this.regiony;
-                } else {
-                    console.log(colours.Reset, colours.FgWhite + "Pathing arr updated");
-                    // turn pathing on
-                    pathingActive = true;
-
-                    // !! decided we gonna calc each of them here and now
-                    pathingArr = packet164.bytes.map((coord, i) => {
-                        return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
-                    });
-                    // shift the initial x/y onto our path arr, as we need these first
-                    destinationX = packet164.baseXwithX - this.regionx;
-                    destinationY = packet164.baseYwithY - this.regiony;
-
-                }
-                playerIsMoving = true;
-            }
-
-            /**
-             * Walking block, refactor later
-             */
-            if (playerIsMoving) {
-                //console.log(colours.Reset, "Current x: ", colours.FgBlue + this.x, colours.Reset, "Current y: ", colours.FgBlue + this.y);
-                // this is where we need to handle which destination will be present at a time
-                // until ofcourse the pathingArr is empty
-                if (pathingActive === true) {
-                    //console.log(colours.Reset, "Path coords: ", pathingArr);
-                   // console.log(" Random byte is: ", colours.FgRed + packet164.randomByteOnTheEndLol);
-
-
-
-                   // this is a step in the right direction, when we stop playerIs moving being turned off at bottom
-                    if (this.x === destinationX && this.y === destinationX && pathingArr.length > 0) {
-                        console.log("Updating new path for player");
-                        destinationX = pathingArr.shift() as number;
-                        destinationY = pathingArr.shift() as number;
-                    } else if (pathingArr.length === 0) {
-                        pathingActive = false;
-                    }
-
-                }
-                console.log(colours.Reset, "");
 
                 /**
-                 * Depending on what P164 give us, this may be a straight
-                 * linear dX and dY, otherwise it may be a pathed dX dY which dynamically updates
-                 * upon arriving at a new path destination.
+                 * Handle packet 164
+                 * Parses 164, sets our destination x/y
+                 * if the byte array exists, parses the array into actual co-ords
                  */
-                // top left
-                if (this.x > destinationX && this.y < destinationY) {
-                    console.log(colours.FgCyan, "Top left");
-                    this.x--;
-                    this.y++;
-                    console.log("Our x: ", this.x, "Our y:", this.y);
-                    console.log("Des x: ", destinationX, "Des y:", destinationY);
-                    // the bytes in packet 164 are needed to handle this some how!!
-                    (movement.movementData as movementData1).direction = 0;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    // bottom right
-                } else if (this.x < destinationX && this.y > destinationY) {
-                    console.log("Bottom right");
-                    this.x++;
-                    this.y--;
-                    console.log("Our x: ", this.x, "Our y:", this.y);
-                    console.log("Des x: ", destinationX, "Des y:", destinationY);
-                    // the bytes in packet 164 are needed to handle this some how!!
-                    (movement.movementData as movementData1).direction = 7;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    // top right
-                } else if (this.x < destinationX && this.y < destinationY) {
-                    console.log("Top right");
-                    this.x++;
-                    this.y++;
-                    // the bytes in packet 164 are needed to handle this some how!!
-                    (movement.movementData as movementData1).direction = 2;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    // bottom left
-                } else if (this.x > destinationX && this.y > destinationY) {
-                    console.log(colours.FgCyan, "Bottom left");
-                    this.x--;
-                    this.y--;
-                    console.log(colours.FgCyan, "Our x: ", this.x, "Our y:", this.y);
-                    console.log(colours.FgCyan, "Des x: ", destinationX, "Des y:", destinationY);
-                    // the bytes in packet 164 are needed to handle this some how!!
-                    (movement.movementData as movementData1).direction = 5;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    // right
-                } else if (this.x < destinationX && this.y === destinationY) {
-                    console.log(colours.FgCyan, "Right");
-                    this.x++;
-                    (movement.movementData as movementData1).direction = 4;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                } else if (this.x > destinationX && this.y === destinationY) {
-                    console.log(colours.FgCyan, "Left");
-                    this.x--;
-                    (movement.movementData as movementData1).direction = 3;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    // top
-                } else if (this.y < destinationY && this.x === destinationX) {
-                    console.log(colours.FgCyan, "Top");
-                    this.y++;
-                    (movement.movementData as movementData1).direction = 1;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-                    // bottom
-                } else if (this.y > destinationY && this.x === destinationX) {
-                    console.log(colours.FgCyan, "Bottom");
-                    this.y--;
-                    (movement.movementData as movementData1).direction = 6;
-                    UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+                if (packet.opcode === 164) {
+                    // parse the packet
+                    packet164 = Parse164Walk(packet);
+                    // set our initial co-ords to go to (will only be these if no pathing required)
+                    destinationX = packet164.baseXwithX - this.regionx;
+                    destinationY = packet164.baseYwithY - this.regiony;
+                    // we moving now
+                    playerIsMoving = true;
+                    if (packet164.pathCoords.length > 0) {
+                        console.log(colours.FgRed, "Updating pathing!");
+                        packet164.pathCoords = packet164.pathCoords.map((coord, i) => {
+                            return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
+                        });
+                    }
                 }
 
-                // handle region update
-                // if they within 16 tiles of edge of region,
-                // reload next one they closest to
-                // if (false) {
 
-                // }
-                if (this.x === destinationX && this.y === destinationY) {
-                    playerIsMoving = false;
-                }
+            }
+
+
+            /**
+             * Handle walking / idle packet every game tick
+             *
+             * // we got our path co-ords and our location is updated every tick,
+             * // but we need to wait for our position to finish!!
+             */
+            if (playerIsMoving) {
+                console.log(colours.Reset, "");
+
+                this.processMovement(socket, destinationX, destinationY, oe, movement);
+
                 console.log(colours.FgMagenta, "Walking packet sent");
+
+                if (this.x === destinationX && this.y === destinationY) {
+                    console.log(colours.FgWhite, "Movement finished");
+                    playerIsMoving = false;
+                    console.log();
+                }
             } else {
                 console.log(colours.FgGreen, "Idle packet sent");
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
@@ -405,6 +306,70 @@ export default class Server {
             converted -= 0x10000;
         }
         return converted;
+    }
+
+    private processMovement(socket: Socket, destinationX: number, destinationY: number, oe: IsaacCipher, movement: IMovement): void {
+        if (this.x > destinationX && this.y < destinationY) {
+            console.log(colours.FgCyan, "Top left");
+            this.x--;
+            this.y++;
+            console.log("Our x: ", this.x, "Our y:", this.y);
+            console.log("Des x: ", destinationX, "Des y:", destinationY);
+            // the bytes in packet 164 are needed to handle this some how!!
+            (movement.movementData as movementData1).direction = 0;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+            // bottom right
+        } else if (this.x < destinationX && this.y > destinationY) {
+            console.log("Bottom right");
+            this.x++;
+            this.y--;
+            console.log("Our x: ", this.x, "Our y:", this.y);
+            console.log("Des x: ", destinationX, "Des y:", destinationY);
+            // the bytes in packet 164 are needed to handle this some how!!
+            (movement.movementData as movementData1).direction = 7;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+            // top right
+        } else if (this.x < destinationX && this.y < destinationY) {
+            console.log("Top right");
+            this.x++;
+            this.y++;
+            // the bytes in packet 164 are needed to handle this some how!!
+            (movement.movementData as movementData1).direction = 2;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+            // bottom left
+        } else if (this.x > destinationX && this.y > destinationY) {
+            console.log(colours.FgCyan, "Bottom left");
+            this.x--;
+            this.y--;
+            console.log(colours.FgCyan, "Our x: ", this.x, "Our y:", this.y);
+            console.log(colours.FgCyan, "Des x: ", destinationX, "Des y:", destinationY);
+            // the bytes in packet 164 are needed to handle this some how!!
+            (movement.movementData as movementData1).direction = 5;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+            // right
+        } else if (this.x < destinationX && this.y === destinationY) {
+            console.log(colours.FgCyan, "Right");
+            this.x++;
+            (movement.movementData as movementData1).direction = 4;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+        } else if (this.x > destinationX && this.y === destinationY) {
+            console.log(colours.FgCyan, "Left");
+            this.x--;
+            (movement.movementData as movementData1).direction = 3;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+            // top
+        } else if (this.y < destinationY && this.x === destinationX) {
+            console.log(colours.FgCyan, "Top");
+            this.y++;
+            (movement.movementData as movementData1).direction = 1;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+            // bottom
+        } else if (this.y > destinationY && this.x === destinationX) {
+            console.log(colours.FgCyan, "Bottom");
+            this.y--;
+            (movement.movementData as movementData1).direction = 6;
+            UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
+        }
     }
 
 }

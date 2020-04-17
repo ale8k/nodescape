@@ -6,7 +6,7 @@
  * @author ale8k
  * TODO: add correct typings rather than object literals, wtf even is this Alex lol
  */
-export default function Parse164Walk({ opcode, length, payload }: { opcode: number, length: number, payload: number[] }) : { opcode: number, baseXwithX: number, baseYwithY: number, bytes: number[], randomByteOnTheEndLol: number} {
+export default function Parse164Walk({ opcode, length, payload }: { opcode: number, length: number, payload: number[] }) : { opcode: number, baseXwithX: number, baseYwithY: number, pathCoords: number[], randomByteOnTheEndLol: number} {
     const payloadLength = payload[1];
     const baseXwithX = (payload[2] - 128 & 0xff) + ((payload[3] & 0xff) << 8);
     //console.log(payload[payloadLength]);
@@ -18,7 +18,7 @@ export default function Parse164Walk({ opcode, length, payload }: { opcode: numb
         opcode,
         baseXwithX,
         baseYwithY,
-        bytes,
+        pathCoords: bytes,
         randomByteOnTheEndLol: takeOrAddCoords
     };
 
