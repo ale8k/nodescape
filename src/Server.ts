@@ -165,7 +165,7 @@ export default class Server {
 
                 /**
                  * Handle packet 164
-                 * Parses 164, sets our destination x/y
+                 * Parses 164, sets our initial destination x/y
                  * if the byte array exists, parses the array into actual co-ords
                  */
                 if (packet.opcode === 164) {
@@ -190,22 +190,45 @@ export default class Server {
 
             /**
              * Handle walking / idle packet every game tick
+             * Will go to destination x/y each tick until it gets there
+             *
+             * So, it'll always go to our initial x/y
+             * but we need to check if there's pathing co-ords to additionally go towards
+             * and then update the x/y...
              *
              * // we got our path co-ords and our location is updated every tick,
              * // but we need to wait for our position to finish!!
              */
             if (playerIsMoving) {
                 console.log(colours.Reset, "");
-
+                // handles all x/y co-ords given to it
                 this.processMovement(socket, destinationX, destinationY, oe, movement);
-
                 console.log(colours.FgMagenta, "Walking packet sent");
 
+                // ends linear movements
                 if (this.x === destinationX && this.y === destinationY) {
                     console.log(colours.FgWhite, "Movement finished");
                     playerIsMoving = false;
                     console.log();
                 }
+
+                /**
+                 * Pathing not working right, I'm missing something!!
+                 */
+                // check for pathing incase its a path based 164
+                if (packet164.pathCoords.length > 0) {
+                    console.log();
+                    // set new dx/y
+                    destinationX = packet164.pathCoords.shift() as number;
+                    destinationY = packet164.pathCoords.shift() as number;
+                    // turn movement back on
+                    playerIsMoving = true;
+                    console.log(packet164.pathCoords.length);
+                    packet164.pathCoords.length === 0 ? console.log("Pathing finished") : console.log("Path arr still has: " + packet164.pathCoords.length);
+                }
+
+                // update dx/y?
+                // turn movement back on?
             } else {
                 console.log(colours.FgGreen, "Idle packet sent");
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
@@ -308,13 +331,19 @@ export default class Server {
         return converted;
     }
 
+    /**
+     * Sends a player towards a given x/y co-ordinate
+     * @param socket the socket
+     * @param destinationX destination to drive the player towards
+     * @param destinationY destination to drive the player towards
+     * @param oe outstream encryption
+     * @param movement the movement object for packet 81 to parse
+     */
     private processMovement(socket: Socket, destinationX: number, destinationY: number, oe: IsaacCipher, movement: IMovement): void {
         if (this.x > destinationX && this.y < destinationY) {
             console.log(colours.FgCyan, "Top left");
             this.x--;
             this.y++;
-            console.log("Our x: ", this.x, "Our y:", this.y);
-            console.log("Des x: ", destinationX, "Des y:", destinationY);
             // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 0;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
@@ -323,8 +352,6 @@ export default class Server {
             console.log("Bottom right");
             this.x++;
             this.y--;
-            console.log("Our x: ", this.x, "Our y:", this.y);
-            console.log("Des x: ", destinationX, "Des y:", destinationY);
             // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 7;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
