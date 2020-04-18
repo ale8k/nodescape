@@ -12,4 +12,3 @@ I used a number of resources to get this running:
 - Accidental cycle discovery: https://www.rune-server.ee/runescape-development/rs2-server/help/692079-opcode-decryption-how-approach.html
 - Block-flag discovery: https://www.rune-server.ee/runescape-development/rs2-server/help/692068-block-flag-based-updating-0x10-render-failing.html
 - Manually going through the client for packet sizes: https://www.rune-server.ee/runescape-development/rs2-server/informative-threads/692158-317-client-server-packet-list.html
-- Pathing discovery: walking-pathing.md

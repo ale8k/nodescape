@@ -47,8 +47,8 @@ export default class Server {
      */
     private _inStreamCacheBuffer: number[] = [];
     /**
-     * Some kind of flag to ensure that our emitter call back is added once
-     * and our initial packets are sent once...
+     * A flag to check if our initial game setup has been completed.
+     * If it has, proceed to process game packets
      */
     private _gameInitialSetupComplete = false;
     /**
@@ -59,19 +59,26 @@ export default class Server {
      * The players ID from the RSA login block
      */
     public static PLAYER_ID: number;
-
     /**
-     * DEBUG X/Y region X/Y
-     * Also 'moving' flag, cause I think we need to send
-     * a variable kind of 81 and not just 81, idle, 81, idle
-     * or 81, 81, 81, 81, idle in one big go. I think it wants one on the 600ms
-     * cycle
+     * Players starting/current x
      */
-    private x: number = 20;
-    private y: number = 34;
+    private x: number = 22;
+    /**
+     * Players starting/current y
+     */
+    private y: number = 20;
+    /**
+     * Players starting/current region x
+     */
     private regionx = 3200;
+    /**
+     * Players starting/current region y
+     */
     private regiony = 3200;
-
+    /**
+     * Players starting/current plane level
+     */
+    private currentPlane = 0;
 
     public startServer(): void {
         net.createServer((socket: Socket) => {
@@ -79,6 +86,8 @@ export default class Server {
 
             /**
              * Single primary data event
+             * Handles the login procedure and if successful, pushes data
+             * to our game instream buffer for the packets to be read per tick
              */
             socket.on("data", (data) => {
                 if (Server.LOGIN_STATE === LoginState.FirstResponse) {
@@ -97,12 +106,12 @@ export default class Server {
                     } else {
                         this._inStreamCacheBuffer.push(...data.toJSON().data);
                     }
-
                 }
             });
 
             /**
              * Close
+             * TODO: A lot lol.
              */
             socket.on("close", (e) => {
                 console.log("A client was disconnected...");
@@ -121,11 +130,12 @@ export default class Server {
      */
     private setupGame(socket: Socket): void {
         const oe = Server.OUTSTREAM_ENCRYPTION;
-
+        // a place to store the parsed opcode, length and payload pre packet parsing
         let packet: { opcode: number, length: number, payload: number[] };
-
+        // the destination for our x/y in movement
         let destinationX = this.x;
         let destinationY = this.y;
+        // hardcoded 164. Needs to be dynamic based on 98, 164 and the other movement packet
         let packet164: {
             opcode: number;
             baseXwithX: number;
@@ -133,14 +143,15 @@ export default class Server {
             pathCoords: number[];
             randomByteOnTheEndLol: number;
         };
-
+        // a flag which tells us do we need to send more movement based packet 81's
+        // i.e., is the destinationX/Y === to our X/Y yet?
         let playerIsMoving = false;
-
+        // IMovement object which represents an idle game tick
         const idleMovement: IMovement = {
             updatePlayer: 0,
             movementType: 0
         };
-
+        // a walking movement object which represents the player should move in one direction
         const movement: IMovement = {
             updatePlayer: 1,
             movementType: 1,
@@ -149,75 +160,56 @@ export default class Server {
                 direction: 0
             }
         };
+        // typescript can be poop sometimes
         movement.movementData = movement.movementData as movementData1;
 
+        /**
+         * The game tick loop callback function (i.e., handler)
+         */
         this._gameLoopEventEmitter.on("tick", () => {
-            /**
-             * This works by removing the packet from the start
-             * of the inStreamBuffer[], and then continues to read until the
-             * buffer is empty.
-             */
+            // This works by removing the packet from the start
+            // of the inStreamBuffer[], reads any packet handler functions
+            // and then continues to read & repeat handling until the buffer is empty.
             while (this._inStreamCacheBuffer.length > 0) {
-                // debug
-                //const eOpcode = this._inStreamCacheBuffer[0];
-                // Gets the packetopcode, length, returns the packet and wipes the buffer
+                // gets the packetopcode, length, returns the packet and wipes the buffer
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
 
-                /**
-                 * Handle packet 164
-                 * Parses 164, sets our initial destination x/y
-                 * if the byte array exists, parses the array into actual co-ords
-                 */
+                // handle packet 164
+                // & set pathing arr if exists
                 if (packet.opcode === 164) {
                     // parse the packet
                     packet164 = Parse164Walk(packet);
-                    // set our initial co-ords to go to (will only be these if no pathing required)
+                    // set our initial co-ords to go to (these are used to calc path bytes)
                     destinationX = packet164.baseXwithX - this.regionx;
                     destinationY = packet164.baseYwithY - this.regiony;
                     // we moving now
                     playerIsMoving = true;
-                    // add logic to check if we should -3/+3 on y co-ord
-                    // based on the initial x/y, I think.
+
                     if (packet164.pathCoords.length > 0) {
-                        console.log(colours.FgRed, "Updating pathing!");
+                        // convert our path co-ords into the same as the client given (client does - dx/y)
                         packet164.pathCoords = packet164.pathCoords.map((coord, i) => {
-                            return i % 2 === 0 ? coord + this.x & 0xff : coord + this.y & 0xff;
+                            return i % 2 === 0 ? coord + destinationX & 0xff : coord + destinationY & 0xff;
                         });
-                        console.log(packet164.pathCoords);
+
                     }
                 }
 
 
             }
 
-
-            /**
-             * Handle walking / idle packet every game tick
-             * Will go to destination x/y each tick until it gets there
-             *
-             * So, it'll always go to our initial x/y
-             * but we need to check if there's pathing co-ords to additionally go towards
-             * and then update the x/y...
-             *
-             * // we got our path co-ords and our location is updated every tick,
-             * // but we need to wait for our position to finish!!
-             */
+            // handle walking & pathing / idle packet every game tick
+            // maybe this could be handled in its own little file
+            // or a separate method in here
             if (playerIsMoving) {
-                console.log(colours.Reset, "");
                 // handles all x/y co-ords given to it
                 this.processMovement(socket, destinationX, destinationY, oe, movement);
-                console.log(colours.FgMagenta, "Walking packet sent");
 
                 // ends linear movements
                 if (this.x === destinationX && this.y === destinationY) {
-                    console.log(colours.FgWhite, "Movement finished");
                     playerIsMoving = false;
-                    console.log();
 
-                    /**
-                     * Pathing not working right, I'm missing something!!
-                     */
-                    // check for pathing incase its a path based 164
+                    // if we got pathing co-ord, turn movement back on and shift
+                    // our next destination into our d x/y
                     if (packet164.pathCoords.length > 0) {
                         // set new dx/y
                         destinationX = packet164.pathCoords.shift() as number;
@@ -225,21 +217,17 @@ export default class Server {
                         // turn movement back on
                         playerIsMoving = true;
                         console.log(packet164.pathCoords.length);
-                        packet164.pathCoords.length === 0 ? console.log("Pathing finished") : console.log("Path arr still has: " + packet164.pathCoords.length);
                     }
                 }
-
-
-
-                // update dx/y?
-                // turn movement back on?
             } else {
+                // if we not moving, we know we idle ;)
                 console.log(colours.FgGreen, "Idle packet sent");
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
 
         });
-
+        // our initial packets to setup our players plane,
+        // ui and whatnot
         this.sendInitialLoginPackets(socket);
         console.log("Callback attached and initial packets sent");
         this._gameInitialSetupComplete = true;
@@ -285,7 +273,7 @@ export default class Server {
             updatePlayer: 1,
             movementType: 3,
             movementData: {
-                plane: 0,
+                plane: this.currentPlane,
                 teleport: 1,
                 updateRequired: 1,
                 x: this.x,
@@ -308,35 +296,7 @@ export default class Server {
     }
 
     /**
-     * TEST
-     */
-    // lets try put it in a buffer...
-    public readLEShortA(val1: number, val2: number) {
-        // const test = Buffer.alloc(4);
-        // test[0] = ((val1 & 0xff) << 8);
-        // test[1] = (val2 - 128 & 0xff);
-        // let converted = test.readUInt16BE(0);
-        let converted = ((val1 & 0xff) << 8) + (val2 - 128 & 0xff);
-        if (converted > 32767) {
-            converted -= 0x10000;
-        }
-        return converted;
-    }
-
-    public readLEShort(val1: number, val2: number) {
-        // const test = Buffer.alloc(4);
-        // test[0] = ((val1 & 0xff) << 8);
-        // test[1] = (val2 & 0xff);
-        // let converted = test.readUInt16LE(0);
-        let converted = ((val1 & 0xff) << 8) + (val2 & 0xff);
-        if (converted > 32767) {
-            converted -= 0x10000;
-        }
-        return converted;
-    }
-
-    /**
-     * Sends a player towards a given x/y co-ordinate
+     * Sends a player 1 step towards a given x/y co-ordinate
      * @param socket the socket
      * @param destinationX destination to drive the player towards
      * @param destinationY destination to drive the player towards

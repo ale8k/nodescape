@@ -3119,6 +3119,7 @@ public final class client extends Applet_Sub1
         {
             int k = Class25.anInt470;
             int k1 = Class25.anInt471;
+            System.out.println("Calling walk method inside of pulse()");
             boolean flag = method85(0, 0, 0, -11308, 0, ((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1501[0], 0, 0, k1, ((Class30_Sub2_Sub4_Sub1) (aClass30_Sub2_Sub4_Sub1_Sub2_1126)).anIntArray1500[0], true, k);
             Class25.anInt470 = -1;
             if(flag)
@@ -6311,9 +6312,14 @@ public final class client extends Applet_Sub1
                 flag1 = true;
                 break;
             }
+
+            // distances[currX][currY] + 1
             int l4 = anIntArrayArray825[j3][k3] + 1;
+
+
             if(j3 > 0 && anIntArrayArray901[j3 - 1][k3] == 0 && (ai[j3 - 1][k3] & 0x1280108) == 0)
             {
+                //System.out.println("---0---");
                 anIntArray1280[l3] = j3 - 1;
                 anIntArray1281[l3] = k3;
                 l3 = (l3 + 1) % j4;
@@ -6322,6 +6328,7 @@ public final class client extends Applet_Sub1
             }
             if(j3 < byte0 - 1 && anIntArrayArray901[j3 + 1][k3] == 0 && (ai[j3 + 1][k3] & 0x1280180) == 0)
             {
+                //System.out.println("---1---");
                 anIntArray1280[l3] = j3 + 1;
                 anIntArray1281[l3] = k3;
                 l3 = (l3 + 1) % j4;
@@ -6330,6 +6337,7 @@ public final class client extends Applet_Sub1
             }
             if(k3 > 0 && anIntArrayArray901[j3][k3 - 1] == 0 && (ai[j3][k3 - 1] & 0x1280102) == 0)
             {
+                //System.out.println("---2---");
                 anIntArray1280[l3] = j3;
                 anIntArray1281[l3] = k3 - 1;
                 l3 = (l3 + 1) % j4;
@@ -6338,6 +6346,7 @@ public final class client extends Applet_Sub1
             }
             if(k3 < byte1 - 1 && anIntArrayArray901[j3][k3 + 1] == 0 && (ai[j3][k3 + 1] & 0x1280120) == 0)
             {
+                //System.out.println("---3---");
                 anIntArray1280[l3] = j3;
                 anIntArray1281[l3] = k3 + 1;
                 l3 = (l3 + 1) % j4;
@@ -6346,6 +6355,7 @@ public final class client extends Applet_Sub1
             }
             if(j3 > 0 && k3 > 0 && anIntArrayArray901[j3 - 1][k3 - 1] == 0 && (ai[j3 - 1][k3 - 1] & 0x128010e) == 0 && (ai[j3 - 1][k3] & 0x1280108) == 0 && (ai[j3][k3 - 1] & 0x1280102) == 0)
             {
+                //System.out.println("---4---");
                 anIntArray1280[l3] = j3 - 1;
                 anIntArray1281[l3] = k3 - 1;
                 l3 = (l3 + 1) % j4;
@@ -6354,6 +6364,7 @@ public final class client extends Applet_Sub1
             }
             if(j3 < byte0 - 1 && k3 > 0 && anIntArrayArray901[j3 + 1][k3 - 1] == 0 && (ai[j3 + 1][k3 - 1] & 0x1280183) == 0 && (ai[j3 + 1][k3] & 0x1280180) == 0 && (ai[j3][k3 - 1] & 0x1280102) == 0)
             {
+                //System.out.println("---5---");
                 anIntArray1280[l3] = j3 + 1;
                 anIntArray1281[l3] = k3 - 1;
                 l3 = (l3 + 1) % j4;
@@ -6362,6 +6373,7 @@ public final class client extends Applet_Sub1
             }
             if(j3 > 0 && k3 < byte1 - 1 && anIntArrayArray901[j3 - 1][k3 + 1] == 0 && (ai[j3 - 1][k3 + 1] & 0x1280138) == 0 && (ai[j3 - 1][k3] & 0x1280108) == 0 && (ai[j3][k3 + 1] & 0x1280120) == 0)
             {
+                //System.out.println("---6---");
                 anIntArray1280[l3] = j3 - 1;
                 anIntArray1281[l3] = k3 + 1;
                 l3 = (l3 + 1) % j4;
@@ -6370,6 +6382,7 @@ public final class client extends Applet_Sub1
             }
             if(j3 < byte0 - 1 && k3 < byte1 - 1 && anIntArrayArray901[j3 + 1][k3 + 1] == 0 && (ai[j3 + 1][k3 + 1] & 0x12801e0) == 0 && (ai[j3 + 1][k3] & 0x1280180) == 0 && (ai[j3][k3 + 1] & 0x1280120) == 0)
             {
+                //System.out.println("---7---");
                 anIntArray1280[l3] = j3 + 1;
                 anIntArray1281[l3] = k3 + 1;
                 l3 = (l3 + 1) % j4;
@@ -6415,24 +6428,31 @@ public final class client extends Applet_Sub1
             for(int j6 = 1; j6 > 0; j6++);
         }
         int l5;
-        for(int j5 = l5 = anIntArrayArray901[j3][k3]; j3 != j2 || k3 != j1; j5 = anIntArrayArray901[j3][k3])
-        {
-            if(j5 != l5)
-            {
+        int amountRun = 0;
+        for(int j5 = l5 = anIntArrayArray901[j3][k3]; j3 != j2 || k3 != j1; j5 = anIntArrayArray901[j3][k3]) {
+            // System.out.println("j5 is now: " + j5);
+            // System.out.println("l5 is now: " + l5);
+            // System.out.println("x is now: " + j3);
+            // System.out.println("y is now: " + k3);
+            
+            if(j5 != l5) {
                 l5 = j5;
+                System.out.println("Client written an X: " + j3);
+                System.out.println("Client written an Y: " + k3);
                 anIntArray1280[i4] = j3;
                 anIntArray1281[i4++] = k3;
             }
-            if((j5 & 2) != 0)
+
+            if((j5 & 2) != 0) {
                 j3++;
-            else
-            if((j5 & 8) != 0)
+            } else if((j5 & 8) != 0) {
                 j3--;
-            if((j5 & 1) != 0)
+            }
+            if((j5 & 1) != 0) {
                 k3++;
-            else
-            if((j5 & 4) != 0)
+            } else if((j5 & 4) != 0) {
                 k3--;
+            }
         }
 
         if(i4 > 0)
@@ -6467,6 +6487,7 @@ public final class client extends Applet_Sub1
             }
             System.out.println("-------------------------------------------");
             System.out.println("Base x summed: " + (k6 + anInt1034));
+            System.out.println("the x and y which are taken from base, x: " + k6 + "y: " + i7);
             aClass30_Sub2_Sub2_1192.method433(0, k6 + anInt1034);
             anInt1261 = anIntArray1280[0];
             anInt1262 = anIntArray1281[0];
