@@ -18,6 +18,10 @@ export default class PacketReader {
     public static getPacketOpcodeAndLength(inStreamCacheBuffer: number[], inStreamDecryption: IsaacCipher)
         : { opcode: number, length: number, payload: number[] } {
         let dOpcode = PacketReader.parsePacketOpcode(inStreamCacheBuffer[0], inStreamDecryption);
+        if (dOpcode === 98) {
+            console.log("PACKET 98 HERE:");
+            console.log(inStreamCacheBuffer);
+        }
         let pLength;
         const pPayload = [];
 
@@ -205,7 +209,7 @@ export default class PacketReader {
             case 131:
                 return 2 + 1;
             case 132:
-                return 2 + 1;
+                return 6 + 1;
             case 133:
                 return 8 + 1;
             case 135:

@@ -10,7 +10,8 @@ import {
     SetSkillLevelAndXp134,
     EnableFriendsList221,
     SendPlayerIdx249,
-    WriteMessage253
+    WriteMessage253,
+    SetPlayersWeight
 } from "./packets/outgoing";
 import GameIds from "./GameIds";
 import { PacketReader, Parse164Walk } from "./packets/incoming";
@@ -20,6 +21,7 @@ import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/i
 // DEBUG
 import { colours } from "./ConsoleColours";
 import Parse248Walk from "./packets/incoming/packets/Parse248Walk";
+import SetPlayersRunEnergy from "./packets/outgoing/packets/SetPlayersRunEnergy110";
 
 /**
  * Entry point for the server
@@ -175,11 +177,23 @@ export default class Server {
                 // gets the packetopcode, length, returns the packet and wipes this packet from the buffer
                 // hence the while loop above ^ lol
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
-
+                console.log(packet.opcode);
                 // handle packet 164 & 248
-                if (packet.opcode === 164 || packet.opcode === 248) {
-                    walkPacket = packet.opcode === 164 ? Parse164Walk(packet) : Parse248Walk(packet);
-                    console.log(walkPacket.opcode);
+                if (packet.opcode === 164 || packet.opcode === 248 || packet.opcode === 98) {
+                    switch (packet.opcode) {
+                        case 248:
+                            walkPacket = Parse248Walk(packet);
+                            break;
+                        case 164:
+                            walkPacket = Parse164Walk(packet);
+                            break;
+                        case 98:
+                            // 98 works identical to 164, but has 2 others frames
+                            // appended to the block
+                            walkPacket = Parse164Walk(packet);
+                            break;
+                    }
+                    console.log("OPCODE FOR WALK: ", walkPacket.opcode);
                     // set our initial co-ords to go to (these are used to calc path bytes)
                     destinationX = walkPacket.baseXwithX - this.regionx;
                     destinationY = walkPacket.baseYwithY - this.regiony;
@@ -256,6 +270,12 @@ export default class Server {
 
         // 221: Update friends list status
         EnableFriendsList221(oe.nextKey(), s);
+
+        // 240: Set / update players current weight in kg
+        SetPlayersWeight(oe.nextKey(), s, 1069);
+
+        // 210: Set / update player current run energy percentage
+        SetPlayersRunEnergy(oe.nextKey(), s, 55);
 
         // 107: Reset camera position
         ResetCamPos107(oe.nextKey(), s);
