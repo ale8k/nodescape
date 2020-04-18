@@ -85,6 +85,9 @@ export default class Server {
      * Players starting/current plane level
      */
     private currentPlane = 0;
+    /**
+     * Array of sockets for each player
+     */
 
     public startServer(): void {
         net.createServer((socket: Socket) => {
@@ -141,7 +144,7 @@ export default class Server {
         // the destination for our x/y in movement
         let destinationX = this.x;
         let destinationY = this.y;
-        // hardcoded 164. Needs to be dynamic based on 98, 164 and the other movement packet
+        // represents data model brought back from 98, 164 or 248
         let walkPacket: {
             opcode: number;
             baseXwithX: number;
