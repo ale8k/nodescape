@@ -216,7 +216,6 @@ export default class Server {
                         destinationY = packet164.pathCoords.shift() as number;
                         // turn movement back on
                         playerIsMoving = true;
-                        console.log(packet164.pathCoords.length);
                     }
                 }
             } else {
@@ -332,8 +331,6 @@ export default class Server {
             console.log(colours.FgCyan, "Bottom left");
             this.x--;
             this.y--;
-            console.log(colours.FgCyan, "Our x: ", this.x, "Our y:", this.y);
-            console.log(colours.FgCyan, "Des x: ", destinationX, "Des y:", destinationY);
             // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 5;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
