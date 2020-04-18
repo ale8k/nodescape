@@ -254,36 +254,22 @@ export default class Server {
     private sendInitialLoginPackets(s: Socket): void {
         const oe = Server.OUTSTREAM_ENCRYPTION;
 
-        // 249: Send player idx and mem status
         SendPlayerIdx249(oe.nextKey(), s, Server.PLAYER_ID);
         console.log("Player index sent to client");
 
-        // 71: Set sidebar interface (fixed 4 bytes)
         GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
             SetSidebarInterface71(oe.nextKey(), s, sideBarLocationId, sideBarIconId);
         });
 
-        // 134: Set/Update skill level and xp
         new Array(20).fill(0).forEach((zero, i) => {
             SetSkillLevelAndXp134(oe.nextKey(), s, i, 13700000, 99);
         });
 
-        // 221: Update friends list status
         EnableFriendsList221(oe.nextKey(), s);
-
-        // 240: Set / update players current weight in kg
         SetPlayersWeight(oe.nextKey(), s, 1069);
-
-        // 210: Set / update player current run energy percentage
         SetPlayersRunEnergy(oe.nextKey(), s, 55);
-
-        // 107: Reset camera position
         ResetCamPos107(oe.nextKey(), s);
-
-        // 73: Load the map zone (fixed)
         LoadMapZone73(oe.nextKey(), s, this.regionx, this.regiony);
-
-        // 253: Welcome to rs!
         WriteMessage253(oe.nextKey(), s, "Welcome to Runescape!");
 
         // We send move type 3 to setup the plane the players
