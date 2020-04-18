@@ -7,7 +7,7 @@ import EnableFriendsList221 from "./packets/EnableFriendsList221";
 import SendPlayerIdx249 from "./packets/SendPlayerIdx249";
 import WriteMessage253 from "./packets/WriteMessage253";
 import SetPlayersWeight from "./packets/SetPlayersWeight240";
-import SetPlayerRunEnergy from "./packets/SetPlayersRunEnergy110";
+import SetPlayersRunEnergy from "./packets/SetPlayersRunEnergy110";
 
 export {
     SetSidebarInterface71,
@@ -18,5 +18,6 @@ export {
     EnableFriendsList221,
     SendPlayerIdx249,
     WriteMessage253,
-    SetPlayersWeight
+    SetPlayersWeight,
+    SetPlayersRunEnergy
 };

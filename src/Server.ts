@@ -11,17 +11,20 @@ import {
     EnableFriendsList221,
     SendPlayerIdx249,
     WriteMessage253,
-    SetPlayersWeight
+    SetPlayersWeight,
+    SetPlayersRunEnergy
 } from "./packets/outgoing";
+import {
+    PacketReader,
+    Parse164Walk,
+    Parse248Walk
+} from "./packets/incoming";
 import GameIds from "./GameIds";
-import { PacketReader, Parse164Walk } from "./packets/incoming";
 import { LoginState } from "./enums/Login.enum";
 import LoginHandler from "./packets/login/LoginHandler";
 import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/interfaces/IMovement";
 // DEBUG
 import { colours } from "./ConsoleColours";
-import Parse248Walk from "./packets/incoming/packets/Parse248Walk";
-import SetPlayersRunEnergy from "./packets/outgoing/packets/SetPlayersRunEnergy110";
 
 /**
  * Entry point for the server
@@ -170,15 +173,11 @@ export default class Server {
          * The game tick loop callback function (i.e., handler)
          */
         this._gameLoopEventEmitter.on("tick", () => {
-            // This works by removing the packet from the start
-            // of the inStreamBuffer[], reads any packet handler functions
-            // and then continues to read & repeat handling until the buffer is empty.
+
             while (this._inStreamCacheBuffer.length > 0) {
-                // gets the packetopcode, length, returns the packet and wipes this packet from the buffer
-                // hence the while loop above ^ lol
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
-                console.log(packet.opcode);
-                // handle packet 164 & 248
+
+
                 if (packet.opcode === 164 || packet.opcode === 248 || packet.opcode === 98) {
                     switch (packet.opcode) {
                         case 248:
@@ -188,60 +187,45 @@ export default class Server {
                             walkPacket = Parse164Walk(packet);
                             break;
                         case 98:
-                            // 98 works identical to 164, but has 2 others frames
-                            // appended to the block
                             walkPacket = Parse164Walk(packet);
                             break;
                     }
-                    console.log("OPCODE FOR WALK: ", walkPacket.opcode);
-                    // set our initial co-ords to go to (these are used to calc path bytes)
+
                     destinationX = walkPacket.baseXwithX - this.regionx;
                     destinationY = walkPacket.baseYwithY - this.regiony;
-                    // we moving now
-                    playerIsMoving = true;
 
+                    playerIsMoving = true;
+                    // pathing conversion
                     if (walkPacket.pathCoords.length > 0) {
-                        // convert our path co-ords into the same as the client given (client does - dx/y)
                         walkPacket.pathCoords = walkPacket.pathCoords.map((coord, i) => {
                             return i % 2 === 0 ? coord + destinationX & 0xff : coord + destinationY & 0xff;
                         });
-
                     }
                 }
 
 
             }
 
-            // handle walking & pathing / idle packet every game tick
-            // maybe this could be handled in its own little file
-            // or a separate method in here
             if (playerIsMoving) {
-                // handles all x/y co-ords given to it
                 this.processMovement(socket, destinationX, destinationY, oe, movement);
 
-                // ends linear movements
+                // update next path, if pathing bytes available
                 if (this.x === destinationX && this.y === destinationY) {
                     playerIsMoving = false;
 
-                    // if we got pathing co-ord, turn movement back on and shift
-                    // our next destination into our d x/y
                     if (walkPacket.pathCoords.length > 0) {
-                        // set new dx/y
                         destinationX = walkPacket.pathCoords.shift() as number;
                         destinationY = walkPacket.pathCoords.shift() as number;
-                        // turn movement back on
                         playerIsMoving = true;
                     }
                 }
             } else {
-                // if we not moving, we know we idle ;)
                 console.log(colours.FgGreen, "Idle packet sent");
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
 
         });
-        // our initial packets to setup our players plane,
-        // ui and whatnot
+
         this.sendInitialLoginPackets(socket);
         console.log("Callback attached and initial packets sent");
         this._gameInitialSetupComplete = true;
@@ -272,9 +256,7 @@ export default class Server {
         LoadMapZone73(oe.nextKey(), s, this.regionx, this.regiony);
         WriteMessage253(oe.nextKey(), s, "Welcome to Runescape!");
 
-        // We send move type 3 to setup the plane the players
-        // currently on (i.e., they could log out on plane1)
-        // and 0x10 mask to get their view.
+        // This would realistically have data pulled from a db put into this object.
         const initialMovement: IMovement = {
             updatePlayer: 1,
             movementType: 3,
@@ -287,16 +269,6 @@ export default class Server {
             } as movementData3
         };
 
-        // 81: Update our player
-        // General packet cycle
-        // 81: Update our player
-        // socket: Socket,
-        // key: number,
-        // movement: IMovement,
-        // updateOthersMovements: number,
-        // updateOthersMask: number,
-        // maskId?: number,
-        // maskData?: object
         UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }
@@ -311,56 +283,38 @@ export default class Server {
      */
     private processMovement(socket: Socket, destinationX: number, destinationY: number, oe: IsaacCipher, movement: IMovement): void {
         if (this.x > destinationX && this.y < destinationY) {
-            console.log(colours.FgCyan, "Top left");
             this.x--;
             this.y++;
-            // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 0;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-            // bottom right
         } else if (this.x < destinationX && this.y > destinationY) {
-            console.log("Bottom right");
             this.x++;
             this.y--;
-            // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 7;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-            // top right
         } else if (this.x < destinationX && this.y < destinationY) {
-            console.log("Top right");
             this.x++;
             this.y++;
-            // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 2;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-            // bottom left
         } else if (this.x > destinationX && this.y > destinationY) {
-            console.log(colours.FgCyan, "Bottom left");
             this.x--;
             this.y--;
-            // the bytes in packet 164 are needed to handle this some how!!
             (movement.movementData as movementData1).direction = 5;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-            // right
         } else if (this.x < destinationX && this.y === destinationY) {
-            console.log(colours.FgCyan, "Right");
             this.x++;
             (movement.movementData as movementData1).direction = 4;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
         } else if (this.x > destinationX && this.y === destinationY) {
-            console.log(colours.FgCyan, "Left");
             this.x--;
             (movement.movementData as movementData1).direction = 3;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-            // top
         } else if (this.y < destinationY && this.x === destinationX) {
-            console.log(colours.FgCyan, "Top");
             this.y++;
             (movement.movementData as movementData1).direction = 1;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-            // bottom
         } else if (this.y > destinationY && this.x === destinationX) {
-            console.log(colours.FgCyan, "Bottom");
             this.y--;
             (movement.movementData as movementData1).direction = 6;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
