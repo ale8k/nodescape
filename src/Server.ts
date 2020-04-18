@@ -19,6 +19,7 @@ import LoginHandler from "./packets/login/LoginHandler";
 import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/interfaces/IMovement";
 // DEBUG
 import { colours } from "./ConsoleColours";
+import Parse248Walk from "./packets/incoming/packets/Parse248Walk";
 
 /**
  * Entry point for the server
@@ -136,7 +137,7 @@ export default class Server {
         let destinationX = this.x;
         let destinationY = this.y;
         // hardcoded 164. Needs to be dynamic based on 98, 164 and the other movement packet
-        let packet164: {
+        let walkPacket: {
             opcode: number;
             baseXwithX: number;
             baseYwithY: number;
@@ -175,24 +176,19 @@ export default class Server {
                 // hence the while loop above ^ lol
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
 
-                if (packet.opcode === 248) {
-                    console.log(packet.payload);
-                }
-                // handle packet 164
-                // we can handle 248 and 164 here, just parse it differently
-                // & set pathing arr if exists
-                if (packet.opcode === 164) {
-                    // parse the packet
-                    packet164 = Parse164Walk(packet);
+                // handle packet 164 & 248
+                if (packet.opcode === 164 || packet.opcode === 248) {
+                    walkPacket = packet.opcode === 164 ? Parse164Walk(packet) : Parse248Walk(packet);
+                    console.log(walkPacket.opcode);
                     // set our initial co-ords to go to (these are used to calc path bytes)
-                    destinationX = packet164.baseXwithX - this.regionx;
-                    destinationY = packet164.baseYwithY - this.regiony;
+                    destinationX = walkPacket.baseXwithX - this.regionx;
+                    destinationY = walkPacket.baseYwithY - this.regiony;
                     // we moving now
                     playerIsMoving = true;
 
-                    if (packet164.pathCoords.length > 0) {
+                    if (walkPacket.pathCoords.length > 0) {
                         // convert our path co-ords into the same as the client given (client does - dx/y)
-                        packet164.pathCoords = packet164.pathCoords.map((coord, i) => {
+                        walkPacket.pathCoords = walkPacket.pathCoords.map((coord, i) => {
                             return i % 2 === 0 ? coord + destinationX & 0xff : coord + destinationY & 0xff;
                         });
 
@@ -215,10 +211,10 @@ export default class Server {
 
                     // if we got pathing co-ord, turn movement back on and shift
                     // our next destination into our d x/y
-                    if (packet164.pathCoords.length > 0) {
+                    if (walkPacket.pathCoords.length > 0) {
                         // set new dx/y
-                        destinationX = packet164.pathCoords.shift() as number;
-                        destinationY = packet164.pathCoords.shift() as number;
+                        destinationX = walkPacket.pathCoords.shift() as number;
+                        destinationY = walkPacket.pathCoords.shift() as number;
                         // turn movement back on
                         playerIsMoving = true;
                     }
