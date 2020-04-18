@@ -171,10 +171,15 @@ export default class Server {
             // of the inStreamBuffer[], reads any packet handler functions
             // and then continues to read & repeat handling until the buffer is empty.
             while (this._inStreamCacheBuffer.length > 0) {
-                // gets the packetopcode, length, returns the packet and wipes the buffer
+                // gets the packetopcode, length, returns the packet and wipes this packet from the buffer
+                // hence the while loop above ^ lol
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
 
+                if (packet.opcode === 248) {
+                    console.log(packet.payload);
+                }
                 // handle packet 164
+                // we can handle 248 and 164 here, just parse it differently
                 // & set pathing arr if exists
                 if (packet.opcode === 164) {
                     // parse the packet

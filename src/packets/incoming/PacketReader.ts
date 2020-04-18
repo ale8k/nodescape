@@ -48,17 +48,15 @@ export default class PacketReader {
             // Sent when player walks using map (note, it has 14 additional bytes on the end
             // presumed to be anticheat that are ignored)
             case 248:
-                //  console.log("Opcode: ", dOpcode, "The payload + size: ", this._inStreamCacheBuffer);
                 pLength = PacketReader.getVarBytePacketLength(inStreamCacheBuffer);
                 break;
-                // parseVarBytePacket(opcode)?
             default:
-                // parseFixedePacket(opcode)?
                 pLength = PacketReader.getFixedPacketLength(dOpcode);
                 break;
         }
 
-        // i wanna return object with opcode, length and payload. so this be fine i think
+        // Removes the packet from the instream cache buffer and returns it in
+        // our payload object
         for (let i = 0; i < pLength; i++) {
             pPayload.push(inStreamCacheBuffer.shift());
         }
