@@ -6,8 +6,9 @@ import SetSkillLevelAndXp134 from "./packets/SetSkillLevelAndXp134";
 import EnableFriendsList221 from "./packets/EnableFriendsList221";
 import SendPlayerIdx249 from "./packets/SendPlayerIdx249";
 import WriteMessage253 from "./packets/WriteMessage253";
-import SetPlayersWeight from "./packets/SetPlayersWeight240";
-import SetPlayersRunEnergy from "./packets/SetPlayersRunEnergy110";
+import SetPlayersWeight240 from "./packets/SetPlayersWeight240";
+import SetPlayersRunEnergy110 from "./packets/SetPlayersRunEnergy110";
+import Logout109 from "./packets/Logout109";
 
 export {
     SetSidebarInterface71,
@@ -18,6 +19,7 @@ export {
     EnableFriendsList221,
     SendPlayerIdx249,
     WriteMessage253,
-    SetPlayersWeight,
-    SetPlayersRunEnergy
+    SetPlayersWeight240,
+    SetPlayersRunEnergy110,
+    Logout109
 };

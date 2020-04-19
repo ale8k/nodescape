@@ -11,8 +11,9 @@ import {
     EnableFriendsList221,
     SendPlayerIdx249,
     WriteMessage253,
-    SetPlayersWeight,
-    SetPlayersRunEnergy
+    SetPlayersWeight240,
+    SetPlayersRunEnergy110,
+    Logout109
 } from "./packets/outgoing";
 import {
     PacketReader,
@@ -25,6 +26,7 @@ import LoginHandler from "./packets/login/LoginHandler";
 import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/interfaces/IMovement";
 // DEBUG
 import { colours } from "./ConsoleColours";
+import ActionIds from "./ActionIds";
 
 /**
  * Entry point for the server
@@ -86,13 +88,18 @@ export default class Server {
      */
     private currentPlane = 0;
     /**
-     * Array of sockets for each player
+     * Set of objects containing player id and their socket...?
      */
+
+     /**
+      * Socket connects -> player object created with default values? -> has it's own login procedure holder? ->
+      * events run again this socket / player / client -> handle from there?
+      */
 
     public startServer(): void {
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
-
+            console.log(Server.LOGIN_STATE);
             /**
              * Single primary data event
              * Handles the login procedure and if successful, pushes data
@@ -123,7 +130,9 @@ export default class Server {
              * TODO: A lot lol.
              */
             socket.on("close", (e) => {
-                console.log("A client was disconnected...");
+                console.log(colours.FgRed, "A client was disconnected...");
+                Server.LOGIN_STATE = LoginState.FirstResponse;
+                this._gameInitialSetupComplete = false;
             });
 
         }).listen(43594, () => {
@@ -180,7 +189,9 @@ export default class Server {
             while (this._inStreamCacheBuffer.length > 0) {
                 packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
 
-
+                /**
+                 * Handle walk
+                 */
                 if (packet.opcode === 164 || packet.opcode === 248 || packet.opcode === 98) {
                     switch (packet.opcode) {
                         case 248:
@@ -193,7 +204,6 @@ export default class Server {
                             walkPacket = Parse164Walk(packet);
                             break;
                     }
-
                     destinationX = walkPacket.baseXwithX - this.regionx;
                     destinationY = walkPacket.baseYwithY - this.regiony;
 
@@ -203,6 +213,19 @@ export default class Server {
                         walkPacket.pathCoords = walkPacket.pathCoords.map((coord, i) => {
                             return i % 2 === 0 ? coord + destinationX & 0xff : coord + destinationY & 0xff;
                         });
+                    }
+                }
+                /**
+                 * Handles actions (we need an action handling system!)
+                 */
+                if (packet.opcode === 185) {
+                    // read the action id [1][2]
+                    const actionId = ((packet.payload[1] & 0xff) << 8) + (packet.payload[2] & 0xff);
+                    console.log(actionId);
+                    if (actionId === ActionIds.LOGOUT) {
+                        console.log("Player clicked logout");
+                        Logout109(oe.nextKey(), socket);
+
                     }
                 }
 
@@ -253,8 +276,8 @@ export default class Server {
         });
 
         EnableFriendsList221(oe.nextKey(), s);
-        SetPlayersWeight(oe.nextKey(), s, 1069);
-        SetPlayersRunEnergy(oe.nextKey(), s, 55);
+        SetPlayersWeight240(oe.nextKey(), s, 1069);
+        SetPlayersRunEnergy110(oe.nextKey(), s, 55);
         ResetCamPos107(oe.nextKey(), s);
         LoadMapZone73(oe.nextKey(), s, this.regionx, this.regiony);
         WriteMessage253(oe.nextKey(), s, "Welcome to Runescape!");

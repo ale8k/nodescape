@@ -51,7 +51,7 @@ export default class LoginHandler {
         setInterval(() => {
             gameEmitter.emit("tick");
         }, Server.GAME_CYCLE_RATE);
-        socket.write(Buffer.from([2, 0, 0]));
+        socket.write(Buffer.from([2, 2, 0]));
         Server.LOGIN_STATE = LoginState.LoggedIn;
         console.log("Second client request received and second server response sent");
     }

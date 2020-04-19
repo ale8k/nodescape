@@ -7,7 +7,7 @@ import { Socket } from "net";
  * @param weightPercentage the current percentage of run energy the player has equipped and carried
  * @author ale8k
  */
-export default function SetPlayersRunEnergy(key: number, socket: Socket, runPercentage: number): void {
+export default function SetPlayersRunEnergy110(key: number, socket: Socket, runPercentage: number): void {
     const b = Buffer.alloc(2);
     b[0] = 110 + key;
     b[1] = runPercentage;

@@ -16,6 +16,6 @@ export default interface IClient {
     currentRegionX: number;
     currentRegionY: number;
     playerSocket: Socket; // can we reference socketed connections like this?
-    inStreamDecryption: IsaacCipher;
+    inStreamDecryption?: IsaacCipher;
     outStreamEncryption: IsaacCipher;
 }
