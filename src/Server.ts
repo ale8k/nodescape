@@ -35,14 +35,28 @@ import Player from "./Player";
  */
 export default class Server {
     /**
+     * Internal reference to the servers object
+     */
+    public static SERVER_OBJ: net.Server;
+    /**
      * The emitter which handles directing incoming and outgoing packets
      */
     private _gameLoopEventEmitter: EventEmitter = new EventEmitter();
-
     /**
      * Sets the game cycle rate (600 default)
      */
     public static GAME_CYCLE_RATE = 600;
+    /**
+     * A set containing each new player logged in
+     */
+    public static PLAYERS = new Set<Player>();
+    /**
+     * Players movements list (resets per tick obviously)
+     * (other than our player too, I think?)
+     * And when sending the other players updates for our client, we can just filter it out by our
+     * clients UID? Wild guess but we try it
+     */
+    public playersMoved: { playerId: number, movementType: number, direction: number }[] = [];
 
     public startServer(): void {
         // As the server starts, turn our game loop on
@@ -50,7 +64,13 @@ export default class Server {
             this._gameLoopEventEmitter.emit("tick");
         }, Server.GAME_CYCLE_RATE);
 
-        net.createServer((socket: Socket) => {
+        // this handler will clear the other players movement
+        // cache every 600ms, cause we don't need to store everyones movements forever...
+        // just enough time to update what they've done
+        this._gameLoopEventEmitter.on("tick", () => {
+        });
+
+        Server.SERVER_OBJ = net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
 
             /**
@@ -210,8 +230,10 @@ export default class Server {
                     }
                 }
             } else {
-                // console.log(colours.FgGreen, "Idle packet sent for player ID: ", client.playerId);
+                // -1 to account for ourself, which we update lol
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
+                //console.log("The server has: ", Server.SERVER_OBJ.connections, " connections");
+
             }
 
         });
@@ -229,7 +251,6 @@ export default class Server {
         const oe = client.outStrEncryption;
 
         SendPlayerIdx249(oe.nextKey(), s, client.playerId);
-        console.log("Player index sent to client");
 
         GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
             SetSidebarInterface71(oe.nextKey(), s, sideBarLocationId, sideBarIconId);
@@ -258,7 +279,12 @@ export default class Server {
                 y: client.playerDetails.y
             } as movementData3
         };
-
+        // add our player to the movement update list
+        this.playersMoved.push({
+            playerId: client.playerId,
+            movementType: 3,
+            direction: 0
+        });
         UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }
