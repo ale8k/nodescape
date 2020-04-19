@@ -9989,7 +9989,6 @@ public final class client extends Applet_Sub1
         // how many other player movements to update
         int j = class30_sub2_sub2.method419(8, 0);
         // i'm not sure if this is in our zone or in the server entirely?
-        //System.out.println("There are: " + anInt891 + " other players");
 
         if(j < anInt891) {
             for(int k = j; k < anInt891; k++)
@@ -10793,6 +10792,7 @@ public final class client extends Applet_Sub1
         //System.out.println("All good, packet size matches up!");
         
         for(int i1 = 0; i1 < anInt891; i1++) {
+            System.out.println("There are: " + anInt891 + "other players");
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[anIntArray892[i1]] == null)
             {
                 signlink.reporterror(aString1173 + " null entry in pl list - pos:" + i1 + " size:" + anInt891);

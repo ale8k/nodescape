@@ -82,6 +82,9 @@ export default function UpdateLocalPlayer81(
      * METHOD 134
      */
     bitArr.push(...convertToFixedBitArray(updateOthersMovements as number, 8));
+    if (updateOthersMovements > 0) {
+        console.log("higher");
+    }
 
     /**
      * METHOD 91

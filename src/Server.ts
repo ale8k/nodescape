@@ -55,6 +55,9 @@ export default class Server {
      * (other than our player too, I think?)
      * And when sending the other players updates for our client, we can just filter it out by our
      * clients UID? Wild guess but we try it
+     *
+     * We can't update any other players because there aren't any others yet...
+     * I think we need to perform the player list updating then come back to the movements
      */
     public playersMoved: { playerId: number, movementType: number, direction: number }[] = [];
 
@@ -68,6 +71,7 @@ export default class Server {
         // cache every 600ms, cause we don't need to store everyones movements forever...
         // just enough time to update what they've done
         this._gameLoopEventEmitter.on("tick", () => {
+            console.log(this.playersMoved);
         });
 
         Server.SERVER_OBJ = net.createServer((socket: Socket) => {
