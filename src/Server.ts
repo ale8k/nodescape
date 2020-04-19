@@ -289,6 +289,7 @@ export default class Server {
             movementType: 3,
             direction: 0
         });
+        // HOW DO WE UPDATE THE BLOODY PLAYERCOUNT
         UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }

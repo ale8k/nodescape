@@ -7344,6 +7344,7 @@ public final class client extends Applet_Sub1
              */
             // if player is not in array...
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] == null) {
+                System.out.println("creating a new player object and adding it to the list");
                 // add player instance to player array
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] = new Class30_Sub2_Sub4_Sub1_Sub2();
                 //System.out.println("player " + j + " added to update buffer");
@@ -9987,6 +9988,7 @@ public final class client extends Applet_Sub1
     private final void method134(byte byte0, int i, Class30_Sub2_Sub2 class30_sub2_sub2) {
         //System.out.println("METHOD 134 CALLED");
         // how many other player movements to update
+        System.out.println("There are " + anInt891 + " other players");
         int j = class30_sub2_sub2.method419(8, 0);
         // i'm not sure if this is in our zone or in the server entirely?
 
