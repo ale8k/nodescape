@@ -27,6 +27,7 @@ import IMovement, { movementData3, movementData1 } from "./packets/outgoing/81/i
 // DEBUG
 import { colours } from "./ConsoleColours";
 import ActionIds from "./ActionIds";
+import Player from "./Player";
 
 /**
  * Entry point for the server
@@ -34,67 +35,14 @@ import ActionIds from "./ActionIds";
  */
 export default class Server {
     /**
-     * Handles the current state of our login procedure
-     */
-    public static LOGIN_STATE: LoginState = LoginState.FirstResponse;
-    /**
-     * In stream opcode isaac cipher (set by loginhandler)
-     */
-    public static INSTREAM_DECRYPTION: IsaacCipher;
-    /**
-     * Out stream opcode isaac cipher (set by loginhandler)
-     */
-    public static OUTSTREAM_ENCRYPTION: IsaacCipher;
-    /**
      * The emitter which handles directing incoming and outgoing packets
      */
     private _gameLoopEventEmitter: EventEmitter = new EventEmitter();
-    /**
-     * A place for us to store the incoming data outside of our
-     * 600ms cycle
-     */
-    private _inStreamCacheBuffer: number[] = [];
-    /**
-     * A flag to check if our initial game setup has been completed.
-     * If it has, proceed to process game packets
-     */
-    private _gameInitialSetupComplete = false;
+
     /**
      * Sets the game cycle rate (600 default)
      */
     public static GAME_CYCLE_RATE = 600;
-    /**
-     * The players ID from the RSA login block
-     */
-    public static PLAYER_ID: number;
-    /**
-     * Players starting/current x
-     */
-    private x: number = 22;
-    /**
-     * Players starting/current y
-     */
-    private y: number = 20;
-    /**
-     * Players starting/current region x
-     */
-    private regionx = 3200;
-    /**
-     * Players starting/current region y
-     */
-    private regiony = 3200;
-    /**
-     * Players starting/current plane level
-     */
-    private currentPlane = 0;
-    /**
-     * Set of objects containing player id and their socket...?
-     */
-
-     /**
-      * Socket connects -> player object created with default values? -> has it's own login procedure holder? ->
-      * events run again this socket / player / client -> handle from there?
-      */
 
     public startServer(): void {
         // As the server starts, turn our game loop on
@@ -104,40 +52,52 @@ export default class Server {
 
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
-            console.log(Server.LOGIN_STATE);
+
+            /**
+             * This is created per each individual socket that attempts to connect.
+             */
+            const client = new Player();
+            client.loginState = LoginState.FirstResponse;
+            client.initialSetup = false;
+            client.playerDetails = {
+                username: "test",
+                password: "password123",
+                x: 22,
+                y: 20,
+                regionx: 3200,
+                regiony: 3200,
+                plane: 0
+            };
+            client.inStrCacheBuffer = [];
+
             /**
              * Single primary data event
-             * Handles the login procedure and if successful, pushes data
-             * to our game instream buffer for the packets to be read per tick
              */
             socket.on("data", (data) => {
-                if (Server.LOGIN_STATE === LoginState.FirstResponse) {
-                    LoginHandler.sendFirstResponse(socket);
-                } else if (Server.LOGIN_STATE === LoginState.SecondResponse) {
-                    LoginHandler.sendSecondResponse(socket, data, this._gameLoopEventEmitter);
-                } else if (Server.LOGIN_STATE === LoginState.LoggedIn) {
-
+                if (client.loginState === LoginState.FirstResponse) {
+                    LoginHandler.sendFirstResponse(socket, client);
+                } else if (client.loginState === LoginState.SecondResponse) {
+                    LoginHandler.sendSecondResponse(socket, data, client);
+                } else if (client.loginState === LoginState.LoggedIn) {
+                    //console.log("Client PID: ", client.playerId, " - Has successfully logged in");
                     // Basics we need to setup before generically handling packets
-                    if (this._gameInitialSetupComplete === false) {
+                    if (client.initialSetup === false) {
                         console.log("Setting up initial game stage!");
                         // Push the very first game packet to our cache buffer
-                        this._inStreamCacheBuffer.push(...data.toJSON().data);
+                        client.inStrCacheBuffer.push(...data.toJSON().data);
                         // setup event listener and send initial packets
-                        this.setupGame(socket);
+                        this.setupGame(socket, client);
                     } else {
-                        this._inStreamCacheBuffer.push(...data.toJSON().data);
+                        client.inStrCacheBuffer.push(...data.toJSON().data);
                     }
                 }
             });
 
             /**
              * Close
-             * TODO: A lot lol.
              */
             socket.on("close", (e) => {
                 console.log(colours.FgRed, "A client was disconnected...");
-                Server.LOGIN_STATE = LoginState.FirstResponse;
-                this._gameInitialSetupComplete = false;
             });
 
         }).listen(43594, () => {
@@ -151,13 +111,13 @@ export default class Server {
      * The inStreamBuffer cache increments based on all incoming data
      * @param socket the primary socket
      */
-    private setupGame(socket: Socket): void {
-        const oe = Server.OUTSTREAM_ENCRYPTION;
+    private setupGame(socket: Socket, client: Player): void {
+        const oe = client.outStrEncryption;
         // a place to store the parsed opcode, length and payload pre packet parsing
         let packet: { opcode: number, length: number, payload: number[] };
         // the destination for our x/y in movement
-        let destinationX = this.x;
-        let destinationY = this.y;
+        let destinationX = client.playerDetails.x;
+        let destinationY = client.playerDetails.y;
         // represents data model brought back from 98, 164 or 248
         let walkPacket: {
             opcode: number;
@@ -190,10 +150,9 @@ export default class Server {
          * The game tick loop callback function (i.e., handler)
          */
         this._gameLoopEventEmitter.on("tick", () => {
-
-            while (this._inStreamCacheBuffer.length > 0) {
-                packet = PacketReader.getPacketOpcodeAndLength(this._inStreamCacheBuffer, Server.INSTREAM_DECRYPTION);
-
+            while (client.inStrCacheBuffer.length > 0) {
+                packet = PacketReader.getPacketOpcodeAndLength(client.inStrCacheBuffer, client.inStrDecryption);
+                console.log(packet.opcode);
                 /**
                  * Handle walk
                  */
@@ -209,8 +168,8 @@ export default class Server {
                             walkPacket = Parse164Walk(packet);
                             break;
                     }
-                    destinationX = walkPacket.baseXwithX - this.regionx;
-                    destinationY = walkPacket.baseYwithY - this.regiony;
+                    destinationX = walkPacket.baseXwithX - client.playerDetails.regionx;
+                    destinationY = walkPacket.baseYwithY - client.playerDetails.regiony;
 
                     playerIsMoving = true;
                     // pathing conversion
@@ -238,10 +197,10 @@ export default class Server {
             }
 
             if (playerIsMoving) {
-                this.processMovement(socket, destinationX, destinationY, oe, movement);
+                this.processMovement(socket, destinationX, destinationY, oe, movement, client);
 
                 // update next path, if pathing bytes available
-                if (this.x === destinationX && this.y === destinationY) {
+                if (client.playerDetails.x === destinationX && client.playerDetails.y === destinationY) {
                     playerIsMoving = false;
 
                     if (walkPacket.pathCoords.length > 0) {
@@ -251,25 +210,25 @@ export default class Server {
                     }
                 }
             } else {
-                console.log(colours.FgGreen, "Idle packet sent");
+                // console.log(colours.FgGreen, "Idle packet sent for player ID: ", client.playerId);
                 UpdateLocalPlayer81(socket, oe.nextKey(), idleMovement, 0, 2047);
             }
 
         });
 
-        this.sendInitialLoginPackets(socket);
+        this.sendInitialLoginPackets(socket, client);
         console.log("Callback attached and initial packets sent");
-        this._gameInitialSetupComplete = true;
+        client.initialSetup = true;
     }
 
     /**
      * Sends all the essential starting packets
      * @param s our players socket
      */
-    private sendInitialLoginPackets(s: Socket): void {
-        const oe = Server.OUTSTREAM_ENCRYPTION;
+    private sendInitialLoginPackets(s: Socket, client: Player): void {
+        const oe = client.outStrEncryption;
 
-        SendPlayerIdx249(oe.nextKey(), s, Server.PLAYER_ID);
+        SendPlayerIdx249(oe.nextKey(), s, client.playerId);
         console.log("Player index sent to client");
 
         GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
@@ -284,7 +243,7 @@ export default class Server {
         SetPlayersWeight240(oe.nextKey(), s, 1069);
         SetPlayersRunEnergy110(oe.nextKey(), s, 55);
         ResetCamPos107(oe.nextKey(), s);
-        LoadMapZone73(oe.nextKey(), s, this.regionx, this.regiony);
+        LoadMapZone73(oe.nextKey(), s, client.playerDetails.regionx, client.playerDetails.regiony);
         WriteMessage253(oe.nextKey(), s, "Welcome to Runescape!");
 
         // This would realistically have data pulled from a db put into this object.
@@ -292,11 +251,11 @@ export default class Server {
             updatePlayer: 1,
             movementType: 3,
             movementData: {
-                plane: this.currentPlane,
+                plane: client.playerDetails.plane,
                 teleport: 1,
                 updateRequired: 1,
-                x: this.x,
-                y: this.y
+                x: client.playerDetails.x,
+                y: client.playerDetails.y
             } as movementData3
         };
 
@@ -312,44 +271,49 @@ export default class Server {
      * @param oe outstream encryption
      * @param movement the movement object for packet 81 to parse
      */
-    private processMovement(socket: Socket, destinationX: number, destinationY: number, oe: IsaacCipher, movement: IMovement): void {
-        if (this.x > destinationX && this.y < destinationY) {
-            this.x--;
-            this.y++;
+    private processMovement(socket: Socket, destinationX: number, destinationY: number, oe: IsaacCipher, movement: IMovement,
+        client: Player): void {
+        let x = client.playerDetails.x;
+        let y = client.playerDetails.y;
+        if (x > destinationX && y < destinationY) {
+            x--;
+            y++;
             (movement.movementData as movementData1).direction = 0;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.x < destinationX && this.y > destinationY) {
-            this.x++;
-            this.y--;
+        } else if (x < destinationX && y > destinationY) {
+            x++;
+            y--;
             (movement.movementData as movementData1).direction = 7;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.x < destinationX && this.y < destinationY) {
-            this.x++;
-            this.y++;
+        } else if (x < destinationX && y < destinationY) {
+            x++;
+            y++;
             (movement.movementData as movementData1).direction = 2;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.x > destinationX && this.y > destinationY) {
-            this.x--;
-            this.y--;
+        } else if (x > destinationX && y > destinationY) {
+            x--;
+            y--;
             (movement.movementData as movementData1).direction = 5;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.x < destinationX && this.y === destinationY) {
-            this.x++;
+        } else if (x < destinationX && y === destinationY) {
+            x++;
             (movement.movementData as movementData1).direction = 4;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.x > destinationX && this.y === destinationY) {
-            this.x--;
+        } else if (x > destinationX && y === destinationY) {
+            x--;
             (movement.movementData as movementData1).direction = 3;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.y < destinationY && this.x === destinationX) {
-            this.y++;
+        } else if (y < destinationY && x === destinationX) {
+            y++;
             (movement.movementData as movementData1).direction = 1;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
-        } else if (this.y > destinationY && this.x === destinationX) {
-            this.y--;
+        } else if (y > destinationY && x === destinationX) {
+            y--;
             (movement.movementData as movementData1).direction = 6;
             UpdateLocalPlayer81(socket, oe.nextKey(), movement, 0, 2047);
         }
+        client.playerDetails.x = x;
+        client.playerDetails.y = y;
     }
 
 }
