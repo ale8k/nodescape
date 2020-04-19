@@ -41,16 +41,7 @@ export default class LoginHandler {
         ];
         Server.INSTREAM_DECRYPTION = new IsaacCipher(inSessionKey);
         Server.OUTSTREAM_ENCRYPTION = new IsaacCipher(sessionKey);
-        /**
-         * We're happy with logging the user in, so setup game tick
-         * and send A-OK response
-         * Remember to assign this statically in the login handler
-         * cause when the dude disconnects, this interval still
-         * using memory. So on close we needa destroy it.
-         */
-        setInterval(() => {
-            gameEmitter.emit("tick");
-        }, Server.GAME_CYCLE_RATE);
+
         socket.write(Buffer.from([2, 2, 0]));
         Server.LOGIN_STATE = LoginState.LoggedIn;
         console.log("Second client request received and second server response sent");

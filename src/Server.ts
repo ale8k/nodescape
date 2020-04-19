@@ -97,6 +97,11 @@ export default class Server {
       */
 
     public startServer(): void {
+        // As the server starts, turn our game loop on
+        setInterval(() => {
+            this._gameLoopEventEmitter.emit("tick");
+        }, Server.GAME_CYCLE_RATE);
+
         net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
             console.log(Server.LOGIN_STATE);
