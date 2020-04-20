@@ -49,15 +49,9 @@ export default class Server {
     /**
      * A set containing each new player logged in
      */
-    public static PLAYERS = new Set<Player>();
+    public static PLAYERS_INDEX: number[] = [];
     /**
-     * Players movements list (resets per tick obviously)
-     * (other than our player too, I think?)
-     * And when sending the other players updates for our client, we can just filter it out by our
-     * clients UID? Wild guess but we try it
-     *
-     * We can't update any other players because there aren't any others yet...
-     * I think we need to perform the player list updating then come back to the movements
+     * needs player index to be filled first
      */
     public playersMoved: { playerIdx: number, movementType: number, direction: number }[] = [];
 
@@ -71,7 +65,7 @@ export default class Server {
         // cache every 600ms, cause we don't need to store everyones movements forever...
         // just enough time to update what they've done
         this._gameLoopEventEmitter.on("tick", () => {
-            console.log(this.playersMoved);
+            console.log("Player index list: ", Server.PLAYERS_INDEX);
         });
 
         Server.SERVER_OBJ = net.createServer((socket: Socket) => {
@@ -96,6 +90,8 @@ export default class Server {
             // lets us identify by connections, for now...
             // we not handle people logging out yet
             client.localPlayerIdx = Server.SERVER_OBJ.connections - 1;
+            // do this after we logged in, but fornow ima just do it here lol
+            Server.PLAYERS_INDEX.push(client.localPlayerIdx);
 
             /**
              * Single primary data event
@@ -297,13 +293,15 @@ export default class Server {
         // remember, our local player is a random index here and index 0 still represents a player which may not
         // be our local player.
 
-        // 1 - 2 = -1, i.e. only one player logged in, so no others to update for
-        // 2 - 2 = 0, 0 is first index, so 1 'other' player to update for.
-        // we may actually need to account our local player in the playerlist but im not sure
-        if (Server.SERVER_OBJ.connections - 2 === -1) {
-
+        if (Server.SERVER_OBJ.connections === 1) {
+            UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
+        } else {
+            const otherPlayer = Server.PLAYERS_INDEX.filter((idx) => {
+                return idx !== client.localPlayerIdx;
+            });
+            console.log("Other players index is: ", otherPlayer[0], "our local index is: ", client.localPlayerIdx);
+            UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
         }
-        UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }
 

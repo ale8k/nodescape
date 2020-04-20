@@ -2,6 +2,7 @@ import { setBit, convertToFixedBitArray } from "../../../utils";
 import Append0x10 from "./update-masks/Append0x10";
 import { Socket } from "net";
 import IMovement, { movementData1, movementData2, movementData3 } from "./interfaces/IMovement";
+import Server from "../../../Server";
 
 
 /**
@@ -89,6 +90,7 @@ export default function UpdateLocalPlayer81(
     /**
      * METHOD 91
      */
+    // doesnt just update others masks alex, this is wrong, adjust accordingly
     bitArr.push(...convertToFixedBitArray(updateOthersMask as number, 11));
 
     // So we send every other players index here
@@ -98,6 +100,12 @@ export default function UpdateLocalPlayer81(
     // at the moment i only update our local manually, if we wanna update others
     // we say update 1 and itll add them to the list.
     // so first step is add their index but say no update required. then movements can be done.
+
+    // check if there's other people to be updated i.e., new connections
+    if (updateOthersMask >= 0) {
+        // f
+    }
+
     // 91 END
 
     /**
