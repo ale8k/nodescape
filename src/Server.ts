@@ -59,7 +59,7 @@ export default class Server {
      * We can't update any other players because there aren't any others yet...
      * I think we need to perform the player list updating then come back to the movements
      */
-    public playersMoved: { playerId: number, movementType: number, direction: number }[] = [];
+    public playersMoved: { playerIdx: number, movementType: number, direction: number }[] = [];
 
     public startServer(): void {
         // As the server starts, turn our game loop on
@@ -93,6 +93,9 @@ export default class Server {
                 plane: 0
             };
             client.inStrCacheBuffer = [];
+            // lets us identify by connections, for now...
+            // we not handle people logging out yet
+            client.localPlayerIdx = Server.SERVER_OBJ.connections - 1;
 
             /**
              * Single primary data event
@@ -253,8 +256,8 @@ export default class Server {
      */
     private sendInitialLoginPackets(s: Socket, client: Player): void {
         const oe = client.outStrEncryption;
-
-        SendPlayerIdx249(oe.nextKey(), s, client.playerId);
+        // the local player index for us will be connection.length - 1
+        SendPlayerIdx249(oe.nextKey(), s, client.localPlayerIdx as number);
 
         GameIds.SIDEBAR_IDS.forEach((sideBarIconId, sideBarLocationId) => {
             SetSidebarInterface71(oe.nextKey(), s, sideBarLocationId, sideBarIconId);
@@ -271,7 +274,7 @@ export default class Server {
         LoadMapZone73(oe.nextKey(), s, client.playerDetails.regionx, client.playerDetails.regiony);
         WriteMessage253(oe.nextKey(), s, "Welcome to Runescape!");
 
-        // This would realistically have data pulled from a db put into this object.
+        // This would realistically have data pulledd frodm a db put into this object.
         const initialMovement: IMovement = {
             updatePlayer: 1,
             movementType: 3,
@@ -285,11 +288,21 @@ export default class Server {
         };
         // add our player to the movement update list
         this.playersMoved.push({
-            playerId: client.playerId,
+            playerIdx: client.localPlayerIdx as number,
             movementType: 3,
             direction: 0
         });
-        // HOW DO WE UPDATE THE BLOODY PLAYERCOUNT
+        // We send 2047 if connections === 1, if its not, send a single index for the 'other' player
+        // for now, we only handle 2 players and not have a system to accomodate multiple players.
+        // remember, our local player is a random index here and index 0 still represents a player which may not
+        // be our local player.
+
+        // 1 - 2 = -1, i.e. only one player logged in, so no others to update for
+        // 2 - 2 = 0, 0 is first index, so 1 'other' player to update for.
+        // we may actually need to account our local player in the playerlist but im not sure
+        if (Server.SERVER_OBJ.connections - 2 === -1) {
+
+        }
         UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }

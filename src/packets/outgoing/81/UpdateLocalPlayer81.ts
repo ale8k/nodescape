@@ -91,6 +91,15 @@ export default function UpdateLocalPlayer81(
      */
     bitArr.push(...convertToFixedBitArray(updateOthersMask as number, 11));
 
+    // So we send every other players index here
+    // we've got our local index cause its save as local to our session, so we pass that into the P81
+    // it wont update their appearance though cause theres no playerSynchronizationBuffers, this buffer is only set in the masks
+    // which comes next. ;)
+    // at the moment i only update our local manually, if we wanna update others
+    // we say update 1 and itll add them to the list.
+    // so first step is add their index but say no update required. then movements can be done.
+    // 91 END
+
     /**
      * Update masks
      * If update required is set, it'll append this mask

@@ -19,4 +19,5 @@ export default class Player {
     public playerId: number;
     public initialSetup: boolean;
     public playerDetails: IPlayerDetails;
+    public localPlayerIdx?: number;
 }
