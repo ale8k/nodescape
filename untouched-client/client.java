@@ -7330,37 +7330,62 @@ public final class client extends Applet_Sub1
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
             // player index id for next player to update
             int j = class30_sub2_sub2_1083.method419(11, 0);
-
+            //System.out.println("Player list updating 11bit ID: " + j);
+            // 2047 max player count, allows us to break past this
             if(j == 2047) {
                 break;
             }
             
-
+            /**
+             * APPEARANCE UPDATING:
+             * Checks if there's a cached buffer, aka a literal fucking stream
+             * for our player. There isn't on the first packet because this is set
+             * in method49, our update block flags... Jesus.
+             */
+            // if player is not in array...
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] == null) {
                 System.out.println("creating a new player object and adding it to the list");
+                // add player instance to player array
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] = new Class30_Sub2_Sub4_Sub1_Sub2();
+                //System.out.println("player " + j + " added to update buffer");
+                //System.out.println("this should have a value: " + aClass30_Sub2_Sub2Array895[j]);
+                // for some reason this is always gonna be null, but i wanna update my dudes appearance lol
+                // i think this is because our player is null until our block flag update
                 if(aClass30_Sub2_Sub2Array895[j] != null) {
+                    // Appearance loop, I believe
                     System.out.println("Updating players appearance for player IDX: " + j);
                     aClass30_Sub2_Sub4_Sub1_Sub2Array890[j].method451(0, aClass30_Sub2_Sub2Array895[j]);
                 }
             }
 
-
+            /**
+             * LOCATION UPDATING
+             */
+            // adds player to local player list
             anIntArray892[anInt891++] = j;
-
+            // Sets the player stream
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[j];
 
 
             class30_sub2_sub4_sub1_sub2.anInt1537 = anInt1161;
 
+            // It then reads a 1 bit quantity that defines whether or not the client has a chunk in the player update block list.
+            // I think this checks if method49 has run before... 
+            // It hasn't so we'll say no. But next packet we send,
+            // it has, so we'll update this to true and therefore the player
+            // can update their appearance from then on and other
+            // block flag updates
             int k = class30_sub2_sub2_1083.method419(1, 0);
             System.out.println("Update block flag cached?: " + k);
             if(k == 1)
                 anIntArray894[anInt893++] = j;
 
+            // clear awaiting point queue, like when telleing 
             int l = class30_sub2_sub2_1083.method419(1, 0);
             System.out.println("Clear awaiting-point queue?: " + l);
-
+            // players x/y
+            // this is all other players co-ordinates relative to our players,
+            // we don't actually have any 'other' players though...
             int i1 = class30_sub2_sub2_1083.method419(5, 0);
             System.out.println("Update player to X co-ordinate: " + i1);
 
@@ -9963,12 +9988,8 @@ public final class client extends Applet_Sub1
     private final void method134(byte byte0, int i, Class30_Sub2_Sub2 class30_sub2_sub2) {
         //System.out.println("METHOD 134 CALLED");
         // how many other player movements to update
-
-        
-        int j = class30_sub2_sub2.method419(8, 0);
-        System.out.println("The amount of players to update movements for is: " + j);
         System.out.println("There are " + anInt891 + " other players");
-        System.out.println("Our username is: " + aString1173);
+        int j = class30_sub2_sub2.method419(8, 0);
         // i'm not sure if this is in our zone or in the server entirely?
 
         if(j < anInt891) {

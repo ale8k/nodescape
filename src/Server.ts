@@ -49,7 +49,7 @@ export default class Server {
     /**
      * A set containing each new player logged in
      */
-    public static PLAYERS_INDEX: number[] = [];
+    public static PLAYERS_INDEX = new Set<number>();
     /**
      * needs player index to be filled first
      */
@@ -65,14 +65,15 @@ export default class Server {
         // cache every 600ms, cause we don't need to store everyones movements forever...
         // just enough time to update what they've done
         this._gameLoopEventEmitter.on("tick", () => {
-            console.log("Player index list: ", Server.PLAYERS_INDEX);
+
+            console.log(Server.PLAYERS_INDEX);
         });
 
         Server.SERVER_OBJ = net.createServer((socket: Socket) => {
             console.log("A Client is attempting to establish a connection...");
 
             /**
-             * This is created per each individual socket that attempts to connect.
+             * This is created per each individual tsocket that attempts to connect.
              */
             const client = new Player();
             client.loginState = LoginState.FirstResponse;
@@ -90,8 +91,6 @@ export default class Server {
             // lets us identify by connections, for now...
             // we not handle people logging out yet
             client.localPlayerIdx = Server.SERVER_OBJ.connections - 1;
-            // do this after we logged in, but fornow ima just do it here lol
-            Server.PLAYERS_INDEX.push(client.localPlayerIdx);
 
             /**
              * Single primary data event
@@ -293,15 +292,8 @@ export default class Server {
         // remember, our local player is a random index here and index 0 still represents a player which may not
         // be our local player.
 
-        if (Server.SERVER_OBJ.connections === 1) {
-            UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
-        } else {
-            const otherPlayer = Server.PLAYERS_INDEX.filter((idx) => {
-                return idx !== client.localPlayerIdx;
-            });
-            console.log("Other players index is: ", otherPlayer[0], "our local index is: ", client.localPlayerIdx);
-            UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
-        }
+
+        UpdateLocalPlayer81(s, oe.nextKey(), initialMovement, 0, 2047);
 
     }
 
