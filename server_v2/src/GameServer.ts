@@ -2,6 +2,7 @@ import { Server } from "net";
 import LoginHandler from "./handlers/LoginHandler";
 import Client from "./Client";
 import { EventEmitter } from "events";
+import Player from "./entities/game/Player";
 
 /**
  * Entry point
@@ -33,18 +34,20 @@ export default class GameServer {
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
             console.log("A client is attempting to connect...");
-
-            const clientEmitter$ = new EventEmitter();
-            const client = new Client(socket);
+            const clientEmitter$: EventEmitter = new EventEmitter();
+            const client: Client = new Client(socket);
             new LoginHandler(client, clientEmitter$);
+            let player: Player | null = null;
             /**
              * We can instantiate all server response procedures inside of this callback now,
              * as we're positive they've successfully logged in. I.e., we can parse the incoming packets
              * safely.
              */
-            clientEmitter$.on("successful-login", (data: Client) => {
+            clientEmitter$.on("successful-login", (loggedInClient: Client) => {
+                player = loggedInClient;
+                console.log(player.username);
                 // Add their index to the player index, as they're in now
-                client.localPlayerIndex = this.getNextConnectionIndex();
+                player.localPlayerIndex = this.getNextConnectionIndex();
                 this.PLAYER_INDEX.add(client.localPlayerIndex);
             });
         });
