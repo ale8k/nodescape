@@ -1,6 +1,7 @@
 import { Server } from "net";
 import LoginHandler from "./handlers/LoginHandler";
 import Client from "./Client";
+import { EventEmitter } from "events";
 
 /**
  * Entry point
@@ -32,8 +33,14 @@ export default class GameServer {
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
             console.log("A client is attempting to connect...");
+
+            const clientEmitter$ = new EventEmitter();
             const client = new Client(socket);
-            new LoginHandler(client);
+            new LoginHandler(client, clientEmitter$);
+            clientEmitter$.on("successful-login", (data: Client) => {
+                console.log("booming");
+                console.log(data.username);
+            });
 
 
         });

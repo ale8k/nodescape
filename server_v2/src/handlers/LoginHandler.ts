@@ -2,6 +2,7 @@ import Client from "../Client";
 import * as Long from "long";
 import IsaacCipher from "../IsaacCipher";
 import RSString from "../utils/RSString";
+import { EventEmitter } from "events";
 
 /**
  * Handles the login procedure for a single client
@@ -16,18 +17,22 @@ export default class LoginHandler {
      * Server generated server session key
      */
     private _serverSessionKey: bigint;
+    /**
+     * Emits the updated client object state back to the GameServer
+     */
+    private _clientEmitter$: EventEmitter;
 
     /**
      * Sets up a data event to handle incoming login associated data
      * @param client the client attempting to login
      */
-    constructor(client: Client) {
+    constructor(client: Client, clientEmitter: EventEmitter) {
         this._client = client;
+        this._clientEmitter$ = clientEmitter;
         /**
          * Watch for incoming data within the login protocol only
          */
         this._client.socket.on("data", (data) => {
-            console.log(this._client.loginStage);
             if (this._client.loginStage === 0) {
                 this.handleFirstStage(this._client, data);
             }
@@ -35,7 +40,12 @@ export default class LoginHandler {
                 this.handleSecondStage(this._client, data);
             }
             if (this._client.loginStage === 2) {
-                console.log(data.toJSON());
+                // kills the login procedure methods
+                // if the loginStage never hits 2, this will be never happen
+                // so we know we're safe emitting the client back here
+                this._client.loginStage = 3;
+                console.log("LOGIN STAGE IS: ", this._client.loginStage);
+                this._clientEmitter$.emit("successful-login", this._client);
             }
         });
     }
@@ -66,7 +76,6 @@ export default class LoginHandler {
      */
     private handleSecondStage(client: Client, data: Buffer) {
         if (data[0] === 16) {
-            console.log(data.toJSON());
             const rsaBlock = data.toJSON().data.slice(43);
             const clientSessionKey = Long.fromBytes(rsaBlock.slice(1, 9));
             const serverSessionKey = Long.fromBytes(rsaBlock.slice(9, 17));
@@ -88,8 +97,6 @@ export default class LoginHandler {
 
             client.inStreamDecryptor = new IsaacCipher(inSessionKey);
             client.outStreamDecryptor = new IsaacCipher(outSessionKey);
-            console.log(client.userId);
-            console.log(rsaBlock[18]);
 
             const usernameAndPassword = RSString.readRSStringUsernameAndPassword(rsaBlock.splice(18));
             client.username = usernameAndPassword[0];
