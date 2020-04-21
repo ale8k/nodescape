@@ -48,11 +48,16 @@ export default class GameServer {
             clientEmitter$.on("successful-login", (loggedInClient: Client) => {
                 // Cast into player object
                 player = loggedInClient as Player;
-                // Setup the game packet listener
+                // Setup the local players packetBuffer
                 player.packetBuffer = [];
+                // Begin storing packets into the buffer as they come in
                 this.collectGamePackets(socket, player);
-                // Add their index to the player index, as they're in now
+                // Add the local players index to the PLAYER_INDEX
                 this.updatePlayerIndex(player);
+                // Wipe game packets every 600MS and some how respond,
+                // in rhythme with the game cycle itself...
+                // All players must respond in rhythme too.
+                // Upon disconnect, destroy this listener.
 
                 // closing stuff
                 player.socket.on("close", () => {
