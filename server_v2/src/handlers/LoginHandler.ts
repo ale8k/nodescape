@@ -21,6 +21,10 @@ export default class LoginHandler {
      * Emits the updated client object state back to the GameServer
      */
     private _clientEmitter$: EventEmitter;
+    /**
+     * Allows GameServer to check if a reconnection is active
+     */
+    public reconnecting = false;
 
     /**
      * Sets up a data event to handle incoming login associated data
@@ -105,16 +109,17 @@ export default class LoginHandler {
             if (client.username === "testing" && client.password === "" || client.username === "alex" && client.password === "") {
                 client.loginStage = 2;
                 console.log("Client successfully connected");
+                console.log(client.username);
                 client.socket.write(Buffer.from([2, 2, 0]));
             } else {
                 client.socket.write(Buffer.from([3, 0, 0]));
-                client.socket.destroy();
                 client.socket.on("close", () => {
                     console.log("Incorrect username / password");
                 });
             }
         }
         if (data[0] === 18) {
+            client.socket.destroy();
             console.log("Reconnection is not handled.");
         }
     }

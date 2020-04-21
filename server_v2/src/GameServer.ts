@@ -18,10 +18,6 @@ export default class GameServer {
      */
     private readonly GAME_CYCLE_RATE = 600;
     /**
-     * Game event emitter (tick handler)
-     */
-    private _gameEmitter$: EventEmitter = new EventEmitter();
-    /**
      * Contains an index for each connection that comes in
      */
     private readonly PLAYER_INDEX: Set<number> = new Set<number>();
@@ -35,8 +31,7 @@ export default class GameServer {
      *  for the length of that connection
      */
     constructor() {
-        // START GAME TICK CYCLE
-        this.startGameCycle(this._gameEmitter$);
+
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
             console.log("A client is attempting to connect...");
@@ -58,14 +53,17 @@ export default class GameServer {
                 this.collectGamePackets(socket, player);
                 // Add their index to the player index, as they're in now
                 this.updatePlayerIndex(player);
-                // we got packets here, lets do something with them
-                this.respondToCollectedGamePackets(socket, player);
+
+                // closing stuff
+                player.socket.on("close", () => {
+                    console.log("Socket closed bro");
+                });
             });
 
         });
         // CLOSE
         this.SERVER.on("close", () => {
-            console.log("A client disconnected...");
+            console.log("Server closed...");
         });
     }
 
@@ -78,15 +76,6 @@ export default class GameServer {
         });
     }
 
-    /**
-     * Emits a value to the gameEvent on a specified tick cycle
-     * @param gameEmitter the emitter to emit to
-     */
-    private startGameCycle(gameEmitter: EventEmitter): void {
-        setInterval(() => {
-            gameEmitter.emit("tick");
-        }, this.GAME_CYCLE_RATE);
-    }
     /**
      * Updates the PLAYER_INDEX with this local players index
      * @param player the local player
@@ -103,18 +92,7 @@ export default class GameServer {
     private collectGamePackets(socket: Socket, player: Player): void {
         socket.on("data", (data) => {
             player.packetBuffer.push(...data.toJSON().data);
-        });
-    }
-    /**
-     * Just some bullshit I'm tryingout
-     * @param socket the local player's socket
-     * @param player the local player
-     */
-    private respondToCollectedGamePackets(socket: Socket, player: Player): void {
-        this._gameEmitter$.on("tick", () => {
-            console.log("PACKET:");
-            console.log(player?.packetBuffer);
-            player.packetBuffer = [];
+            console.log(player.packetBuffer);
         });
     }
 
