@@ -18,6 +18,10 @@ export default class GameServer {
      */
     private readonly GAME_CYCLE_RATE = 600;
     /**
+     * Game event emitter (tick handler)
+     */
+    private _gameEmitter$: EventEmitter = new EventEmitter();
+    /**
      * Contains an index for each connection that comes in
      */
     private readonly PLAYER_INDEX: Set<number> = new Set<number>();
@@ -31,6 +35,11 @@ export default class GameServer {
      *  for the length of that connection
      */
     constructor() {
+        // START GAME TICK CYCLE
+        this.startGameCycle(this._gameEmitter$);
+        this._gameEmitter$.on("tick", () => {
+            console.log("ticking");
+        })
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
             console.log("A client is attempting to connect...");
@@ -45,7 +54,6 @@ export default class GameServer {
              */
             clientEmitter$.on("successful-login", (loggedInClient: Client) => {
                 player = loggedInClient;
-                console.log(player.username);
                 // Add their index to the player index, as they're in now
                 player.localPlayerIndex = this.getNextConnectionIndex();
                 this.PLAYER_INDEX.add(client.localPlayerIndex);
@@ -64,6 +72,12 @@ export default class GameServer {
         this.SERVER.listen(43594, () => {
             console.log("Server listening on port 43594");
         });
+    }
+
+    private startGameCycle(gameEmitter: EventEmitter): void {
+        setInterval(() => {
+            gameEmitter.emit("tick");
+        }, this.GAME_CYCLE_RATE);
     }
 
     /**
