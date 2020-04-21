@@ -35,6 +35,10 @@ export default class Client {
      * Password
      */
     public password: string;
+    /**
+     * Local player index
+     */
+    public localPlayerIndex: number;
 
     constructor(socket: Socket) {
         this.socket = socket;

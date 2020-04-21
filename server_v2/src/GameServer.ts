@@ -43,8 +43,9 @@ export default class GameServer {
              * safely.
              */
             clientEmitter$.on("successful-login", (data: Client) => {
-                console.log("booming");
-                console.log(data.username);
+                // Add their index to the player index, as they're in now
+                client.localPlayerIndex = this.getNextConnectionIndex();
+                this.PLAYER_INDEX.add(client.localPlayerIndex);
             });
         });
         // CLOSE
