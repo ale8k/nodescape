@@ -37,12 +37,15 @@ export default class GameServer {
             const clientEmitter$ = new EventEmitter();
             const client = new Client(socket);
             new LoginHandler(client, clientEmitter$);
+            /**
+             * We can instantiate all server response procedures inside of this callback now,
+             * as we're positive they've successfully logged in. I.e., we can parse the incoming packets
+             * safely.
+             */
             clientEmitter$.on("successful-login", (data: Client) => {
                 console.log("booming");
                 console.log(data.username);
             });
-
-
         });
         // CLOSE
         this.SERVER.on("close", () => {
