@@ -1,8 +1,8 @@
-import { Server } from "net";
 import LoginHandler from "./handlers/LoginHandler";
-import Client from "./Client";
-import { EventEmitter } from "events";
+import Client from "./entities/Client";
 import Player from "./entities/game/Player";
+import { Server, Socket } from "net";
+import { EventEmitter } from "events";
 
 /**
  * Entry point
@@ -37,27 +37,31 @@ export default class GameServer {
     constructor() {
         // START GAME TICK CYCLE
         this.startGameCycle(this._gameEmitter$);
-        this._gameEmitter$.on("tick", () => {
-            console.log("ticking");
-        })
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
             console.log("A client is attempting to connect...");
             const clientEmitter$: EventEmitter = new EventEmitter();
             const client: Client = new Client(socket);
             new LoginHandler(client, clientEmitter$);
-            let player: Player | null = null;
+            let player: Player;
+
             /**
              * We can instantiate all server response procedures inside of this callback now,
              * as we're positive they've successfully logged in. I.e., we can parse the incoming packets
              * safely.
              */
             clientEmitter$.on("successful-login", (loggedInClient: Client) => {
-                player = loggedInClient;
+                // Cast into player object
+                player = loggedInClient as Player;
+                // Setup the game packet listener
+                player.packetBuffer = [];
+                this.collectGamePackets(socket, player);
                 // Add their index to the player index, as they're in now
-                player.localPlayerIndex = this.getNextConnectionIndex();
-                this.PLAYER_INDEX.add(client.localPlayerIndex);
+                this.updatePlayerIndex(player);
+                // we got packets here, lets do something with them
+                this.respondToCollectedGamePackets(socket, player);
             });
+
         });
         // CLOSE
         this.SERVER.on("close", () => {
@@ -74,10 +78,44 @@ export default class GameServer {
         });
     }
 
+    /**
+     * Emits a value to the gameEvent on a specified tick cycle
+     * @param gameEmitter the emitter to emit to
+     */
     private startGameCycle(gameEmitter: EventEmitter): void {
         setInterval(() => {
             gameEmitter.emit("tick");
         }, this.GAME_CYCLE_RATE);
+    }
+    /**
+     * Updates the PLAYER_INDEX with this local players index
+     * @param player the local player
+     */
+    private updatePlayerIndex(player: Player): void {
+        player.localPlayerIndex = this.getNextConnectionIndex();
+        this.PLAYER_INDEX.add(player.localPlayerIndex);
+    }
+
+    /**
+     * Sets up the listener which listens for incoming packets
+     * and stores them in the players packetBuffer (it's actually an array lol)
+     */
+    private collectGamePackets(socket: Socket, player: Player): void {
+        socket.on("data", (data) => {
+            player.packetBuffer.push(...data.toJSON().data);
+        });
+    }
+    /**
+     * Just some bullshit I'm tryingout
+     * @param socket the local player's socket
+     * @param player the local player
+     */
+    private respondToCollectedGamePackets(socket: Socket, player: Player): void {
+        this._gameEmitter$.on("tick", () => {
+            console.log("PACKET:");
+            console.log(player?.packetBuffer);
+            player.packetBuffer = [];
+        });
     }
 
     /**

@@ -1,4 +1,4 @@
-import Client from "../Client";
+import Client from "../entities/Client";
 import * as Long from "long";
 import IsaacCipher from "../IsaacCipher";
 import RSString from "../utils/RSString";
@@ -101,8 +101,18 @@ export default class LoginHandler {
             const usernameAndPassword = RSString.readRSStringUsernameAndPassword(rsaBlock.splice(18));
             client.username = usernameAndPassword[0];
             client.password = usernameAndPassword[1];
-            client.socket.write(Buffer.from([2, 2, 0]));
-            client.loginStage = 2;
+
+            if (client.username === "testing" && client.password === "" || client.username === "alex" && client.password === "") {
+                client.loginStage = 2;
+                console.log("Client successfully connected");
+                client.socket.write(Buffer.from([2, 2, 0]));
+            } else {
+                client.socket.write(Buffer.from([3, 0, 0]));
+                client.socket.destroy();
+                client.socket.on("close", () => {
+                    console.log("Incorrect username / password");
+                });
+            }
         }
         if (data[0] === 18) {
             console.log("Reconnection is not handled.");
