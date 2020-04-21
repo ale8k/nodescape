@@ -3,6 +3,7 @@ import Client from "./entities/Client";
 import Player from "./entities/game/Player";
 import { Server, Socket } from "net";
 import { EventEmitter } from "events";
+import { Subject } from "rxjs";
 
 /**
  * Entry point
@@ -21,16 +22,21 @@ export default class GameServer {
      * Contains an index for each connection that comes in
      */
     private readonly PLAYER_INDEX: Set<number> = new Set<number>();
+    /**
+     * Game cycle subject
+     * I think async subject be more appropriate, test it Alex
+     */
+    private readonly _gameCycle$: Subject<string> = new Subject<string>();
 
     /**
-     * The SERVER uses the constructor to apply all of
-     * our events specific to the server
-     *
      * Please note:
      *  All variables created within a connection even call back persist
      *  for the length of that connection
      */
     constructor() {
+        // TURN GAME CYCLE ON
+        this.startGameCycle(this.GAME_CYCLE_RATE, this._gameCycle$);
+        this._gameCycle$.subscribe(console.log);
 
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
@@ -79,6 +85,16 @@ export default class GameServer {
         this.SERVER.listen(43594, () => {
             console.log("Server listening on port 43594");
         });
+    }
+
+    /**
+     * Set _gameCycle$ to emit 'tick' every 600ms
+     * This represents our game loop, and allows sockets to subscribe briefly.
+     */
+    private startGameCycle(cycleRate: number, cycleSubject: Subject<string>): void {
+        setInterval(() => {
+            cycleSubject.next("tick");
+        }, cycleRate);
     }
 
     /**
