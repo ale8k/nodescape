@@ -55,14 +55,21 @@ export default class GameServer {
                 // The subscription for this player on the game cycle
                 // i.e., every 600ms this will run for each individual player
                 const playerSub = this._gameCycle$.subscribe(() => {
+                    /**
+                     * GAME CODE ---------------------------------------------------------------------------------------------------------------
+                     */
+                    // console.log("OPCODE ENCRYPTED: ", player.packetBuffer[0]);
+                    // if (player.packetBuffer[0] !== undefined) {
+                    //     console.log("OPCODE DECRYPTED: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
+                    // }
+                    // player.packetBuffer = [];
+                    // console.log("WIPING BUFFER");
 
-                    console.log("OPCODE ENCRYPTED: ", player.packetBuffer[0]);
-                    if (player.packetBuffer[0] !== undefined) {
-                        console.log("OPCODE DECRYPTED: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
-                    }
-                    player.packetBuffer = [];
-                    console.log("WIPING BUFFER");
+                    // Let's get PACKET81 working 100%!
 
+                    /**
+                     * /GAME CODE ---------------------------------------------------------------------------------------------------------------
+                     */
                 });
 
                 // Add the local players index to the PLAYER_INDEX
