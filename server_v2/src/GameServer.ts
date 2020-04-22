@@ -70,9 +70,10 @@ export default class GameServer {
                     // testing bitwriter
                     const b = Buffer.alloc(2);
                     new BitWriter()
-                    .convertToFixedBitArray(255, 8)
-                    .convertToFixedBitArray(1, 1)
-                    .convertToFixedBitArray(1, 1)
+                    .writeNumber(255, 8)
+                    .writeBit(1)
+                    .writeBit(1)
+                    .writeBit(1)
                     .writeBitsToBuffer(b, 0);
                     console.log(b.toJSON().data);
                     /**
