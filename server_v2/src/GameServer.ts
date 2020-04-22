@@ -5,6 +5,7 @@ import { Server, Socket } from "net";
 import { EventEmitter } from "events";
 import { Subject } from "rxjs";
 import BitWriter from "./utils/write-data/BitWriter";
+import SyncPlayers81 from "./game/packets/outgoing/SyncPlayers81";
 
 /**
  * Entry point
@@ -68,14 +69,6 @@ export default class GameServer {
 
                     // Let's get PACKET81 working 100%!
                     // testing bitwriter
-                    const b = Buffer.alloc(2);
-                    new BitWriter()
-                    .writeNumber(255, 8)
-                    .writeBit(1)
-                    .writeBit(1)
-                    .writeBit(1)
-                    .writeBitsToBuffer(b, 0);
-                    console.log(b.toJSON().data);
                     /**
                      * /GAME CODE ---------------------------------------------------------------------------------------------------------------
                      */
