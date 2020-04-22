@@ -2,20 +2,27 @@
  * A helper class to aid us in writing bits to a NodeJS
  * @author ale8k
  */
-export default class WriteBit {
+export default class BitWriter {
+    /**
+     * The bitArray for the class to write to
+     */
+    private _bitArr: number[];
+
+    constructor() {
+        this._bitArr = [];
+    }
 
     /**
-     * Converts a bit array into a byte array and writes the bytes to a given buffer
+     * Converts the interal bit array into a byte array and writes the bytes to a given buffer
      * @param byteIndex the index to start writing the bits from
-     * @param bitArr the array of bits to convert to bytes and write
      * @param b the buffer to perform the method on
      * @author ale8k
      */
-    public convertBitArrToByteArrAndWrite(byteIndex: number, bitArr: number[], b: Buffer): void {
+    public writeBitsToBuffer(b: Buffer, byteIndex: number): void {
         let bitIndex = 7;
 
-        for (let i = 0; i < bitArr.length; i++) {
-            this.writeBit(b, byteIndex, bitIndex, bitArr[i] as number);
+        for (let i = 0; i < this._bitArr.length; i++) {
+            this.writeBit(b, byteIndex, bitIndex, this._bitArr[i] as number);
             bitIndex -= 1;
 
             if (bitIndex <= -1) {
@@ -28,11 +35,12 @@ export default class WriteBit {
      * Converts a number in an array of bits with a specified fixed
      * size of bits. Please note, if you pass a number that has a minimum bits of
      * say 4, and try to fix it to size 1. This will not work.
+     * Pushes the bits onto the interal bit array.
      * @param num the number to convert into a bit arr
      * @param amount the amount of bits to emit
      * @author ale8k
      */
-    public convertToFixedBitArray(num: number, amount: number): number[] {
+    public convertToFixedBitArray(num: number, amount: number): BitWriter {
         const bitArr = this.convertToBitArray(num);
         const bitArrLength = bitArr.length; // remembers the initial length
 
@@ -41,8 +49,8 @@ export default class WriteBit {
                 bitArr.unshift(0);
             }
         }
-
-        return bitArr;
+        this._bitArr.push(...bitArr);
+        return this;
     }
     /**
      * Takes a whole integer values and parses it into an array of bits

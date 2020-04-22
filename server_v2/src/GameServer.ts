@@ -4,6 +4,7 @@ import Player from "./game/entities/game/Player";
 import { Server, Socket } from "net";
 import { EventEmitter } from "events";
 import { Subject } from "rxjs";
+import BitWriter from "./utils/write-data/BitWriter";
 
 /**
  * Entry point
@@ -66,7 +67,14 @@ export default class GameServer {
                     // console.log("WIPING BUFFER");
 
                     // Let's get PACKET81 working 100%!
-
+                    // testing bitwriter
+                    const b = Buffer.alloc(2);
+                    new BitWriter()
+                    .convertToFixedBitArray(255, 8)
+                    .convertToFixedBitArray(1, 1)
+                    .convertToFixedBitArray(1, 1)
+                    .writeBitsToBuffer(b, 0);
+                    console.log(b.toJSON().data);
                     /**
                      * /GAME CODE ---------------------------------------------------------------------------------------------------------------
                      */
