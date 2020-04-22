@@ -3,7 +3,7 @@
  * including Jagex's special categories
  * @author ale8k
  */
-export default class WriteInt {
+export default class WriteShort {
     /**
      * Writes a Big-endian short at specified index
      */

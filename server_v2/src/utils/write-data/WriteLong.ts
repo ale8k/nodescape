@@ -3,7 +3,7 @@
  * including Jagex's special categories
  * @author ale8k
  */
-export default class WriteInt {
+export default class WriteLong {
     /**
      * Writes a Big-endian long at specified index
      */
