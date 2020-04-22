@@ -1,8 +1,9 @@
-import Client from "../entities/Client";
+import Client from "../game/entities/Client";
 import * as Long from "long";
 import IsaacCipher from "../IsaacCipher";
 import RSString from "../utils/RSString";
 import { EventEmitter } from "events";
+import Player from "src/game/entities/game/Player";
 
 /**
  * Handles the login procedure for a single client
@@ -49,7 +50,9 @@ export default class LoginHandler {
                 // so we know we're safe emitting the client back here
                 this._client.loginStage = 3;
                 console.log("LOGIN STAGE IS: ", this._client.loginStage);
-                this._clientEmitter$.emit("successful-login", this._client);
+                const p = (this._client as Player);
+                p.packetBuffer = [];
+                this._clientEmitter$.emit("successful-login", p);
             }
         });
     }

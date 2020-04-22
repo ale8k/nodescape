@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import IsaacCipher from "../IsaacCipher";
+import IsaacCipher from "../../IsaacCipher";
 
 /**
  * Represents a client attempting to login/reconnect

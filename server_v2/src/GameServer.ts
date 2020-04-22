@@ -1,6 +1,6 @@
 import LoginHandler from "./handlers/LoginHandler";
-import Client from "./entities/Client";
-import Player from "./entities/game/Player";
+import Client from "./game/entities/Client";
+import Player from "./game/entities/game/Player";
 import { Server, Socket } from "net";
 import { EventEmitter } from "events";
 import { Subject } from "rxjs";
@@ -36,7 +36,6 @@ export default class GameServer {
     constructor() {
         // TURN GAME CYCLE ON
         this.startGameCycle(this.GAME_CYCLE_RATE, this._gameCycle$);
-        this._gameCycle$.subscribe(console.log);
 
         // CONNECTION
         this.SERVER.on("connection", (socket) => {
@@ -44,30 +43,35 @@ export default class GameServer {
             const clientEmitter$: EventEmitter = new EventEmitter();
             const client: Client = new Client(socket);
             new LoginHandler(client, clientEmitter$);
-            let player: Player;
 
             /**
              * We can instantiate all server response procedures inside of this callback now,
              * as we're positive they've successfully logged in. I.e., we can parse the incoming packets
              * safely.
              */
-            clientEmitter$.on("successful-login", (loggedInClient: Client) => {
-                // Cast into player object
-                player = loggedInClient as Player;
-                // Setup the local players packetBuffer
-                player.packetBuffer = [];
+            clientEmitter$.on("successful-login", (player: Player) => {
                 // Begin storing packets into the buffer as they come in
                 this.collectGamePackets(socket, player);
+                // The subscription for this player on the game cycle
+                // i.e., every 600ms this will run for each individual player
+                const playerSub = this._gameCycle$.subscribe(() => {
+
+                    console.log("OPCODE ENCRYPTED: ", player.packetBuffer[0]);
+                    if (player.packetBuffer[0] !== undefined) {
+                        console.log("OPCODE DECRYPTED: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
+                    }
+                    player.packetBuffer = [];
+                    console.log("WIPING BUFFER");
+
+                });
+
                 // Add the local players index to the PLAYER_INDEX
                 this.updatePlayerIndex(player);
-                // Wipe game packets every 600MS and some how respond,
-                // in rhythme with the game cycle itself...
-                // All players must respond in rhythme too.
-                // Upon disconnect, destroy this listener.
 
                 // closing stuff
                 player.socket.on("close", () => {
-                    console.log("Socket closed bro");
+                    playerSub.unsubscribe();
+                    console.log("Client disconnected and unsubscribed to gamecycle....");
                 });
             });
 
@@ -113,7 +117,6 @@ export default class GameServer {
     private collectGamePackets(socket: Socket, player: Player): void {
         socket.on("data", (data) => {
             player.packetBuffer.push(...data.toJSON().data);
-            console.log(player.packetBuffer);
         });
     }
 
