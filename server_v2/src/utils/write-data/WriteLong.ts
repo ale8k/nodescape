@@ -9,13 +9,13 @@ export default class WriteInt {
      */
     public BE(value: number, b: Buffer, index: number): void {
         b[index] = (value >> 56);
-        b[(index)] = (value >> 48);
-        b[(index)] = (value >> 40);
-        b[(index)] = (value >> 32);
-        b[(index)] = (value >> 24);
-        b[(index)] = (value >> 16);
-        b[(index)] = (value >> 8);
-        b[(index)] = value;
+        b[(index + 1)] = (value >> 48);
+        b[(index + 2)] = (value >> 40);
+        b[(index + 3)] = (value >> 32);
+        b[(index + 4)] = (value >> 24);
+        b[(index + 5)] = (value >> 16);
+        b[(index + 6)] = (value >> 8);
+        b[(index + 7)] = value;
     }
 }
 
