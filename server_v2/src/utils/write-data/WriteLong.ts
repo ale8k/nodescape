@@ -1,5 +1,5 @@
 /**
- * A static helper class which writes all forms of longs,
+ * A helper class which writes all forms of longs,
  * including Jagex's special categories
  * @author ale8k
  */

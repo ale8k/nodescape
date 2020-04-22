@@ -1,5 +1,5 @@
 /**
- * A static helper class which writes all forms of bytes,
+ * A helper class which writes all forms of bytes,
  * including Jagex's special categories
  * @author ale8k
  */

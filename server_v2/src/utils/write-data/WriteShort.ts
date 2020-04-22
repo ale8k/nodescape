@@ -1,5 +1,5 @@
 /**
- * A static helper class which writes all forms of shorts,
+ * A helper class which writes all forms of shorts,
  * including Jagex's special categories
  * @author ale8k
  */
