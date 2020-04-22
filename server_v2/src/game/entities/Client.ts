@@ -22,7 +22,7 @@ export default class Client {
     /**
      * The outStream opcode decryptor
      */
-    public outStreamDecryptor: IsaacCipher;
+    public outStreamEncryptor: IsaacCipher;
     /**
      * User id
      */

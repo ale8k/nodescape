@@ -1,10 +1,10 @@
 import LoginHandler from "./handlers/LoginHandler";
 import Client from "./game/entities/Client";
 import Player from "./game/entities/game/Player";
-import { Server, Socket } from "net";
+import { Server } from "net";
 import { EventEmitter } from "events";
 import { Subject } from "rxjs";
-import BitWriter from "./utils/write-data/BitWriter";
+import WriteShort from "./utils/write-data/WriteShort";
 import SyncPlayers81 from "./game/packets/outgoing/SyncPlayers81";
 
 /**
@@ -53,22 +53,50 @@ export default class GameServer {
              */
             clientEmitter$.on("successful-login", (player: Player) => {
                 // Begin storing packets into the buffer as they come in
-                this.collectGamePackets(socket, player);
+                this.collectGamePackets(player);
+
+                // sending region packet for testing
+                const bb = Buffer.alloc(5);
+                bb[0] = 73 + player.outStreamEncryptor.nextKey();
+                WriteShort.BES(((3200 / 8) + 6), bb, 1);
+                WriteShort.BE(((3200 / 8) + 6), bb, 3);
+                console.log(bb.toJSON().data);
+                socket.write(bb);
+                // initial p81
+                new SyncPlayers81()
+                .updateLocalPlayer(1)
+                .setMovementType(3)
+                .setPlane(0)
+                .setTeleport(1)
+                .updateRequired(0)
+                .setLocalPlayerXY(20)
+                .setLocalPlayerXY(20)
+                .setAmountOfOthersForUpdates(0)
+                .setNextUpdateListIndex(2047)
+                .flushPacket81(player);
+
                 // The subscription for this player on the game cycle
                 // i.e., every 600ms this will run for each individual player
                 const playerSub = this._gameCycle$.subscribe(() => {
                     /**
                      * GAME CODE ---------------------------------------------------------------------------------------------------------------
                      */
-                    // console.log("OPCODE ENCRYPTED: ", player.packetBuffer[0]);
-                    // if (player.packetBuffer[0] !== undefined) {
-                    //     console.log("OPCODE DECRYPTED: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
-                    // }
-                    // player.packetBuffer = [];
-                    // console.log("WIPING BUFFER");
-
-                    // Let's get PACKET81 working 100%!
-                    // testing bitwriter
+                    if (player.packetBuffer[0] !== undefined) {
+                        console.log("DECRYPTED OPCODE: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
+                    }
+                    player.packetBuffer = [];
+                    // cant send move 0 unless we got a mask
+                    new SyncPlayers81()
+                    .updateLocalPlayer(1)
+                    .setMovementType(3)
+                    .setPlane(0)
+                    .setTeleport(1)
+                    .updateRequired(0)
+                    .setLocalPlayerXY(20)
+                    .setLocalPlayerXY(20)
+                    .setAmountOfOthersForUpdates(0)
+                    .setNextUpdateListIndex(2047)
+                    .flushPacket81(player);
                     /**
                      * /GAME CODE ---------------------------------------------------------------------------------------------------------------
                      */
@@ -123,8 +151,8 @@ export default class GameServer {
      * Sets up the listener which listens for incoming packets
      * and stores them in the players packetBuffer (it's actually an array lol)
      */
-    private collectGamePackets(socket: Socket, player: Player): void {
-        socket.on("data", (data) => {
+    private collectGamePackets(player: Player): void {
+        player.socket.on("data", (data) => {
             player.packetBuffer.push(...data.toJSON().data);
         });
     }

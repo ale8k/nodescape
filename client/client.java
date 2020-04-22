@@ -10887,7 +10887,7 @@ public final class client extends Applet_Sub1
 
             if(opcode == 81)
             {
-                // System.out.println("PACKET 81: Updating local player");
+                System.out.println("PACKET 81: Updating local player");
                 method143(anInt1007, aClass30_Sub2_Sub2_1083);
                 aBoolean1080 = false;
                 opcode = -1;

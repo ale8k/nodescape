@@ -1,5 +1,7 @@
 import BitWriter from "../../../utils/write-data/BitWriter";
 import { Subject, AsyncSubject } from "rxjs";
+import { Socket } from "net";
+import Player from "src/game/entities/game/Player";
 
 /**
  * This packet is responsible for our local players appearance and location, as well as
@@ -18,15 +20,33 @@ import { Subject, AsyncSubject } from "rxjs";
  */
 export default class SyncPlayers81 {
     private _bitWriter = new BitWriter();
+
+     /**
+      * Writes the bitBuffer of our bitWriter into a buffer of bytes
+      * and emits it through the socket.
+      */
+     public flushPacket81(player: Player): void {
+        const opcodeLength = 1;
+        const sizeLength = 1;
+        const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
+        const startingIndex = 3;
+        const totalPacketLength = opcodeLength + sizeLength + payloadLength;
+        const b = Buffer.alloc(totalPacketLength + 1); // +1 cause the sizing is a short
+        b[0] = 81 + player.outStreamEncryptor.nextKey();
+        b.writeInt16BE(payloadLength, 1);
+        this._bitWriter.writeBitsToBuffer(b, startingIndex);
+        console.log(b.toJSON().data);
+        player.socket.write(b);
+     }
+
     /**
-     * const b = Buffer.alloc(2);
-     * new BitWriter()
-     * .writeNumber(255, 8)
-     * .writeBit(1).writeBit(1)
-     * .writeBit(1)
-     * .writeBitsToBuffer(b, 0);
-     * console.log(b.toJSON().data);
+     * Emits a single bit repsenting whether to update our local player
+     * or not
      */
+    public updateLocalPlayer(num: number): SyncPlayers81 {
+        this._bitWriter.writeBit(num);
+        return this;
+    }
 
     /**
      * Emits a single bit representing 'update required' in the client
@@ -74,6 +94,14 @@ export default class SyncPlayers81 {
      */
     public setLocalPlayerXY(num: number): SyncPlayers81 {
         this._bitWriter.writeNumber(num, 7);
+        return this;
+    }
+
+    /**
+     * Sets the amount of other players who need movement updates
+     */
+    public setAmountOfOthersForUpdates(num: number): SyncPlayers81 {
+        this._bitWriter.writeNumber(num, 8);
         return this;
     }
 

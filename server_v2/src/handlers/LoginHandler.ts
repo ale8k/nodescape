@@ -103,7 +103,7 @@ export default class LoginHandler {
             ];
 
             client.inStreamDecryptor = new IsaacCipher(inSessionKey);
-            client.outStreamDecryptor = new IsaacCipher(outSessionKey);
+            client.outStreamEncryptor = new IsaacCipher(outSessionKey);
 
             const usernameAndPassword = RSString.readRSStringUsernameAndPassword(rsaBlock.splice(18));
             client.username = usernameAndPassword[0];
