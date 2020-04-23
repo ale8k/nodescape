@@ -35,7 +35,7 @@ export default class GameServer {
      * bigint i.e., 1023n just won't work for now... gotta figure a way around this
      */
     public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
-    0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLong("Alexx").toBytes(), 10, 0];
+    0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLong("Alex").toBytes(), 10, 0];
 
     /**
      * Please note:
@@ -90,12 +90,24 @@ export default class GameServer {
                     /**
                      * GAME CODE ---------------------------------------------------------------------------------------------------------------
                      */
+                    // testing multiplayer for hardcoded 2 people
+                    let otherPlayer = 2047;
+                    const amountOfOthersToUpdate = 0;
+                    if (this.PLAYER_INDEX.size > 1) {
+                        if (player.localPlayerIndex === 0) {
+                            otherPlayer = 1;
+                        }
+                        if (player.localPlayerIndex === 1) {
+                            otherPlayer = 0;
+                        }
+                    }
+
                     // Decryption will fail after P81 because we not handled sizes, that's all
                     if (player.packetBuffer[0] !== undefined) {
                         console.log("DECRYPTED OPCODE: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
                     }
                     player.packetBuffer = [];
-                    // cant send move 0 unless we got a mask
+                    // cant send move 0 unless we got a maskk
                     new SyncPlayers81()
                     .updateLocalPlayer(1)
                     .setMovementType(3)
@@ -104,8 +116,8 @@ export default class GameServer {
                     .updateRequired(0)
                     .setLocalPlayerXY(20)
                     .setLocalPlayerXY(20)
-                    .setAmountOfOthersForUpdates(0)
-                    .setNextUpdateListIndex(2047)
+                    .setAmountOfOthersForUpdates(amountOfOthersToUpdate)
+                    .setNextUpdateListIndex(otherPlayer)
                     .flushPacket81(player);
                     /**
                      * /GAME CODE ---------------------------------------------------------------------------------------------------------------
@@ -118,6 +130,7 @@ export default class GameServer {
                 // closing stuff
                 player.socket.on("close", () => {
                     playerSub.unsubscribe();
+                    this.PLAYER_INDEX.delete(player.localPlayerIndex);
                     console.log("Client disconnected and unsubscribed to gamecycle....");
                 });
             });

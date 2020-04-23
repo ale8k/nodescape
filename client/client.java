@@ -7316,65 +7316,38 @@ public final class client extends Applet_Sub1
      * @param byte0 a value representing 8?
      */
     private final void method91(Class30_Sub2_Sub2 class30_sub2_sub2_1083, int i, byte byte0) {
-        //System.out.println("METHOD 91 CALLED");
         if(byte0 == 8)
             byte0 = 0;
         else
             anInt1119 = -50;
 
-        /**
-         * anInt1407 is our bit position, this loop will run until it receives bits passed
-         * packet size.i.e., 39 + 11 = 50. i
-         * As such this only runs once, despite what it appears to do.
-         */
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
-            // player index id for next player to update
+
             int j = class30_sub2_sub2_1083.method419(11, 0);
-            //System.out.println("Player list updating 11bit ID: " + j);
-            // 2047 max player count, allows us to break past this
+            System.out.println("PLAYER INDEX: " + j);
             if(j == 2047) {
                 break;
             }
-            
-            /**
-             * APPEARANCE UPDATING:
-             * Checks if there's a cached buffer, aka a literal fucking stream
-             * for our player. There isn't on the first packet because this is set
-             * in method49, our update block flags... Jesus.
-             */
-            // if player is not in array...
+
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] == null) {
                 System.out.println("creating a new player object and adding it to the list");
-                // add player instance to player array
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] = new Class30_Sub2_Sub4_Sub1_Sub2();
-                //System.out.println("player " + j + " added to update buffer");
-                //System.out.println("this should have a value: " + aClass30_Sub2_Sub2Array895[j]);
-                // for some reason this is always gonna be null, but i wanna update my dudes appearance lol
-                // i think this is because our player is null until our block flag update
                 if(aClass30_Sub2_Sub2Array895[j] != null) {
-                    // Appearance loop, I believe
                     System.out.println("Updating players appearance for player IDX: " + j);
                     aClass30_Sub2_Sub4_Sub1_Sub2Array890[j].method451(0, aClass30_Sub2_Sub2Array895[j]);
+                } else {
+                    System.out.println("skipping appearance update for player in player list updating!");
                 }
             }
 
-            /**
-             * LOCATION UPDATING
-             */
-            // adds player to local player list
+
             anIntArray892[anInt891++] = j;
-            // Sets the player stream
+
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[j];
 
 
             class30_sub2_sub4_sub1_sub2.anInt1537 = anInt1161;
 
-            // It then reads a 1 bit quantity that defines whether or not the client has a chunk in the player update block list.
-            // I think this checks if method49 has run before... 
-            // It hasn't so we'll say no. But next packet we send,
-            // it has, so we'll update this to true and therefore the player
-            // can update their appearance from then on and other
-            // block flag updates
             int k = class30_sub2_sub2_1083.method419(1, 0);
             System.out.println("Update block flag cached?: " + k);
             if(k == 1)
@@ -9134,7 +9107,6 @@ public final class client extends Applet_Sub1
 
         // don't update our player if bit is 0
         if(j == 0) {
-            System.out.println("Skip updating for 'our' player");
             return;
         }
 
@@ -9988,7 +9960,6 @@ public final class client extends Applet_Sub1
     private final void method134(byte byte0, int i, Class30_Sub2_Sub2 class30_sub2_sub2) {
         //System.out.println("METHOD 134 CALLED");
         // how many other player movements to update
-        System.out.println("There are " + anInt891 + " other players");
         int j = class30_sub2_sub2.method419(8, 0);
         // i'm not sure if this is in our zone or in the server entirely?
 
@@ -9996,7 +9967,7 @@ public final class client extends Applet_Sub1
             for(int k = j; k < anInt891; k++)
                 anIntArray840[anInt839++] = anIntArray892[k];
         }
-
+        System.out.println("THERE ARE: " + anInt891 + " OTHER PLAYERS");
         if(j > anInt891) {
             signlink.reporterror(aString1173 + " Too many players");
             throw new RuntimeException("eek");
@@ -10794,7 +10765,6 @@ public final class client extends Applet_Sub1
         //System.out.println("All good, packet size matches up!");
         
         for(int i1 = 0; i1 < anInt891; i1++) {
-            System.out.println("There are: " + anInt891 + "other players");
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[anIntArray892[i1]] == null)
             {
                 signlink.reporterror(aString1173 + " null entry in pl list - pos:" + i1 + " size:" + anInt891);

@@ -193,9 +193,24 @@ export default class SyncPlayers81 {
      */
     public setNextUpdateListIndex(num: number): SyncPlayers81 {
         this._bitWriter.writeNumber(num, 11);
+        // HARDCODE TEST
+        if (num !== 2047) {
+            this.setPlayerAtIndex(0, 1, 0, 0);
+        }
         return this;
     }
 
+    /**
+     * Writes the data for the playerList update without appearance data
+     * ONLY TESTING RIGHT NOW.
+     */
+    public setPlayerAtIndex(updateRequired: number, teleport: number, y: number, x: number): SyncPlayers81 {
+        this._bitWriter.writeBit(updateRequired);
+        this._bitWriter.writeBit(teleport);
+        this._bitWriter.writeNumber(y, 5);
+        this._bitWriter.writeNumber(x, 5);
+        return this;
+    }
 
     /**
      * TODO:
