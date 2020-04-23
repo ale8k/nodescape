@@ -1,3 +1,5 @@
+import * as Long from "long";
+
 /**
  * A simple static utility class designated to handling
  * anything RSString
@@ -21,5 +23,12 @@ export default class RSString {
         const password = String.fromCharCode.apply(null, passwordStringArr);
 
         return [username, password];
+    }
+    /**
+     * Writes a string into an RSString in bytes and returns it in Long format
+     * Usecase: Username / Passwords
+     */
+    public static writeStringToLong(name: string): Long {
+        return Long.fromString(name);
     }
 }

@@ -1,6 +1,4 @@
 import BitWriter from "../../../utils/write-data/BitWriter";
-import { Subject, AsyncSubject } from "rxjs";
-import { Socket } from "net";
 import Player from "src/game/entities/game/Player";
 
 /**
@@ -20,12 +18,40 @@ import Player from "src/game/entities/game/Player";
  */
 export default class SyncPlayers81 {
     private _bitWriter = new BitWriter();
+    // // // // // // // // // //
+    // MASK ONLY METHODS HERE  //
+    // // // // // // // // // //
+    /**
+     * Append an update mask to the packet
+     * @todo handle other masks
+     * @todo create data type class for each mask / interface idc which
+     */
+    public appendUpdateMask(maskId: number, maskData: number[]): SyncPlayers81 {
+        switch (maskId) {
+            case 0x10:
+                this.append0x10(maskData);
+                break;
+        }
 
-     /**
-      * Writes the bitBuffer of our bitWriter into a buffer of bytes
-      * and emits it through the socket.
-      */
-     public flushPacket81(player: Player): void {
+        return this;
+    }
+    /**
+     * Writes the mask 0x10 with given data, as we're already in bit format, we're going to continue
+     * to write this via bits (even though it reads shorts etc fine), just seems convenient
+     * @param maskData the data to append
+     */
+    private append0x10(maskData: number[]): void {
+        this._bitWriter.writeNumber(0x10, 8);
+        // we hardcode the size for now, maybe we'll pass this in? I don't know
+        // it reads a negative byte for the size.
+        this._bitWriter.writeNumber((255 - 55), 8);
+    }
+
+    /**
+     * Writes the bitBuffer of our bitWriter into a buffer of bytes
+     * and emits it through the socket.
+     */
+    public flushPacket81(player: Player): void {
         const opcodeLength = 1;
         const sizeLength = 1;
         const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
@@ -36,8 +62,11 @@ export default class SyncPlayers81 {
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, startingIndex);
         player.socket.write(b);
-     }
+    }
 
+    // // // // // // // // // //
+    // P81 METHODS ONLY HERE   //
+    // // // // // // // // // //
     /**
      * Emits a single bit repsenting whether to update our local player
      * or not

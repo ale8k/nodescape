@@ -6,6 +6,7 @@ import { EventEmitter } from "events";
 import { Subject } from "rxjs";
 import WriteShort from "./utils/write-data/WriteShort";
 import SyncPlayers81 from "./game/packets/outgoing/SyncPlayers81";
+import RSString from "./utils/RSString";
 
 /**
  * Entry point
@@ -29,6 +30,11 @@ export default class GameServer {
      * I think async subject be more appropriate, test it Alex
      */
     private readonly _gameCycle$: Subject<string> = new Subject<string>();
+    /**
+     * DEBUG - hardcode 0x10 mask
+     */
+    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
+    0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLong("Alexx").toBytes(), 10, 0];
 
     /**
      * Please note:
@@ -69,11 +75,12 @@ export default class GameServer {
                 .setMovementType(3)
                 .setPlane(0)
                 .setTeleport(1)
-                .updateRequired(0)
+                .updateRequired(1)
                 .setLocalPlayerXY(20)
                 .setLocalPlayerXY(20)
                 .setAmountOfOthersForUpdates(0)
                 .setNextUpdateListIndex(2047)
+                .appendUpdateMask(0x10, this.maskData)
                 .flushPacket81(player);
 
                 // The subscription for this player on the game cycle
