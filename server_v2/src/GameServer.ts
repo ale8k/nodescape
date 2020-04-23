@@ -32,6 +32,7 @@ export default class GameServer {
     private readonly _gameCycle$: Subject<string> = new Subject<string>();
     /**
      * DEBUG - hardcode 0x10 mask
+     * bigint i.e., 1023n just won't work for now... gotta figure a way around this
      */
     public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
     0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLong("Alexx").toBytes(), 10, 0];

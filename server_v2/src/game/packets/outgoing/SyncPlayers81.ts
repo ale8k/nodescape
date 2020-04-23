@@ -1,5 +1,6 @@
 import BitWriter from "../../../utils/write-data/BitWriter";
 import Player from "src/game/entities/game/Player";
+import RSString from "src/utils/RSString";
 
 /**
  * This packet is responsible for our local players appearance and location, as well as
@@ -45,6 +46,60 @@ export default class SyncPlayers81 {
         // we hardcode the size for now, maybe we'll pass this in? I don't know
         // it reads a negative byte for the size.
         this._bitWriter.writeNumber((255 - 55), 8);
+
+        maskData.forEach((value, i) => {
+            switch (i) {
+                case 0:
+                case 1:
+                    this._bitWriter.writeNumber(value, 8);
+                    break;
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                    const armourType = value > 200 ? value + 0x200 : value + 0x100;
+                    this._bitWriter.writeNumber(armourType, 16);
+                    break;
+                case 14:
+                case 15:
+                case 16:
+                case 17:
+                case 18:
+                    this._bitWriter.writeNumber(value, 8);
+                    break;
+                case 19:
+                case 20:
+                case 21:
+                case 22:
+                case 23:
+                case 24:
+                case 25:
+                    this._bitWriter.writeNumber(value, 16);
+                    break;
+                case 26:
+                case 27:
+                case 28:
+                case 29:
+                case 30:
+                case 31:
+                case 32:
+                case 33:
+                case 34:
+                    this._bitWriter.writeNumber(value, 8);
+                    break;
+                case 35:
+                    this._bitWriter.writeNumber(value, 16);
+                    break;
+            }
+        });
     }
 
     /**
