@@ -62,6 +62,7 @@ export default class GameServer {
                 WriteShort.BE(((3200 / 8) + 6), bb, 3);
                 console.log(bb.toJSON().data);
                 socket.write(bb);
+
                 // initial p81
                 new SyncPlayers81()
                 .updateLocalPlayer(1)
@@ -81,6 +82,7 @@ export default class GameServer {
                     /**
                      * GAME CODE ---------------------------------------------------------------------------------------------------------------
                      */
+                    // Decryption will fail after P81 because we not handled sizes, that's all
                     if (player.packetBuffer[0] !== undefined) {
                         console.log("DECRYPTED OPCODE: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
                     }
@@ -153,6 +155,7 @@ export default class GameServer {
      */
     private collectGamePackets(player: Player): void {
         player.socket.on("data", (data) => {
+            console.log("ENCRYPTED OPCODE: ", data[0]);
             player.packetBuffer.push(...data.toJSON().data);
         });
     }

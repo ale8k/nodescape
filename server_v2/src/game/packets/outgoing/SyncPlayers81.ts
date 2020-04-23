@@ -35,7 +35,6 @@ export default class SyncPlayers81 {
         b[0] = 81 + player.outStreamEncryptor.nextKey();
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, startingIndex);
-        console.log(b.toJSON().data);
         player.socket.write(b);
      }
 
