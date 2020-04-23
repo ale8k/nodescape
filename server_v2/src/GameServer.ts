@@ -30,12 +30,6 @@ export default class GameServer {
      * I think async subject be more appropriate, test it Alex
      */
     private readonly _gameCycle$: Subject<string> = new Subject<string>();
-    /**
-     * DEBUG - hardcode 0x10 mask
-     * bigint i.e., 1023n just won't work for now... gotta figure a way around this
-     */
-    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
-    0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLong("Alex").toBytes(), 10, 0];
 
     /**
      * Please note:
@@ -59,6 +53,10 @@ export default class GameServer {
              * safely.
              */
             clientEmitter$.on("successful-login", (player: Player) => {
+                // Debug mask data, just testing
+                const maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
+                0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37(player.username), 10, 0];
+
                 // Begin storing packets into the buffer as they come in
                 this.collectGamePackets(player);
 
@@ -67,7 +65,6 @@ export default class GameServer {
                 bb[0] = 73 + player.outStreamEncryptor.nextKey();
                 WriteShort.BES(((3200 / 8) + 6), bb, 1);
                 WriteShort.BE(((3200 / 8) + 6), bb, 3);
-                console.log(bb.toJSON().data);
                 socket.write(bb);
 
                 // initial p81
@@ -81,9 +78,8 @@ export default class GameServer {
                 .setLocalPlayerXY(20)
                 .setAmountOfOthersForUpdates(0)
                 .setNextUpdateListIndex(2047)
-                .appendUpdateMask(0x10, this.maskData)
+                .appendUpdateMask(0x10, maskData)
                 .flushPacket81(player);
-
                 // The subscription for this player on the game cycle
                 // i.e., every 600ms this will run for each individual player
                 const playerSub = this._gameCycle$.subscribe(() => {
