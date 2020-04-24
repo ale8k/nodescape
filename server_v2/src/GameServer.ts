@@ -26,6 +26,12 @@ export default class GameServer {
      */
     private readonly PLAYER_INDEX: Set<number> = new Set<number>();
     /**
+     * The player store, corresponding it's index to the PLAYER_INDEX value. I.e.,
+     * PLAYER at INDEX 12 would be PLAYER_ARR[12], and it'll have all their player details etc.
+     * @todo create the class which we'll cast the player object into (i.e., remove the socket and client specific details)
+     */
+    private readonly PLAYER_LIST: any[] = [];
+    /**
      * Game cycle subject
      * I think async subject be more appropriate, test it Alex
      */
