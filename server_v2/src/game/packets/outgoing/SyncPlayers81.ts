@@ -191,12 +191,15 @@ export default class SyncPlayers81 {
     /**
      * Sets the update list next player index
      */
-    public setNextUpdateListIndex(num: number): SyncPlayers81 {
-        this._bitWriter.writeNumber(num, 11);
-        // HARDCODE TEST
-        if (num !== 2047) {
-            this.setPlayerAtIndex(0, 1, 0, 0);
+    public setNextUpdateListIndex(nums: number[]): SyncPlayers81 {
+        if (nums[0] === 2047) {
+            this._bitWriter.writeNumber(2047, 11);
+            return this;
         }
+        nums.forEach(player => {
+            this._bitWriter.writeNumber(player, 11);
+            this.setPlayerAtIndex(0, 1, 0, 0);
+        });
         return this;
     }
 

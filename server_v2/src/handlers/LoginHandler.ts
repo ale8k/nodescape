@@ -111,8 +111,7 @@ export default class LoginHandler {
 
             if (client.username === "testing" && client.password === "" || client.username === "alex" && client.password === "") {
                 client.loginStage = 2;
-                console.log("Client successfully connected");
-                console.log(client.username);
+                console.log("Client successfully connected, username: ", client.username);
                 client.socket.write(Buffer.from([2, 2, 0]));
             } else {
                 client.socket.write(Buffer.from([3, 0, 0]));
