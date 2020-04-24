@@ -50,22 +50,30 @@ export default class SyncPlayers81 {
      * @param direction2 the second direction for movement type 2 (a.k.a running)
      */
     public syncLocalPlayerMovement(direction?: number, direction2?: number): SyncPlayers81 {
-        if (!this._localPlayer.movementUpdated) {
-            this._bitWriter.writeNumber(0, 2);
-            // move type 0
+        const br = this._bitWriter;
+        const lp = this._localPlayer;
+
+        if (!lp.movementUpdated) {
+            br.writeNumber(0, 2); // type 0
         }
-        if (this._localPlayer.movementUpdated) {
-            if (!this._localPlayer.playerRunning) {
-                this._bitWriter.writeNumber(1, 2);
-                // 1
+        if (lp.movementUpdated) {
+            if (!lp.playerRunning) {
+                br.writeNumber(1, 2); // type 1
+                br.writeNumber(direction as number, 3);
             } else {
-                this._bitWriter.writeNumber(2, 2);
-                // 2
+                br.writeNumber(2, 2); // type 2
+                br.writeNumber(direction as number, 3);
+                br.writeNumber(direction2 as number, 3);
             }
+            lp.needMaskUpdate ? br.writeBit(1) : br.writeBit(0);
         }
-        if(this._localPlayer.planeUpdated) {
-            this._bitWriter.writeNumber(3, 2);
-            // 3 - we have a teleport flag to determine that bit
+        if(lp.planeUpdated) {
+            br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
+            br.writeNumber(lp.plane, 2);
+            lp.playedTeleported ? br.writeBit(1) : br.writeBit(0);
+            lp.needMaskUpdate ? br.writeBit(1) : br.writeBit(0);
+            br.writeNumber(lp.y, 7);
+            br.writeNumber(lp.x, 7);
         }
         return this;
     }

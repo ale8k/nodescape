@@ -61,6 +61,7 @@ export default class LoginHandler {
                 p.plane = 0;
                 p.playedTeleported = false;
                 p.playerRunning = false;
+                p.needMaskUpdate = false;
                 this._clientEmitter$.emit("successful-login", p);
             }
         });
