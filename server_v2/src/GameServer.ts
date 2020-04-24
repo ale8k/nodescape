@@ -59,13 +59,13 @@ export default class GameServer {
 
             // LOGGED IN
             clientEmitter$.on("successful-login", (player: Player) => {
-                this.updatePlayerIndex(player);
-                this.collectGamePackets(player);
-                const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
-                this.sendRegionPacket(player);
-
+                this.updatePlayerIndex(player); // Adds our local players index to the index list
+                this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
+                this.sendRegionPacket(player); // Sends P73 to load a region
 
                 const playerSub = this._gameCycle$.subscribe(() => {
+                    const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
+                    console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
                     // Decryption will fail after P81 because we not handled sizes, that'ss al
                     // if (player.packetBuffer[0] !== undefined) {
                     // console.log("DECRYPTED OPCODE: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
@@ -117,17 +117,6 @@ export default class GameServer {
     }
 
     /**
-     * Sets up the listener which listens for incoming packets
-     * and stores them in the players packetBuffer (it's actually an array lol)
-     */
-    private collectGamePackets(player: Player): void {
-        player.socket.on("data", (data) => {
-            //console.log("ENCRYPTED OPCODE: ", data[0]);
-            player.packetBuffer.push(...data.toJSON().data);
-        });
-    }
-
-    /**
      * Adds the next index to the PLAYER_INDEX
      * It checks if there's any gaps between 0-2047 and fills them
      * This would be a usecase for when a player logsout.
@@ -144,6 +133,17 @@ export default class GameServer {
             }
         }
         return 2047;
+    }
+
+    /**
+     * Sets up the listener which listens for incoming packets
+     * and stores them in the players packetBuffer (it's actually an array lol)
+     */
+    private collectGamePackets(player: Player): void {
+        player.socket.on("data", (data) => {
+            //console.log("ENCRYPTED OPCODE: ", data[0]);
+            player.packetBuffer.push(...data.toJSON().data);
+        });
     }
 
     /**
@@ -170,7 +170,7 @@ export default class GameServer {
         WriteShort.BE(((3200 / 8) + 6), bb, 3);
         player.socket.write(bb);
     }
-}
 
+}
 
 new GameServer().startServer();

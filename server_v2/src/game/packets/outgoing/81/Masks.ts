@@ -67,7 +67,7 @@ export default class Masks {
                     break;
             }
         });
-        return p81b;
+        return p81;
     }
 
 }

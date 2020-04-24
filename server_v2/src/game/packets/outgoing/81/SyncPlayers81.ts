@@ -21,11 +21,38 @@ import Player from "src/game/entities/game/Player";
  *
  * This finishes the procedure.
  *
+ * For the sake of simplicity, I've designed this packet by each method as named in
+ * 'Majors' client.
+ * I.e., a p81 would look like so:
+ *  new SyncPlayer81()
+ *      .syncLocalPlayerMovement(...args)
+ *      .syncOtherPlayerMovement(...args)
+ *      .updatePlayerList(...args)
+ *      .writePlayerSyncMasks(...args)
+ *      .flushPacket81();
+ *
+ * I think this is probably the most obvious solution to this.
+ *
  * @author ale8k
  */
 export default class SyncPlayers81 {
     private _bitWriter = new BitWriter();
 
+    public syncLocalPlayerMovement(): SyncPlayers81 {
+        return this;
+    }
+
+    public syncOtherPlayerMovement(): SyncPlayers81 {
+        return this;
+    }
+
+    public updatePlayerList(): SyncPlayers81 {
+        return this;
+    }
+
+    public writePlayerSyncMasks(): SyncPlayers81 {
+        return this;
+    }
 
     /**
      * Writes the bitBuffer of our bitWriter into a buffer of bytes
