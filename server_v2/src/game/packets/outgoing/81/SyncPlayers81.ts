@@ -53,10 +53,10 @@ export default class SyncPlayers81 {
         const br = this._bitWriter;
         const lp = this._localPlayer;
 
-        if (!lp.movementUpdated) {
+        if (!lp.movementUpdated && !lp.planeUpdated) {
             br.writeNumber(0, 2); // type 0
         }
-        if (lp.movementUpdated) {
+        if (lp.movementUpdated && !lp.planeUpdated) {
             if (!lp.playerRunning) {
                 br.writeNumber(1, 2); // type 1
                 br.writeNumber(direction as number, 3);
@@ -78,15 +78,24 @@ export default class SyncPlayers81 {
         return this;
     }
     /**
-     * Should only call if others have been added to the updateList
+     * Handles 0 other players movements for now
      */
-    public syncOtherPlayerMovement(): SyncPlayers81 {
+    public syncOtherPlayerMovement(playerList: Player[]): SyncPlayers81 {
+        // Ideally it'll go through each Player in our playerlist and write their co-ordinates. For now,
+        // we hardcode 0. As this would be the final step in the process for us.
+        this._bitWriter.writeNumber(0, 8);
         return this;
     }
     /**
      * Should only be called if connections > 1
      */
-    public updatePlayerList(): SyncPlayers81 {
+    public updatePlayerList(playerIndex: Set<number>, playerList: Player[]): SyncPlayers81 {
+        if (playerList.length === 1) {
+            this._bitWriter.writeNumber(2047, 11);
+            return this;
+        } else {
+
+        }
         return this;
     }
     /**

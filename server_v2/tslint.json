@@ -34,6 +34,7 @@
 		"no-unused-variable": true,
 		"no-unused-expression": false,
 		"no-use-before-declare": true,
+		"one-variable-per-declaration": false,
 		"no-var-keyword": true,
 		"no-console": false,
 		"prefer-for-of": false,

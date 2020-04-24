@@ -81,10 +81,11 @@ export default class GameServer {
                     // And this would be used to check if movement type 3 should be declared in syncLocalPlayerMovement
 
                     // Create the initial P81 for this local player
+                    const direction = 0, direction2 = 0; // Just an example
                     new SyncPlayers81(player)
-                        .syncLocalPlayerMovement()
-                        .syncOtherPlayerMovement()
-                        .updatePlayerList()
+                        .syncLocalPlayerMovement(direction, direction2)
+                        .syncOtherPlayerMovement(this.PLAYER_LIST)
+                        .updatePlayerList(this.PLAYER_INDEX, this.PLAYER_LIST)
                         .writePlayerSyncMasks()
                         .flushPacket81();
                 });
