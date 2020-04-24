@@ -63,19 +63,30 @@ export default class GameServer {
                 this.sendRegionPacket(player); // Sends P73 to load a region
                 this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
 
-                // Create the initial P81 for this local player
-                new SyncPlayers81(player)
-                .syncLocalPlayerMovement()
-                .syncOtherPlayerMovement()
-                .updatePlayerList()
-                .writePlayerSyncMasks()
-                .flushPacket81();
-
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
                     const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
                     console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
                     player.packetBuffer = [];
+
+                    // Pretends packets have been read here
+
+                    // Imagine we read packet164, and now we have a bunch of co-ordinates to go to,
+                    // our player.x/y will definitely change by a single increment each time.
+                    // So we'd happily set player.movementUpdated to true?
+                    // We would also calculate the direction prior too...
+                    // So that would be send as a param to p81.
+                    //
+                    // As for the planes, we have a separate flag which determines if it's changed
+                    // And this would be used to check if movement type 3 should be declared in syncLocalPlayerMovement
+
+                    // Create the initial P81 for this local player
+                    new SyncPlayers81(player)
+                        .syncLocalPlayerMovement()
+                        .syncOtherPlayerMovement()
+                        .updatePlayerList()
+                        .writePlayerSyncMasks()
+                        .flushPacket81();
                 });
 
                 // LOGGED OUT

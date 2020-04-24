@@ -30,4 +30,20 @@ export default class Player extends Client {
      * The players current region Y co-ordinate
      */
     public regiony: number;
+    /**
+     * Tracks if their plane height has changed
+     */
+    public planeUpdated: boolean;
+    /**
+     * The players current plane height
+     */
+    public plane: number;
+    /**
+     * A flag to let us know if the player just teleported
+     */
+    public playedTeleported: boolean;
+    /**
+     * A flag to let us know if the player is currently running
+     */
+    public playerRunning: boolean;
 }

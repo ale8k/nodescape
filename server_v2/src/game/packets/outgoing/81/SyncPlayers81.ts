@@ -44,9 +44,29 @@ export default class SyncPlayers81 {
     }
 
     /**
-     * Should only update if players location has changed
+     * Determines the movement update type
+     * and appends any data it needs to to our bitWriter
+     * @param direction the direction the player moved in
+     * @param direction2 the second direction for movement type 2 (a.k.a running)
      */
-    public syncLocalPlayerMovement(): SyncPlayers81 {
+    public syncLocalPlayerMovement(direction?: number, direction2?: number): SyncPlayers81 {
+        if (!this._localPlayer.movementUpdated) {
+            this._bitWriter.writeNumber(0, 2);
+            // move type 0
+        }
+        if (this._localPlayer.movementUpdated) {
+            if (!this._localPlayer.playerRunning) {
+                this._bitWriter.writeNumber(1, 2);
+                // 1
+            } else {
+                this._bitWriter.writeNumber(2, 2);
+                // 2
+            }
+        }
+        if(this._localPlayer.planeUpdated) {
+            this._bitWriter.writeNumber(3, 2);
+            // 3 - we have a teleport flag to determine that bit
+        }
         return this;
     }
     /**
