@@ -10,4 +10,20 @@ export default class Player extends Client {
      * (will be wiped every 600ms)
      */
     public packetBuffer: number[];
+    /**
+     * The players current X co-ordinate relative to a region
+     */
+    public x: number;
+    /**
+     * The players current X co-ordinate relative to a region
+     */
+    public y: number;
+    /**
+     * The players current region X co-ordinate
+     */
+    public regionx: number;
+    /**
+     * The players current region Y co-ordinate
+     */
+    public regiony: number;
 }

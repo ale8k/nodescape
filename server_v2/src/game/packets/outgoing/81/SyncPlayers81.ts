@@ -38,22 +38,30 @@ import Player from "src/game/entities/game/Player";
 export default class SyncPlayers81 {
     private _bitWriter = new BitWriter();
 
+    /**
+     * Should only update if players location has changed
+     */
     public syncLocalPlayerMovement(): SyncPlayers81 {
         return this;
     }
-
+    /**
+     * Should only call if others have been added to the updateList
+     */
     public syncOtherPlayerMovement(): SyncPlayers81 {
         return this;
     }
-
+    /**
+     * Should only be called if connections > 1
+     */
     public updatePlayerList(): SyncPlayers81 {
         return this;
     }
-
+    /**
+     * Should only be called if mobsAwaitingUpdate > 0
+     */
     public writePlayerSyncMasks(): SyncPlayers81 {
         return this;
     }
-
     /**
      * Writes the bitBuffer of our bitWriter into a buffer of bytes
      * and emits it through the socket.

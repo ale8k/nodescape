@@ -52,6 +52,10 @@ export default class LoginHandler {
                 console.log("LOGIN STAGE IS: ", this._client.loginStage);
                 const p = (this._client as Player);
                 p.packetBuffer = [];
+                p.x = 22;
+                p.y = 20;
+                p.regionx = 3200;
+                p.regiony = 3200;
                 this._clientEmitter$.emit("successful-login", p);
             }
         });

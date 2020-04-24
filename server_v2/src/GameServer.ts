@@ -1,11 +1,11 @@
 import LoginHandler from "./handlers/LoginHandler";
 import Client from "./game/entities/Client";
 import Player from "./game/entities/game/Player";
+import WriteShort from "./utils/write-data/WriteShort";
+import RSString from "./utils/RSString";
 import { Server } from "net";
 import { EventEmitter } from "events";
 import { Subject } from "rxjs";
-import WriteShort from "./utils/write-data/WriteShort";
-import RSString from "./utils/RSString";
 
 /**
  * Entry point
@@ -25,11 +25,9 @@ export default class GameServer {
      */
     private readonly PLAYER_INDEX: Set<number> = new Set<number>();
     /**
-     * The player store, corresponding it's index to the PLAYER_INDEX value. I.e.,
-     * PLAYER at INDEX 12 would be PLAYER_ARR[12], and it'll have all their player details etc.
-     * @todo create the class which we'll cast the player object into (i.e., remove the socket and client specific details)
+     * The player store, corresponding it's index to the PLAYER_INDEX value.
      */
-    private readonly PLAYER_LIST: number[] = new Array<number>(2047).fill(0);
+    private readonly PLAYER_LIST: Player[] = new Array<Player>(2047);
     /**
      * Game cycle subject
      * I think async subject be more appropriate, test it Alex
@@ -62,14 +60,12 @@ export default class GameServer {
                 this.updatePlayerIndex(player); // Adds our local players index to the index list
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region
+                this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player object to the servers player list
 
+                // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
                     const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
                     console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
-                    // Decryption will fail after P81 because we not handled sizes, that'ss al
-                    // if (player.packetBuffer[0] !== undefined) {
-                    // console.log("DECRYPTED OPCODE: ", player.packetBuffer[0] - player.inStreamDecryptor.nextKey() & 0xff);
-                    // }
                     player.packetBuffer = [];
                 });
 
