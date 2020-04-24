@@ -56,6 +56,7 @@ export default class LoginHandler {
                 p.y = 20;
                 p.regionx = 3200;
                 p.regiony = 3200;
+                p.movementUpdated = false;
                 this._clientEmitter$.emit("successful-login", p);
             }
         });

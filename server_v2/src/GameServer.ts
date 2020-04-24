@@ -6,6 +6,7 @@ import RSString from "./utils/RSString";
 import { Server } from "net";
 import { EventEmitter } from "events";
 import { Subject } from "rxjs";
+import SyncPlayers81 from "./game/packets/outgoing/81/SyncPlayers81";
 
 /**
  * Entry point
@@ -60,7 +61,15 @@ export default class GameServer {
                 this.updatePlayerIndex(player); // Adds our local players index to the index list
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region
-                this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player object to the servers player list
+                this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
+
+                // Create the initial P81 for this local player
+                new SyncPlayers81(player)
+                .syncLocalPlayerMovement()
+                .syncOtherPlayerMovement()
+                .updatePlayerList()
+                .writePlayerSyncMasks()
+                .flushPacket81();
 
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {

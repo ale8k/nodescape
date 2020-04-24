@@ -36,7 +36,12 @@ import Player from "src/game/entities/game/Player";
  * @author ale8k
  */
 export default class SyncPlayers81 {
+    private _localPlayer: Player;
     private _bitWriter = new BitWriter();
+
+    constructor(player: Player) {
+        this._localPlayer = player;
+    }
 
     /**
      * Should only update if players location has changed
@@ -66,17 +71,17 @@ export default class SyncPlayers81 {
      * Writes the bitBuffer of our bitWriter into a buffer of bytes
      * and emits it through the socket.
      */
-    public flushPacket81(player: Player): void {
-        const opcodeLength = 1;
-        const sizeLength = 1;
-        const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
-        const startingIndex = 3;
-        const totalPacketLength = opcodeLength + sizeLength + payloadLength;
-        const b = Buffer.alloc(totalPacketLength + 1); // +1 cause the sizing is a short
-        b[0] = 81 + player.outStreamEncryptor.nextKey();
-        b.writeInt16BE(payloadLength, 1);
-        this._bitWriter.writeBitsToBuffer(b, startingIndex);
-        player.socket.write(b);
+    public flushPacket81(): void {
+        // const opcodeLength = 1;
+        // const sizeLength = 1;
+        // const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
+        // const startingIndex = 3;
+        // const totalPacketLength = opcodeLength + sizeLength + payloadLength;
+        // const b = Buffer.alloc(totalPacketLength + 1); // +1 cause the sizing is a short
+        // b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
+        // b.writeInt16BE(payloadLength, 1);
+        // this._bitWriter.writeBitsToBuffer(b, startingIndex);
+        // this._localPlayer.socket.write(b);
     }
 
 }

@@ -11,6 +11,10 @@ export default class Player extends Client {
      */
     public packetBuffer: number[];
     /**
+     * Tracks if their co-ords have changed
+     */
+    public movementUpdated: boolean;
+    /**
      * The players current X co-ordinate relative to a region
      */
     public x: number;
