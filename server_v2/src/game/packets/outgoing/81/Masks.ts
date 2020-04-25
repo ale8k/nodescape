@@ -8,7 +8,7 @@ export default class Masks {
      * @param bitWriter the bitWriter to write to
      * @param p81 a reference back to the packet81
      */
-    public append0x10(maskData: number[], bitWriter: BitWriter, p81: SyncPlayers81): SyncPlayers81 {
+    public append0x10(maskData: number[], bitWriter: BitWriter): void {
         bitWriter.writeNumber(0x10, 8);
         // we hardcode the size for now, maybe we'll pass this in? I don't know
         // it reads a negative byte for the size.
@@ -67,7 +67,6 @@ export default class Masks {
                     break;
             }
         });
-        return p81;
     }
 
 }
