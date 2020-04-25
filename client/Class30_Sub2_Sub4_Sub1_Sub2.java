@@ -94,12 +94,12 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
          * PLayers gender byte
          */
         anInt1702 = class30_sub2_sub2.method408();
-        System.out.println("Setting gender to: " + anInt1702);
+        //System.out.println("Setting gender to: " + anInt1702);
         /**
          * Players overhead icon byte
          */
         anInt1706 = class30_sub2_sub2.method408();
-        System.out.println("Setting over-head icon to: " + anInt1706);
+        //System.out.println("Setting over-head icon to: " + anInt1706);
 
         if(i != 0)
             return;
@@ -112,14 +112,14 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
         for(int j = 0; j < 12; j++)
         {
             int k = class30_sub2_sub2.method408();
-            System.out.println("Setting equipment part 1 ID: " + k);
+            //System.out.println("Setting equipment part 1 ID: " + k);
             if(k == 0)
             {
                 anIntArray1717[j] = 0;
                 continue;
             }
             int i1 = class30_sub2_sub2.method408();
-            System.out.println("Setting equipment part 2 ID: " + k);
+            //System.out.println("Setting equipment part 2 ID: " + k);
             anIntArray1717[j] = (k << 8) + i1;
             if(j == 0 && anIntArray1717[0] == 65535)
             {
@@ -151,7 +151,7 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
          * are our anims indices.
          */
         super.anInt1511 = class30_sub2_sub2.method410();
-        System.out.println("Standing still idx: " + super.anInt1511);
+        //System.out.println("Standing still idx: " + super.anInt1511);
         if(super.anInt1511 == 65535)
             super.anInt1511 = -1;
         super.anInt1512 = class30_sub2_sub2.method410();

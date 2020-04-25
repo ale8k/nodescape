@@ -7324,7 +7324,7 @@ public final class client extends Applet_Sub1
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
 
             int j = class30_sub2_sub2_1083.method419(11, 0);
-            System.out.println("PLAYER INDEX: " + j);
+            System.out.println("OTHER PLAYER INDEX: " + j);
             if(j == 2047) {
                 break;
             }
@@ -9967,8 +9967,8 @@ public final class client extends Applet_Sub1
             for(int k = j; k < anInt891; k++)
                 anIntArray840[anInt839++] = anIntArray892[k];
         }
-        System.out.println("THERE ARE: " + anInt891 + " OTHER PLAYERS");
-        System.out.println("WE SAID THERE ARE: " + j + " OTHER PLAYERS");
+        //System.out.println("THERE ARE: " + anInt891 + " OTHER PLAYERS");
+        //System.out.println("WE SAID THERE ARE: " + j + " OTHER PLAYERS");
         if(j > anInt891) {
             signlink.reporterror(aString1173 + " Too many players");
             throw new RuntimeException("eek");
@@ -10857,7 +10857,8 @@ public final class client extends Applet_Sub1
             anInt841 = opcode;
 
             if(opcode == 81)
-            {
+            {   
+                System.out.println("\n");
                 System.out.println("PACKET 81: Updating local player");
                 method143(anInt1007, aClass30_Sub2_Sub2_1083);
                 aBoolean1080 = false;

@@ -89,7 +89,7 @@ export default class SyncPlayers81 {
             }
             lp.needMaskUpdate ? br.writeBit(1) : br.writeBit(0);
         }
-        if(lp.planeUpdated) {
+        if (lp.planeUpdated) {
             br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
             br.writeNumber(lp.plane, 2);
             lp.playedTeleported ? br.writeBit(1) : br.writeBit(0);
@@ -127,13 +127,11 @@ export default class SyncPlayers81 {
                 // Our local player is in this list, so we gotta get rid of him lol
                 if (index !== 0) {
                     console.log("Adding next player to update list");
-                    if (player.needMaskUpdate) { // check if they need a mask update
-                        //playerIndex.has(index); // quick check to see they still here
-                        this._bitWriter.writeNumber(player.localPlayerIndex, 11); // write this players index to the bitwriter
-                        this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // add their index to the update list
-                        this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
-                        this._bitWriter.writeBit(1); // send update true to client
-                    }
+                    this._bitWriter.writeNumber(player.localPlayerIndex, 11); // write this players index to the bitwriter
+                    this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // add their index to the update list
+                    this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+                    player.needMaskUpdate ? this._bitWriter.writeBit(1) : this._bitWriter.writeBit(0); // send update true/false to client
+                    player.playedTeleported ? this._bitWriter.writeBit(1) : this._bitWriter.writeBit(0); // did they teleport?
                     this._bitWriter.writeNumber(0, 5); // y co-ord, hardcoded for now
                     this._bitWriter.writeNumber(0, 5); // x co-ord, hardcoded for now
                 } else {
