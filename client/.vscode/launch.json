@@ -6,10 +6,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "untouched-client",
+            "name": "Debug (Launch)-Client<client_b1c3cb44>",
             "request": "launch",
-            "mainClass": "client",
-            "projectName": "untouched-client_7fd264e6",
+            "mainClass": "com.jagex.Client",
+            "projectName": "client_b1c3cb44",
             "args": "0 0 highmem members 0"
         }
     ]

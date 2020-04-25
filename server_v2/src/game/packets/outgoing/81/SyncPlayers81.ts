@@ -162,6 +162,8 @@ export default class SyncPlayers81 {
         //console.log(b.length);
         //console.log(payloadLength);
         this._localPlayer.socket.write(b);
+
+         // need to append mask after.
     }
 
 }
