@@ -119,24 +119,23 @@ export default class SyncPlayers81 {
      * @param playerList the list of player instances
      */
     public updatePlayerList(playerIndex: Set<number>, playerList: Player[]): SyncPlayers81 {
+        // The playerList excluding our local player
+        const filteredPlayerList = playerList.filter((player) => {
+            return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
+        });
+
+        // If the index is 1, we know there's only us to update for
         if (playerIndex.size === 1) {
             this._bitWriter.writeNumber(2047, 11);
             return this;
         } else {
-            playerList.forEach((player, index) => {
-                // Our local player is in this list, so we gotta get rid of him lol
-                if (index !== 0) {
-                    console.log("Adding next player to update list");
-                    this._bitWriter.writeNumber(player.localPlayerIndex, 11); // write this players index to the bitwriter
-                    this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // add their index to the update list
-                    this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
-                    player.needMaskUpdate ? this._bitWriter.writeBit(1) : this._bitWriter.writeBit(0); // send update true/false to client
-                    player.playedTeleported ? this._bitWriter.writeBit(1) : this._bitWriter.writeBit(0); // did they teleport?
-                    this._bitWriter.writeNumber(0, 5); // y co-ord, hardcoded for now
-                    this._bitWriter.writeNumber(0, 5); // x co-ord, hardcoded for now
-                } else {
-                    console.log("Can't add our local player to list");
-                }
+            // hardcoding values for testing
+            filteredPlayerList.forEach(otherPlayer => {
+                this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11);
+                this._bitWriter.writeBit(0);
+                this._bitWriter.writeBit(1);
+                this._bitWriter.writeNumber(0, 5);
+                this._bitWriter.writeNumber(0, 5);
             });
         }
         return this;
@@ -160,8 +159,8 @@ export default class SyncPlayers81 {
         b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, 3);
-        console.log(b.length);
-        console.log(payloadLength);
+        //console.log(b.length);
+        //console.log(payloadLength);
         this._localPlayer.socket.write(b);
     }
 

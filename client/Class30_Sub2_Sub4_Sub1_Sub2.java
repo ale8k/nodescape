@@ -89,6 +89,7 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
 
     public final void method451(int i, Class30_Sub2_Sub2 class30_sub2_sub2)
     {
+        System.out.println("Updating a players appearance");
         class30_sub2_sub2.anInt1406 = 0;
         /**
          * PLayers gender byte
@@ -140,7 +141,7 @@ final class Class30_Sub2_Sub4_Sub1_Sub2 extends Class30_Sub2_Sub4_Sub1
         for(int l = 0; l < 5; l++)
         {
             int j1 = class30_sub2_sub2.method408();
-            System.out.println("Setting colour ID: " + j1);
+            //System.out.println("Setting colour ID: " + j1);
             if(j1 < 0 || j1 >= client.anIntArrayArray1003[l].length)
                 j1 = 0;
             anIntArray1700[l] = j1;

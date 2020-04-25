@@ -2219,11 +2219,11 @@ public final class client extends Applet_Sub1
         // so it looks through every player in our local list, anInt893 is the list of players
         // waiting to be updated via the updatedRequired bit in method1 of the packet81 update process.
         for(int j = 0; j < anInt893; j++) {
-            System.out.println("mobs waiting to be updated count: " + anInt893);
+            
             int k = anIntArray894[j];
             Class30_Sub2_Sub4_Sub1_Sub2 class30_sub2_sub4_sub1_sub2 = aClass30_Sub2_Sub4_Sub1_Sub2Array890[k];
             int l = class30_sub2_sub2.method408();
-            System.out.println("Update flag: " + l);
+            System.out.println("MASK ID: " + l);
             if((l & 0x40) != 0) {
                 System.out.println("This is running?");
                 l += class30_sub2_sub2.method408() << 8;
@@ -7321,22 +7321,27 @@ public final class client extends Applet_Sub1
         else
             anInt1119 = -50;
 
+        System.out.println("Updating the player list, packet size is: " + i);
+        System.out.println("The bit position is (+10 after): " + class30_sub2_sub2_1083.anInt1407);
+        System.out.println("Mobs awaiting update: " + anInt893);
+        byte kk = 0;
         while(class30_sub2_sub2_1083.anInt1407 + 10 < i * 8) {
-
+            
             int j = class30_sub2_sub2_1083.method419(11, 0);
             System.out.println("OTHER PLAYER INDEX: " + j);
+            //System.out.println("LOOP IS ON RUN: " + kk++);
             if(j == 2047) {
                 break;
             }
 
             if(aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] == null) {
-                System.out.println("creating a new player object and adding it to the list");
+                //System.out.println("creating a new player object and adding it to the list");
                 aClass30_Sub2_Sub4_Sub1_Sub2Array890[j] = new Class30_Sub2_Sub4_Sub1_Sub2();
                 if(aClass30_Sub2_Sub2Array895[j] != null) {
-                    System.out.println("Updating players appearance for player IDX: " + j);
+                    //System.out.println("Updating players appearance for player IDX: " + j);
                     aClass30_Sub2_Sub4_Sub1_Sub2Array890[j].method451(0, aClass30_Sub2_Sub2Array895[j]);
                 } else {
-                    System.out.println("skipping appearance update for player in player list updating!");
+                    //System.out.println("skipping appearance update for player in player list updating!");
                 }
             }
 
@@ -7349,24 +7354,24 @@ public final class client extends Applet_Sub1
             class30_sub2_sub4_sub1_sub2.anInt1537 = anInt1161;
 
             int k = class30_sub2_sub2_1083.method419(1, 0);
-            System.out.println("Update block flag cached?: " + k);
+            //System.out.println("Update block flag appended?: " + k);
             if(k == 1)
                 anIntArray894[anInt893++] = j;
 
             // clear awaiting point queue, like when telleing 
             int l = class30_sub2_sub2_1083.method419(1, 0);
-            System.out.println("Clear awaiting-point queue?: " + l);
+            //System.out.println("Clear awaiting-point queue?: " + l);
             // players x/y
             // this is all other players co-ordinates relative to our players,
             // we don't actually have any 'other' players though...
             int i1 = class30_sub2_sub2_1083.method419(5, 0);
-            System.out.println("Update player to X co-ordinate: " + i1);
+            //System.out.println("Update player to X co-ordinate: " + i1);
 
             if(i1 > 15)
                 i1 -= 32;
 
             int j1 = class30_sub2_sub2_1083.method419(5, 0);
-            System.out.println("Update player to Y co-ordinate: " + j1);
+            //System.out.println("Update player to Y co-ordinate: " + j1);
             if(j1 > 15)
                 j1 -= 32;
 

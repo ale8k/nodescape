@@ -72,7 +72,7 @@ export default class GameServer {
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
                     const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
-                    console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
+                    //console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
                     player.packetBuffer = [];
 
                     // Pretends packets have been read here
