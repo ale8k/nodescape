@@ -58,6 +58,7 @@ export default class GameServer {
 
             // LOGGED IN
             clientEmitter$.on("successful-login", (player: Player) => {
+                player.needMaskUpdate = true; // debug, forces a mask update everytime for everyone
                 this.updatePlayerIndex(player); // Adds our local players index to the index list
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region

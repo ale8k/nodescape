@@ -1,5 +1,6 @@
 import BitWriter from "../../../../utils/write-data/BitWriter";
 import Player from "src/game/entities/game/Player";
+import RSString from "../../../../utils/RSString";
 
 /**
  * This packet is responsible for our local players appearance and location, as well as
@@ -9,6 +10,8 @@ import Player from "src/game/entities/game/Player";
  *      Set local movetype & add us to mobs awaiting update list / or choose not to
  *      Set other movetype -> need more info
  *      Write indexes of everyone player needs to be updated
+ *          Check if 0x10 mask been sent for this other player in our local players client,
+ *          if it has, they've got appearance sync buffer so use that initially :).
  *          add them to mobs awaiting update list / or choose not to
  *          discord walk queue bit
  *          sends their x/y relative to our local players
@@ -36,8 +39,19 @@ import Player from "src/game/entities/game/Player";
  * @author ale8k
  */
 export default class SyncPlayers81 {
+    /**
+     * DEBUG MASK
+     */
+    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
+        0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 0];
+
     private _localPlayer: Player;
     private _bitWriter = new BitWriter();
+    // the indexes of the player to update and their respective mask will work 1:1,
+    // this is probably the easiest way to know who's mask is who's
+    private _playersWhoNeedUpdatesIndex: number[] = [];
+    private _playersWhoNeedUpdatesMasks: number[][] = [];
+    private _playersToUpdateCount: number = 0; // just helps us track
 
     constructor(player: Player) {
         this._localPlayer = player;
@@ -75,6 +89,9 @@ export default class SyncPlayers81 {
             br.writeNumber(lp.y, 7);
             br.writeNumber(lp.x, 7);
         }
+        // finally, if we need a mask update, shove us on the darn list first!! (and our index pls)
+        this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // we use 0 just to track the first instance
+        this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         return this;
     }
     /**
@@ -87,14 +104,23 @@ export default class SyncPlayers81 {
         return this;
     }
     /**
-     * Should only be called if connections > 1
+     * Should only be called if connections > 1 (aka playerList length > 1)
      */
     public updatePlayerList(playerIndex: Set<number>, playerList: Player[]): SyncPlayers81 {
         if (playerList.length === 1) {
             this._bitWriter.writeNumber(2047, 11);
             return this;
         } else {
-
+            playerList.forEach((player, index) => {
+                if (player.needMaskUpdate) { // check if they need a mask update
+                    //playerIndex.has(index); // quick check to see they still here
+                    this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // add their index to the update list
+                    this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+                    this._bitWriter.writeBit(1); // send update true to client
+                }
+                this._bitWriter.writeNumber(0, 5); // y co-ord, hardcoded for now
+                this._bitWriter.writeNumber(0, 5); // x co-ord, hardcoded for now
+            });
         }
         return this;
     }
