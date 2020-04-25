@@ -9968,6 +9968,7 @@ public final class client extends Applet_Sub1
                 anIntArray840[anInt839++] = anIntArray892[k];
         }
         System.out.println("THERE ARE: " + anInt891 + " OTHER PLAYERS");
+        System.out.println("WE SAID THERE ARE: " + j + " OTHER PLAYERS");
         if(j > anInt891) {
             signlink.reporterror(aString1173 + " Too many players");
             throw new RuntimeException("eek");

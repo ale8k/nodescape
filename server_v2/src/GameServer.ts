@@ -5,8 +5,10 @@ import WriteShort from "./utils/write-data/WriteShort";
 import RSString from "./utils/RSString";
 import { Server } from "net";
 import { EventEmitter } from "events";
-import { Subject } from "rxjs";
+import { Subject, of, merge, forkJoin, Observable } from "rxjs";
+import { map } from "rxjs/operators";
 import SyncPlayers81 from "./game/packets/outgoing/81/SyncPlayers81";
+import { once } from "cluster";
 
 /**
  * Entry point
@@ -59,6 +61,9 @@ export default class GameServer {
             // LOGGED IN
             clientEmitter$.on("successful-login", (player: Player) => {
                 player.needMaskUpdate = true; // debug, forces a mask update everytime for everyone
+                player.planeUpdated = true;
+                player.playedTeleported = true;
+                player.updateLocalPlayer = true;
                 this.updatePlayerIndex(player); // Adds our local players index to the index list
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region

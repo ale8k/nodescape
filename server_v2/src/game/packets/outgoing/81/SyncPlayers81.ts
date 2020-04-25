@@ -68,7 +68,13 @@ export default class SyncPlayers81 {
     public syncLocalPlayerMovement(direction?: number, direction2?: number): SyncPlayers81 {
         const br = this._bitWriter;
         const lp = this._localPlayer;
-
+        // never set if we update our dude or not lol
+        if (lp.updateLocalPlayer === true) {
+            this._bitWriter.writeBit(1);
+        } else {
+            this._bitWriter.writeBit(0);
+            return this;
+        }
         if (!lp.movementUpdated && !lp.planeUpdated) {
             br.writeNumber(0, 2); // type 0
         }
@@ -142,7 +148,7 @@ export default class SyncPlayers81 {
      */
     public writePlayerSyncMasks(): SyncPlayers81 {
         this._playersWhoNeedUpdatesMasks.forEach(mask => {
-            this._masks.append0x10(this.maskData, this._bitWriter);
+            this._masks.append0x10(mask, this._bitWriter);
         });
         return this;
     }
@@ -151,16 +157,14 @@ export default class SyncPlayers81 {
      * and emits it through the socket.
      */
     public flushPacket81(): void {
-        // const opcodeLength = 1;
-        // const sizeLength = 1;
-        // const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
-        // const startingIndex = 3;
-        // const totalPacketLength = opcodeLength + sizeLength + payloadLength;
-        // const b = Buffer.alloc(totalPacketLength + 1); // +1 cause the sizing is a short
-        // b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
-        // b.writeInt16BE(payloadLength, 1);
-        // this._bitWriter.writeBitsToBuffer(b, startingIndex);
-        // this._localPlayer.socket.write(b);
+        const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
+        const b = Buffer.alloc(3 + payloadLength);
+        b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
+        b.writeInt16BE(payloadLength, 1);
+        this._bitWriter.writeBitsToBuffer(b, 3);
+        console.log(b.length);
+        console.log(payloadLength);
+        this._localPlayer.socket.write(b);
     }
 
 }

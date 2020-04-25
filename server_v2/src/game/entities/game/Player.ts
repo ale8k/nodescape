@@ -50,4 +50,8 @@ export default class Player extends Client {
      * A flag to let us know if this player needs a mask update
      */
     public needMaskUpdate: boolean;
+    /**
+     * Movement update local player flag
+     */
+    public updateLocalPlayer: boolean;
 }
