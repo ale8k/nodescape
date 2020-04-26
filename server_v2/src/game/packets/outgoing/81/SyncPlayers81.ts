@@ -151,10 +151,7 @@ export default class SyncPlayers81 {
         b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, 3);
-        //console.log(b.length);
-        //console.log(payloadLength);
         this._localPlayer.socket.write(b);
-        // need to append mask after.
     }
 
 }

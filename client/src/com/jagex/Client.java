@@ -11438,6 +11438,7 @@ public final class Client extends GameApplet {
 			int index = mobsAwaitingUpdate[i];
 			Player player = players[index];
 			int mask = buffer.readUByte();
+			System.out.println("Mask id is: " + mask);
 			if ((mask & 0x40) != 0) {
 				mask += buffer.readUByte() << 8;
 			}
@@ -11451,7 +11452,6 @@ public final class Client extends GameApplet {
 			int index = mobsAwaitingUpdate[i];
 			Npc npc = npcs[index];
 			int mask = buffer.readUByte();
-
 			if ((mask & 0x10) != 0) {
 				int animation = buffer.readLEUShort();
 				if (animation == 65535) {
@@ -11954,8 +11954,8 @@ public final class Client extends GameApplet {
 		}
 
 		if (buffer.getPosition() != frameSize) {
-			SignLink.reportError("Error packet size mismatch in getplayer pos:" + buffer.getPosition()
-					+ " psize:" + frameSize);
+			SignLink.reportError("Error packet size mismatch in buffer pos: " + buffer.getPosition()
+					+ " but the payload size is: " + frameSize);
 			throw new RuntimeException("eek");
 		}
 
@@ -12071,7 +12071,7 @@ public final class Client extends GameApplet {
 	}
 
 	private final void updatePlayerList(Buffer buffer, int packetSize) {
-		System.out.println("Buffer bit position: " + buffer.getBitPosition() + " and packet size (bits) is: " + packetSize * 8);
+		System.out.println("Buffer bit position check (+10): " + (buffer.getBitPosition() + 10) + " and packet size (bits) is: " + packetSize * 8);
 		int whileLoopRunTimes = 0;
 		while (buffer.getBitPosition() + 10 < packetSize * 8) {
 			whileLoopRunTimes++;

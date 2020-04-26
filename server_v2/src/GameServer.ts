@@ -69,8 +69,9 @@ export default class GameServer {
                 .syncLocalPlayerMovement()
                 .syncOtherPlayerMovement(this.PLAYER_LIST)
                 .updatePlayerList(this.PLAYER_INDEX, this.PLAYER_LIST)
-                .writePlayerSyncMasks()
                 .flushPacket81();
+                // now read masks???
+                // itll grab each AFTER our packet cause each mask has its own bloody size
 
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
