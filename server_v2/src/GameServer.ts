@@ -60,40 +60,23 @@ export default class GameServer {
 
             // LOGGED IN
             clientEmitter$.on("successful-login", (player: Player) => {
-                player.needMaskUpdate = true; // debug, forces a mask update everytime for everyone
-                player.planeUpdated = true;
-                player.playedTeleported = true;
-                player.updateLocalPlayer = true;
                 this.updatePlayerIndex(player); // Adds our local players index to the index list
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region
                 this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
+                player.movementType = 3;
+                new SyncPlayers81(player)
+                .syncLocalPlayerMovement()
+                .syncOtherPlayerMovement(this.PLAYER_LIST)
+                .updatePlayerList(this.PLAYER_INDEX, this.PLAYER_LIST)
+                .writePlayerSyncMasks()
+                .flushPacket81();
 
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
                     const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
                     //console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
                     player.packetBuffer = [];
-
-                    // Pretends packets have been read here
-
-                    // Imagine we read packet164, and now we have a bunch of co-ordinates to go to,
-                    // our player.x/y will definitely change by a single increment each time.
-                    // So we'd happily set player.movementUpdated to true?
-                    // We would also calculate the direction prior too...
-                    // So that would be send as a param to p81.
-                    //
-                    // As for the planes, we have a separate flag which determines if it's changed
-                    // And this would be used to check if movement type 3 should be declared in syncLocalPlayerMovement
-
-                    // Create the initial P81 for this local player
-                    const direction = 0, direction2 = 0; // Just an example
-                    new SyncPlayers81(player)
-                        .syncLocalPlayerMovement(direction, direction2)
-                        .syncOtherPlayerMovement(this.PLAYER_LIST)
-                        .updatePlayerList(this.PLAYER_INDEX, this.PLAYER_LIST)
-                        .writePlayerSyncMasks()
-                        .flushPacket81();
                 });
 
                 // LOGGED OUT

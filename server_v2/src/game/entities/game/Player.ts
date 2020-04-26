@@ -11,10 +11,6 @@ export default class Player extends Client {
      */
     public packetBuffer: number[];
     /**
-     * Tracks if their co-ords have changed
-     */
-    public movementUpdated: boolean;
-    /**
      * The players current X co-ordinate relative to a region
      */
     public x: number;
@@ -31,27 +27,11 @@ export default class Player extends Client {
      */
     public regiony: number;
     /**
-     * Tracks if their plane height has changed
-     */
-    public planeUpdated: boolean;
-    /**
      * The players current plane height
      */
     public plane: number;
     /**
-     * A flag to let us know if the player just teleported
+     * The players current movement type
      */
-    public playedTeleported: boolean;
-    /**
-     * A flag to let us know if the player is currently running
-     */
-    public playerRunning: boolean;
-    /**
-     * A flag to let us know if this player needs a mask update
-     */
-    public needMaskUpdate: boolean;
-    /**
-     * Movement update local player flag
-     */
-    public updateLocalPlayer: boolean;
+    public movementType: number;
 }

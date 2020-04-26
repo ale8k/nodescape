@@ -45,12 +45,9 @@ export default class SyncPlayers81 {
      */
     public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
         0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 0];
-
     private _localPlayer: Player;
     private _bitWriter = new BitWriter();
     private _masks = new Masks(); // our mask writer
-    // the indexes of the player to update and their respective mask will work 1:1,
-    // this is probably the easiest way to know who's mask is who's
     private _playersWhoNeedUpdatesIndex: number[] = [];
     private _playersWhoNeedUpdatesMasks: number[][] = [];
     private _playersToUpdateCount: number = 0; // just helps us track
@@ -68,37 +65,32 @@ export default class SyncPlayers81 {
     public syncLocalPlayerMovement(direction?: number, direction2?: number): SyncPlayers81 {
         const br = this._bitWriter;
         const lp = this._localPlayer;
-        // never set if we update our dude or not lol
-        if (lp.updateLocalPlayer === true) {
-            this._bitWriter.writeBit(1);
-        } else {
-            this._bitWriter.writeBit(0);
-            return this;
-        }
-        if (!lp.movementUpdated && !lp.planeUpdated) {
-            br.writeNumber(0, 2); // type 0
-        }
-        if (lp.movementUpdated && !lp.planeUpdated) {
-            if (!lp.playerRunning) {
-                br.writeNumber(1, 2); // type 1
+        br.writeBit(1); // update our player always for now
+        switch (lp.movementType) {
+            case 0:
+                br.writeNumber(0, 2);
+                break;
+            case 1:
+                br.writeNumber(1, 2);
                 br.writeNumber(direction as number, 3);
-            } else {
-                br.writeNumber(2, 2); // type 2
+                br.writeBit(1); // update mask
+                break;
+            case 2:
+                br.writeNumber(2, 2);
                 br.writeNumber(direction as number, 3);
                 br.writeNumber(direction2 as number, 3);
-            }
-            lp.needMaskUpdate ? br.writeBit(1) : br.writeBit(0);
-        }
-        if (lp.planeUpdated) {
-            br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
-            br.writeNumber(lp.plane, 2);
-            lp.playedTeleported ? br.writeBit(1) : br.writeBit(0);
-            lp.needMaskUpdate ? br.writeBit(1) : br.writeBit(0);
-            br.writeNumber(lp.y, 7);
-            br.writeNumber(lp.x, 7);
+                br.writeBit(1); // update mask
+                break;
+            case 3:
+                br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
+                br.writeNumber(lp.plane, 2);
+                br.writeBit(1); // always teleported
+                br.writeBit(1); // always append mask
+                br.writeNumber(lp.y, 7);
+                br.writeNumber(lp.x, 7);
+                break;
         }
         // finally, if we need a mask update, shove us on the darn list first!! (and our index pls)
-
         this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // we use 0 just to track the first instance
         this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         return this;
@@ -162,8 +154,7 @@ export default class SyncPlayers81 {
         //console.log(b.length);
         //console.log(payloadLength);
         this._localPlayer.socket.write(b);
-
-         // need to append mask after.
+        // need to append mask after.
     }
 
 }

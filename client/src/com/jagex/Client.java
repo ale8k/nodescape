@@ -573,7 +573,7 @@ public final class Client extends GameApplet {
 	private Buffer outgoing = Buffer.create();
 	private int overlayInterfaceId = -1;
 	private int packetSize;
-	private String password = "testing";
+	private String password = "";
 	private int plane;
 	private int playerCount;
 	private Sprite playerMapdot;
@@ -636,7 +636,7 @@ public final class Client extends GameApplet {
 	private int tradeChatMode;
 	private boolean unableToLoad;
 	private int unreadMessageCount;
-	private String username = "Major";
+	private String username = "alex";
 	private boolean validLocalMap;
 	private int[] waypointX = new int[4000];
 	private int[] waypointY = new int[4000];
@@ -10088,8 +10088,8 @@ public final class Client extends GameApplet {
 						&& super.lastClickX <= i1 + 75 && super.lastClickY >= k1 - 20
 						&& super.lastClickY <= k1 + 20) {
 					loginScreenStage = 0;
-					username = "Major";
-					password = "testing";
+					username = "alex";
+					password = "";
 				}
 				do {
 					int key = nextPressedKey();
@@ -10323,8 +10323,8 @@ public final class Client extends GameApplet {
 		primary = null;
 		loggedIn = false;
 		loginScreenStage = 0;
-		username = "Major";
-		password = "testing";
+		username = "alex";
+		password = "";
 		unlinkCaches();
 		scene.reset();
 
@@ -11813,6 +11813,7 @@ public final class Client extends GameApplet {
 		}
 
 		int type = buffer.readBits(2);
+		System.out.println("Movement type set to: " + type);
 		if (type == 0) {
 			mobsAwaitingUpdate[mobsAwaitingUpdateCount++] = internalLocalPlayerIndex;
 		} else if (type == 1) {
@@ -11879,6 +11880,7 @@ public final class Client extends GameApplet {
 
 	private final void synchronizeOtherPlayerMovement(Buffer buffer) {
 		int count = buffer.readBits(8);
+		System.out.println("Amount of other player movements to sync: " + count);
 		if (count < playerCount) {
 			for (int index = count; index < playerCount; index++) {
 				removedMobs[removedMobCount++] = playerList[index];
@@ -11936,6 +11938,7 @@ public final class Client extends GameApplet {
 	}
 
 	private final void synchronizePlayers(int frameSize, Buffer buffer) {
+		System.out.println("\n");
 		removedMobCount = 0;
 		mobsAwaitingUpdateCount = 0;
 		synchronizeLocalPlayerMovement(buffer);
@@ -12068,7 +12071,10 @@ public final class Client extends GameApplet {
 	}
 
 	private final void updatePlayerList(Buffer buffer, int packetSize) {
+		System.out.println("Buffer bit position: " + buffer.getBitPosition() + " and packet size (bits) is: " + packetSize * 8);
+		int whileLoopRunTimes = 0;
 		while (buffer.getBitPosition() + 10 < packetSize * 8) {
+			whileLoopRunTimes++;
 			int index = buffer.readBits(11);
 			if (index == 2047) {
 				break;
@@ -12102,7 +12108,7 @@ public final class Client extends GameApplet {
 
 			player.move(localPlayer.pathX[0] + x, localPlayer.pathY[0] + y, discardWalkingQueue == 1);
 		}
-
+		System.out.println("Player list loop ran " + whileLoopRunTimes + " times and bit position is: " + buffer.getBitPosition());
 		buffer.disableBitAccess();
 	}
 
