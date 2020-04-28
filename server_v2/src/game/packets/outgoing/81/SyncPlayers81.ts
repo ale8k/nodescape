@@ -147,7 +147,7 @@ export default class SyncPlayers81 {
      */
     public flushPacket81(): void {
         const payloadLength = Math.ceil(this._bitWriter.bufferLength / 8);
-        const b = Buffer.alloc(3 + payloadLength);
+        const b = Buffer.alloc(payloadLength + 3); // opcode and plength shrot
         b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, 3);
