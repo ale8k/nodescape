@@ -9,6 +9,7 @@ import { Subject, of, merge, forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import SyncPlayers81 from "./game/packets/outgoing/81/SyncPlayers81";
 import { once } from "cluster";
+import BitWriter from "./utils/write-data/BitWriter";
 
 /**
  * Entry point
@@ -48,6 +49,15 @@ export default class GameServer {
      *  for the length of that connection
      */
     constructor() {
+        const b = Buffer.alloc(3);
+        new BitWriter()
+        .writeNumber(1, 8)
+        .writeNumber(2, 8)
+        .writeNumber(60, 8)
+        .writeNumberOver(255, 8, 8)
+        .writeBitsToBuffer(b, 0);
+        console.log(b.toJSON().data);
+
         // TURN GAME CYCLE ON
         this.startGameCycle(this.GAME_CYCLE_RATE, this._gameCycle$);
 

@@ -83,13 +83,13 @@ export default class SyncPlayers81 {
                 br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
                 br.writeNumber(lp.plane, 2);
                 br.writeBit(1); // always teleported
-                br.writeBit(0); // always append mask
+                br.writeBit(1); // always append mask
                 br.writeNumber(lp.y, 7);
                 br.writeNumber(lp.x, 7);
                 break;
         }
         // finally, if we need a mask update, shove us on the darn list first!!
-        //this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+        this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         return this;
     }
     /**
@@ -141,6 +141,7 @@ export default class SyncPlayers81 {
     public writePlayerSyncMasks(): SyncPlayers81 {
         console.log("UPDATING MASKS FOR: ", this._playersWhoNeedUpdatesMasks.length, " PLAYERS");
         this._playersWhoNeedUpdatesMasks.forEach(mask => {
+            console.log(mask);
             this._masks.append0x10(mask, this._bitWriter);
         });
         return this;

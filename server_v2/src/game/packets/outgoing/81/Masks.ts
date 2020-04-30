@@ -10,15 +10,22 @@ export default class Masks {
      */
     public append0x10(maskData: number[], bitWriter: BitWriter): void {
         bitWriter.writeNumber(0x10, 8);
-        // we hardcode the size for now, maybe we'll pass this in? I don't know
-        // it reads a negative byte for the size.
-        bitWriter.writeNumber((255 - 55), 8);
+        //bitWriter.writeNumber((255 - 55), 8);
+
+        // Grabs the start bit index from which the byte
+        // for the size is going to be written
+        const startingSizeBitIndex = bitWriter.bufferLength;
+
+        bitWriter.writeNumber(0, 8); // placeholder for the size
+
+        let size = 0;
 
         maskData.forEach((value, i) => {
             switch (i) {
                 case 0:
                 case 1:
                     bitWriter.writeNumber(value, 8);
+                    size += 1;
                     break;
                 case 2:
                 case 3:
@@ -34,6 +41,7 @@ export default class Masks {
                 case 13:
                     const armourType = value > 200 ? value + 0x200 : value + 0x100;
                     bitWriter.writeNumber(armourType, 16);
+                    size += 2;
                     break;
                 case 14:
                 case 15:
@@ -41,6 +49,7 @@ export default class Masks {
                 case 17:
                 case 18:
                     bitWriter.writeNumber(value, 8);
+                    size += 1;
                     break;
                 case 19:
                 case 20:
@@ -50,6 +59,7 @@ export default class Masks {
                 case 24:
                 case 25:
                     bitWriter.writeNumber(value, 16);
+                    size += 2;
                     break;
                 case 26:
                 case 27:
@@ -61,12 +71,15 @@ export default class Masks {
                 case 33:
                 case 34:
                     bitWriter.writeNumber(value, 8);
+                    size += 1;
                     break;
                 case 35:
                     bitWriter.writeNumber(value, 16);
+                    size += 2;
                     break;
             }
         });
+        console.log("MASK SIZE IS: ", size);
     }
 
 }

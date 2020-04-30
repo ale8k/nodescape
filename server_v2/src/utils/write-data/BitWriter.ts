@@ -79,6 +79,36 @@ export default class BitWriter {
         return this;
     }
     /**
+     * Converts a number into bits and overwrites bits in the cached buffer
+     * with a brand new value. This is used in sizing a variable frame.
+     * @param num the number we wish to write into bits
+     * @param amount the length of how far to replace
+     * @param index the index to begin replacing the bits currently written from
+     */
+    public writeNumberOver(num: number, amount: number, index: number): BitWriter {
+        const bitArr = this.convertToBitArray(num);
+        const bitArrLength = bitArr.length; // remembers the initial length
+
+        if (bitArr.length < amount) {
+            for (let i = 0; i < amount - bitArrLength; i++) {
+                bitArr.unshift(0);
+            }
+        }
+        console.log(bitArr);
+        let bitArrIndex = index;
+        let bitArrWriteIndex = 0;
+        // todo shove on a loop
+        this._bitArr[index] = bitArr[0];
+        this._bitArr[index++] = bitArr[1];
+        this._bitArr[index++] = bitArr[2];
+        this._bitArr[index++] = bitArr[3];
+        this._bitArr[index++] = bitArr[4];
+        this._bitArr[index++] = bitArr[5];
+        this._bitArr[index++] = bitArr[6];
+        this._bitArr[index++] = bitArr[7];
+        return this;
+    }
+    /**
      * Takes a whole integer values and parses it into an array of bits
      * @param number the integer
      */
