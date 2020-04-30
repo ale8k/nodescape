@@ -48,9 +48,7 @@ export default class SyncPlayers81 {
     private _localPlayer: Player;
     private _bitWriter = new BitWriter();
     private _masks = new Masks(); // our mask writer
-    private _playersWhoNeedUpdatesIndex: number[] = [];
     private _playersWhoNeedUpdatesMasks: number[][] = [];
-    private _playersToUpdateCount: number = 0; // just helps us track
 
     constructor(player: Player) {
         this._localPlayer = player;
@@ -85,14 +83,13 @@ export default class SyncPlayers81 {
                 br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
                 br.writeNumber(lp.plane, 2);
                 br.writeBit(1); // always teleported
-                br.writeBit(1); // always append mask
+                br.writeBit(0); // always append mask
                 br.writeNumber(lp.y, 7);
                 br.writeNumber(lp.x, 7);
                 break;
         }
-        // finally, if we need a mask update, shove us on the darn list first!! (and our index pls)
-        this._playersWhoNeedUpdatesIndex.push(this._playersToUpdateCount++); // we use 0 just to track the first instance
-        this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+        // finally, if we need a mask update, shove us on the darn list first!!
+        //this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         return this;
     }
     /**
@@ -123,12 +120,18 @@ export default class SyncPlayers81 {
         } else {
             // hardcoding values for testing
             filteredPlayerList.forEach(otherPlayer => {
-                this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11);
-                this._bitWriter.writeBit(0);
-                this._bitWriter.writeBit(1);
-                this._bitWriter.writeNumber(0, 5);
-                this._bitWriter.writeNumber(0, 5);
+                console.log("UPDATING PLAYER AT INDEX: ", otherPlayer.localPlayerIndex);
+                console.log("OUR LOCAL PLAYERS INDEX IS: ", this._localPlayer.localPlayerIndex);
+                this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
+                this._bitWriter.writeBit(1); // mask update
+                this._bitWriter.writeBit(1); // teleport
+                this._bitWriter.writeNumber(0, 5); // y
+                this._bitWriter.writeNumber(0, 5); // x
             });
+            // Crucial, after our players have been written, we not pass 2047 to END the loop
+            this._bitWriter.writeNumber(2047, 11);
+            // After this, we push the updated mask data for *this* player onto the mask array
+            this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         }
         return this;
     }
@@ -136,6 +139,7 @@ export default class SyncPlayers81 {
      * Should only be called if mobsAwaitingUpdate > 0
      */
     public writePlayerSyncMasks(): SyncPlayers81 {
+        console.log("UPDATING MASKS FOR: ", this._playersWhoNeedUpdatesMasks.length, " PLAYERS");
         this._playersWhoNeedUpdatesMasks.forEach(mask => {
             this._masks.append0x10(mask, this._bitWriter);
         });
@@ -151,6 +155,7 @@ export default class SyncPlayers81 {
         b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, 3);
+        console.log(b.toJSON().data);
         this._localPlayer.socket.write(b);
     }
 

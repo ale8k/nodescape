@@ -11440,6 +11440,7 @@ public final class Client extends GameApplet {
 			int mask = buffer.readUByte();
 			System.out.println("Mask id is: " + mask);
 			if ((mask & 0x40) != 0) {
+				System.out.println("Reading extra ubyte");
 				mask += buffer.readUByte() << 8;
 			}
 
@@ -12072,18 +12073,20 @@ public final class Client extends GameApplet {
 
 	private final void updatePlayerList(Buffer buffer, int packetSize) {
 		System.out.println("Buffer bit position check (+10): " + (buffer.getBitPosition() + 10) + " and packet size (bits) is: " + packetSize * 8);
-		int whileLoopRunTimes = 0;
 		while (buffer.getBitPosition() + 10 < packetSize * 8) {
-			whileLoopRunTimes++;
+
 			int index = buffer.readBits(11);
 			if (index == 2047) {
 				break;
 			}
 
+			System.out.println("Updating player list with player at index: " + index);
 			if (players[index] == null) {
 				players[index] = new Player();
+				System.out.println("Created player object instance for this player");
 				if (playerSynchronizationBuffers[index] != null) {
 					players[index].updateAppearance(playerSynchronizationBuffers[index]);
+					System.out.println("Used internal appearance buffer to update this player");
 				}
 			}
 
@@ -12093,9 +12096,16 @@ public final class Client extends GameApplet {
 			int update = buffer.readBits(1);
 			if (update == 1) {
 				mobsAwaitingUpdate[mobsAwaitingUpdateCount++] = index;
+				System.out.println("Added this player to the update list");
+			} else {
+				System.out.println("Skipped adding this player to the update list");
 			}
 
 			int discardWalkingQueue = buffer.readBits(1);
+			if (discardWalkingQueue == 0) {
+				System.out.println("Skipped discarding this players walking queue");
+			}
+			System.out.println("Discarded this players walking queue");
 			int y = buffer.readBits(5);
 			if (y > 15) {
 				y -= 32;
@@ -12107,8 +12117,9 @@ public final class Client extends GameApplet {
 			}
 
 			player.move(localPlayer.pathX[0] + x, localPlayer.pathY[0] + y, discardWalkingQueue == 1);
+			System.out.println("Set and moved this player to x: " + x + " y: " + y);
+			System.out.println("Player list finished updating for player at index: " + index);
 		}
-		System.out.println("Player list loop ran " + whileLoopRunTimes + " times and bit position is: " + buffer.getBitPosition());
 		buffer.disableBitAccess();
 	}
 

@@ -7,6 +7,12 @@ export default class BitWriter {
      * The bitArray for the class to write to
      */
     private _bitArr: number[];
+    /**
+     * DEBUG
+     */
+    public getBitArr(): number[] {
+        return this._bitArr;
+    }
 
     constructor() {
         this._bitArr = [];
@@ -50,7 +56,6 @@ export default class BitWriter {
         } else {
             throw new Error("A bit value can only be 0 / 1");
         }
-
     }
     /**
      * Converts a number into an array of bits with a specified fixed size,
