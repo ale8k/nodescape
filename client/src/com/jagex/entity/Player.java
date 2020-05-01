@@ -254,6 +254,7 @@ public final class Player extends Mob {
 		name = StringUtils.format(StringUtils.decodeBase37(buffer.readLong()));
 		combat = buffer.readUByte();
 		skill = buffer.readUShort();
+		System.out.println("Appearance updated, final thing read is a UShort of value: " + skill);
 		visible = true;
 		appearanceHash = 0;
 

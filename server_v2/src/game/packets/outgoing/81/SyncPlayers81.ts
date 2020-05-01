@@ -44,7 +44,7 @@ export default class SyncPlayers81 {
      * DEBUG MASK
      */
     public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
-        0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 0];
+        0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
     private _localPlayer: Player;
     private _bitWriter = new BitWriter();
     private _masks = new Masks(); // our mask writer
@@ -125,11 +125,13 @@ export default class SyncPlayers81 {
                 this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
                 this._bitWriter.writeBit(1); // mask update
                 this._bitWriter.writeBit(1); // teleport
-                this._bitWriter.writeNumber(0, 5); // y
-                this._bitWriter.writeNumber(0, 5); // x
+                this._bitWriter.writeNumber(1, 5); // y
+                this._bitWriter.writeNumber(2, 5); // x
             });
             // Crucial, after our players have been written, we not pass 2047 to END the loop
             this._bitWriter.writeNumber(2047, 11);
+            console.log("BUFFER LENGTH! CHECK FOR Paddding: ", this._bitWriter.bufferLength);
+            this._bitWriter.writeBit(0); // JUST PADDING IT OUT! IT NEEDS PADDING!!!
             // After this, we push the updated mask data for *this* player onto the mask array
             this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         }
@@ -139,11 +141,42 @@ export default class SyncPlayers81 {
      * Should only be called if mobsAwaitingUpdate > 0
      */
     public writePlayerSyncMasks(): SyncPlayers81 {
+        console.log();
         console.log("UPDATING MASKS FOR: ", this._playersWhoNeedUpdatesMasks.length, " PLAYERS");
-        this._playersWhoNeedUpdatesMasks.forEach(mask => {
-            console.log(mask);
-            this._masks.append0x10(mask, this._bitWriter);
+
+        /**
+         * DEBUG MASK
+         */
+        const maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
+            0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
+
+        this._playersWhoNeedUpdatesMasks.forEach((mask, index) => {
+
+            if (this._playersWhoNeedUpdatesMasks.length === 1) {
+                this._bitWriter.writeNumber(16, 8);
+                console.log("Updating a single dudes mask");
+                this._masks.append0x10(mask, this._bitWriter);
+
+            // for single dude, 16 is sent correctly...
+            // for 2 dudes, it gets 33 as first value, so we try something else
+            } else if(this._playersWhoNeedUpdatesMasks.length > 1) {
+                // so i try send us correctly, but other dude incorrectly
+                if (index === 0) {
+                    // well, our initial byte is read wrong. so whatever is written before this
+                    // must have some kinda implication maybe??????
+                    // ima try add padding. i think we need it
+                    this._bitWriter.writeNumber(16, 8);
+                    this._masks.append0x10(mask, this._bitWriter);
+                } else {
+                    this._bitWriter.writeNumber(69, 8);
+                }
+                console.log("Updating other dudes masks");
+            }
+
+
+
         });
+        console.log();
         return this;
     }
     /**

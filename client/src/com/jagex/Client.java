@@ -12077,6 +12077,7 @@ public final class Client extends GameApplet {
 
 			int index = buffer.readBits(11);
 			if (index == 2047) {
+				System.out.println("Updating player list with player at index: " + index);
 				break;
 			}
 
@@ -12096,16 +12097,11 @@ public final class Client extends GameApplet {
 			int update = buffer.readBits(1);
 			if (update == 1) {
 				mobsAwaitingUpdate[mobsAwaitingUpdateCount++] = index;
-				System.out.println("Added this player to the update list");
-			} else {
-				System.out.println("Skipped adding this player to the update list");
 			}
+			System.out.println("Update required: " + update);
 
 			int discardWalkingQueue = buffer.readBits(1);
-			if (discardWalkingQueue == 0) {
-				System.out.println("Skipped discarding this players walking queue");
-			}
-			System.out.println("Discarded this players walking queue");
+			System.out.println("Discard walking queue: " + discardWalkingQueue);
 			int y = buffer.readBits(5);
 			if (y > 15) {
 				y -= 32;

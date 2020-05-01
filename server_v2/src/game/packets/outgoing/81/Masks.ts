@@ -8,7 +8,10 @@ export default class Masks {
      * @param p81 a reference back to the packet81
      */
     public append0x10(maskData: number[], bitWriter: BitWriter): void {
-        bitWriter.writeNumber(0x10, 8);
+        /**
+         * DEBUG, GOING TO WRITE MASK ID MANUALLY
+         */
+        // bitWriter.writeNumber(0x10, 8);
 
         // Grabs the start bit index from which the byte
         // for the size is going to be written
