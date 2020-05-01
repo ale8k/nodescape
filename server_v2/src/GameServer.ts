@@ -66,18 +66,13 @@ export default class GameServer {
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region
                 this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
-                player.movementType = 3;
-                new SyncPlayers81(player)
-                .syncLocalPlayerMovement()
-                .syncOtherPlayerMovement(this.PLAYER_LIST)
-                .updatePlayerList(this.PLAYER_INDEX, this.PLAYER_LIST)
-                .writePlayerSyncMasks()
-                .flushPacket81();
-
+                new SyncPlayers81(player, this.PLAYER_LIST, this.PLAYER_INDEX); // Send initial p81
+                // Change move type to default, (0)
+                player.movementType = 0;
+                player.playerUpdated = false;
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
-                    const otherPlayerList: number[] = this.getConnectedIndexes(this.PLAYER_INDEX, player);
-                    //console.log("Player at index: ", player.localPlayerIndex, "has other players (indexes) connected: ", otherPlayerList);
+                    new SyncPlayers81(player, this.PLAYER_LIST, this.PLAYER_INDEX);
                     player.packetBuffer = [];
                 });
 

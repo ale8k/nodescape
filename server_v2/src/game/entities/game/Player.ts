@@ -34,4 +34,9 @@ export default class Player extends Client {
      * The players current movement type
      */
     public movementType: number;
+    /**
+     * A flag representing if the player has updated and requires a bitmask
+     * appending to their next packet 81
+     */
+    public playerUpdated: boolean;
 }
