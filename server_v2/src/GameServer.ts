@@ -49,14 +49,6 @@ export default class GameServer {
      *  for the length of that connection
      */
     constructor() {
-        const b = Buffer.alloc(3);
-        new BitWriter()
-        .writeNumber(1, 8)
-        .writeNumber(2, 8)
-        .writeNumber(60, 8)
-        .writeNumberOver(200, 8, 16)
-        .writeBitsToBuffer(b, 0);
-        console.log(b.toJSON().data);
 
         // TURN GAME CYCLE ON
         this.startGameCycle(this.GAME_CYCLE_RATE, this._gameCycle$);

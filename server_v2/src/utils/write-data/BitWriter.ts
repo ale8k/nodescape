@@ -7,12 +7,6 @@ export default class BitWriter {
      * The bitArray for the class to write to
      */
     private _bitArr: number[];
-    /**
-     * DEBUG
-     */
-    public getBitArr(): number[] {
-        return this._bitArr;
-    }
 
     constructor() {
         this._bitArr = [];

@@ -1,5 +1,4 @@
 import BitWriter from "src/utils/write-data/BitWriter";
-import SyncPlayers81 from "./SyncPlayers81";
 
 export default class Masks {
     /**
@@ -10,12 +9,10 @@ export default class Masks {
      */
     public append0x10(maskData: number[], bitWriter: BitWriter): void {
         bitWriter.writeNumber(0x10, 8);
-        //bitWriter.writeNumber((255 - 55), 8);
 
         // Grabs the start bit index from which the byte
         // for the size is going to be written
         const startingSizeBitIndex = bitWriter.bufferLength;
-
         bitWriter.writeNumber(0, 8); // placeholder for the size
 
         let size = 0;
@@ -79,6 +76,8 @@ export default class Masks {
                     break;
             }
         });
+        // Not sure on our + 1 here, maybe the next mask?
+        bitWriter.writeNumberOver((255 - size + 1), 8, startingSizeBitIndex);
         console.log("MASK SIZE IS: ", size);
     }
 
