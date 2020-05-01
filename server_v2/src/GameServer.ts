@@ -54,7 +54,7 @@ export default class GameServer {
         .writeNumber(1, 8)
         .writeNumber(2, 8)
         .writeNumber(60, 8)
-        .writeNumberOver(255, 8, 8)
+        .writeNumberOver(200, 8, 16)
         .writeBitsToBuffer(b, 0);
         console.log(b.toJSON().data);
 

@@ -94,18 +94,13 @@ export default class BitWriter {
                 bitArr.unshift(0);
             }
         }
-        console.log(bitArr);
+
         let bitArrIndex = index;
-        let bitArrWriteIndex = 0;
-        // todo shove on a loop
-        this._bitArr[index] = bitArr[0];
-        this._bitArr[index++] = bitArr[1];
-        this._bitArr[index++] = bitArr[2];
-        this._bitArr[index++] = bitArr[3];
-        this._bitArr[index++] = bitArr[4];
-        this._bitArr[index++] = bitArr[5];
-        this._bitArr[index++] = bitArr[6];
-        this._bitArr[index++] = bitArr[7];
+
+        for (let i = 0; i < bitArr.length; i++) {
+            this._bitArr[bitArrIndex++] = bitArr[i];
+        }
+
         return this;
     }
     /**
