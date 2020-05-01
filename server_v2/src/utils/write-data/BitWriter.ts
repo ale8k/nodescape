@@ -20,7 +20,6 @@ export default class BitWriter {
         return this._bitArr.length;
     }
 
-
     /**
      * Converts the interal bit array into a byte array and writes the bytes to a given buffer
      * @param byteIndex the index to start writing the bits from

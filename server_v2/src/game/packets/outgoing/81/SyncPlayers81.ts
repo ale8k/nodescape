@@ -6,48 +6,28 @@ import Masks from "./Masks";
 /**
  * This packet is responsible for our local players appearance and location, as well as
  * surrounding players
- *
- * The process works as follows:
- *      Set local movetype & add us to mobs awaiting update list / or choose not to
- *      Set other movetype -> need more info
- *      Write indexes of everyone player needs to be updated
- *          Check if 0x10 mask been sent for this other player in our local players client,
- *          if it has, they've got appearance sync buffer so use that initially :).
- *          add them to mobs awaiting update list / or choose not to
- *          discord walk queue bit
- *          sends their x/y relative to our local players
- *      Write update masks in correct order (i.e., by index) for each player added
- *          i.e., if players at playerlist index 6, 12 and 18 needed updates,
- *          we'll append 3 masks in the order of 0 = 6, 1 = 12, 2 = 18
- *      If the local player wants to be updated though, he'll always be at index[0] because his method
- *      (set local movetype) always run first. So it'd be something like...
- *          0 = 0, 1 = 6, 2 = 12, 3 = 13
- *
- * This finishes the procedure.
- *
- * For the sake of simplicity, I've designed this packet by each method as named in
- * 'Majors' client.
- * I.e., a p81 would look like so:
- *  new SyncPlayer81()
- *      .syncLocalPlayerMovement(...args)
- *      .syncOtherPlayerMovement(...args)
- *      .updatePlayerList(...args)
- *      .writePlayerSyncMasks(...args)
- *      .flushPacket81();
- *
- * I think this is probably the most obvious solution to this.
- *
  * @author ale8k
  */
 export default class SyncPlayers81 {
     /**
      * DEBUG MASK
      */
-    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
-        0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
+    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
+    /**
+     * The local player sending this packet
+     */
     private _localPlayer: Player;
+    /**
+     * The bit writer which writes up until the masks
+     */
     private _bitWriter = new BitWriter();
-    private _masks = new Masks(); // our mask writer
+    /**
+     * The mask instance used to append masks to an existing bit writer
+     */
+    private _masks = new Masks();
+    /**
+     * A list of all the masks going to be used in the playerListUpdating array
+     */
     private _playersWhoNeedUpdatesMasks: number[][] = [];
 
     constructor(player: Player) {
@@ -120,8 +100,6 @@ export default class SyncPlayers81 {
         } else {
             // hardcoding values for testing
             filteredPlayerList.forEach(otherPlayer => {
-                console.log("UPDATING PLAYER AT INDEX: ", otherPlayer.localPlayerIndex);
-                console.log("OUR LOCAL PLAYERS INDEX IS: ", this._localPlayer.localPlayerIndex);
                 this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
                 this._bitWriter.writeBit(1); // mask update
                 this._bitWriter.writeBit(1); // teleport
@@ -130,8 +108,13 @@ export default class SyncPlayers81 {
             });
             // Crucial, after our players have been written, we not pass 2047 to END the loop
             this._bitWriter.writeNumber(2047, 11);
-            console.log("BUFFER LENGTH! CHECK FOR Paddding: ", this._bitWriter.bufferLength);
-            this._bitWriter.writeBit(0); // JUST PADDING IT OUT! IT NEEDS PADDING!!!
+            // Because this part requires padding, we're going to pad it off.
+            // It requires padding due to the bitaccess being ended here, i.e., it'll begin
+            // reading from the next 'full' byte after for the masks.
+            console.log(this._bitWriter.bufferLength);
+            while (this._bitWriter.bufferLength % 8 !== 0) {
+                this._bitWriter.writeBit(0);
+            }
             // After this, we push the updated mask data for *this* player onto the mask array
             this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         }
@@ -141,42 +124,9 @@ export default class SyncPlayers81 {
      * Should only be called if mobsAwaitingUpdate > 0
      */
     public writePlayerSyncMasks(): SyncPlayers81 {
-        console.log();
-        console.log("UPDATING MASKS FOR: ", this._playersWhoNeedUpdatesMasks.length, " PLAYERS");
-
-        /**
-         * DEBUG MASK
-         */
-        const maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
-            0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
-
-        this._playersWhoNeedUpdatesMasks.forEach((mask, index) => {
-
-            if (this._playersWhoNeedUpdatesMasks.length === 1) {
-                this._bitWriter.writeNumber(16, 8);
-                console.log("Updating a single dudes mask");
+        this._playersWhoNeedUpdatesMasks.forEach(mask => {
                 this._masks.append0x10(mask, this._bitWriter);
-
-            // for single dude, 16 is sent correctly...
-            // for 2 dudes, it gets 33 as first value, so we try something else
-            } else if(this._playersWhoNeedUpdatesMasks.length > 1) {
-                // so i try send us correctly, but other dude incorrectly
-                if (index === 0) {
-                    // well, our initial byte is read wrong. so whatever is written before this
-                    // must have some kinda implication maybe??????
-                    // ima try add padding. i think we need it
-                    this._bitWriter.writeNumber(16, 8);
-                    this._masks.append0x10(mask, this._bitWriter);
-                } else {
-                    this._bitWriter.writeNumber(69, 8);
-                }
-                console.log("Updating other dudes masks");
-            }
-
-
-
         });
-        console.log();
         return this;
     }
     /**
