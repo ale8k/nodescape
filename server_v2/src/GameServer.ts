@@ -10,6 +10,8 @@ import { map } from "rxjs/operators";
 import SyncPlayers81 from "./game/packets/outgoing/81/SyncPlayers81";
 import { once } from "cluster";
 import BitWriter from "./utils/write-data/BitWriter";
+import PacketReader from "./game/packets/PacketReader";
+import IPacket from "./game/packets/interfaces/IPacket";
 
 /**
  * Entry point
@@ -66,13 +68,17 @@ export default class GameServer {
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
                 this.sendRegionPacket(player); // Sends P73 to load a region
                 this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
+                let decryptedPackets: IPacket[];
                 new SyncPlayers81(player, this.PLAYER_LIST, this.PLAYER_INDEX); // Send initial p81
                 // Change move type to default, (0)
                 player.movementType = 0;
                 player.playerUpdated = false;
+
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
                     new SyncPlayers81(player, this.PLAYER_LIST, this.PLAYER_INDEX);
+                    decryptedPackets = PacketReader.getDecryptedPackets(player);
+                    console.log(decryptedPackets);
                     player.packetBuffer = [];
                 });
 

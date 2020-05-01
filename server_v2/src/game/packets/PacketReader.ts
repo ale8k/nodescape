@@ -1,8 +1,81 @@
+import IsaacCipher from "../../IsaacCipher";
+import Player from "../entities/game/Player";
+import IPacket from "./interfaces/IPacket";
+
 /**
  * A static helper class which handles reading game packets
  * @author ale8k
  */
 export default class PacketReader {
+    /**
+     * Mutates the array buffer based on the opcode
+     * Returns an object for a given opcode and packet within the cache buffer (which is just an array lol)
+     * This object has the decrypted id, packet length and payload
+     * Now because it's returning the packet itself, it also clears the buffer here
+     * as it's just convenient, sorry :P
+     * @param player our local player instance
+     */
+    public static getDecryptedPackets(player: Player): IPacket[] {
+        const playerBuffer = player.packetBuffer;
+        const playerInStream = player.inStreamDecryptor;
+        const decryptedPackets: IPacket[] = [];
+
+        while (playerBuffer.length > 0) {
+            const pPayload = [];
+
+            let dOpcode = PacketReader.parsePacketOpcode(playerBuffer[0], playerInStream);
+            let pLength;
+
+            switch (dOpcode) {
+                // Anti cheat packet for if the users click > 92 tiles from their current tile
+                case 36:
+                    for (let j = 0; j < 5; j++) {
+                        playerBuffer.shift();
+                    }
+                    dOpcode = PacketReader.parsePacketOpcode(playerBuffer[0], playerInStream);
+                // Sent when a player enters a chat message
+                case 4:
+                case 45:
+                // Anti-cheat ?
+                case 77:
+                // Walk on command: Sent when player walks due to clicking a door or something
+                case 98:
+                // Command in chatbox, i.e., ::something
+                case 103:
+                // Sent when dude sends private message
+                case 126:
+                // Sent when player clicks a tile to walk normally
+                case 164:
+                case 165:
+                // Anti-cheat ?
+                case 226:
+                case 246:
+                // Sent when player walks using map (note, it has 14 additional bytes on the end
+                // presumed to be anticheat that are ignored)
+                case 248:
+                    pLength = PacketReader.getVarBytePacketLength(playerBuffer);
+                    break;
+                default:
+                    pLength = PacketReader.getFixedPacketLength(dOpcode);
+                    break;
+            }
+            // Remove this packet from our players cached packet buffer
+            for (let i = 0; i < pLength; i++) {
+                pPayload.push(playerBuffer.shift());
+            }
+
+            decryptedPackets.push({ opcode: dOpcode, payload: pPayload});
+        }
+        return decryptedPackets;
+    }
+    /**
+     * Parses an encrypted opcode into a decrypted one
+     */
+    private static parsePacketOpcode(opcode: number, inStreamDecryption: IsaacCipher): number {
+        const encryptedOpcode = opcode & 0xff;
+        const decryptedOpcode = encryptedOpcode - inStreamDecryption.nextKey() & 0xff;
+        return decryptedOpcode;
+    }
     /**
      * Returns packet length for a packet denoted with a byte declaring its length
      * @param packet the packet

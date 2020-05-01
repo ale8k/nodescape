@@ -86,7 +86,6 @@ export default class SyncPlayers81 {
                 break;
         }
         if (playerUpdate === 1 || lp.movementType === 0) {
-            console.log("running");
             this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         }
         return this;
@@ -120,7 +119,7 @@ export default class SyncPlayers81 {
             filteredPlayerList.forEach(otherPlayer => {
                 this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
                 this._bitWriter.writeBit(1); // mask update
-                this._bitWriter.writeBit(1); // teleport
+                this._bitWriter.writeBit(0); // teleport
                 this._bitWriter.writeNumber(0, 5); // y
                 this._bitWriter.writeNumber(0, 5); // x
             });

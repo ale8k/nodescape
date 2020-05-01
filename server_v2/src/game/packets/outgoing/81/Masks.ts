@@ -78,7 +78,6 @@ export default class Masks {
         });
         // Not sure on our + 1 here, maybe the next mask?
         bitWriter.writeNumberOver((255 - size + 1), 8, startingSizeBitIndex);
-        console.log("MASK SIZE IS: ", size);
     }
 
 }
