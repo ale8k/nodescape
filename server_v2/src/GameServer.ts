@@ -12,6 +12,7 @@ import { once } from "cluster";
 import BitWriter from "./utils/write-data/BitWriter";
 import PacketReader from "./game/packets/PacketReader";
 import IPacket from "./game/packets/interfaces/IPacket";
+import PacketWriter from "./game/packets/PacketWriter";
 
 /**
  * Entry point
@@ -66,20 +67,19 @@ export default class GameServer {
             clientEmitter$.on("successful-login", (player: Player) => {
                 this.updatePlayerIndex(player); // Adds our local players index to the index list
                 this.collectGamePackets(player); // Pushes all incoming data for our local players socket into their buffer
-                this.sendRegionPacket(player); // Sends P73 to load a region
+                PacketWriter.sendInitialPackets(player, this.PLAYER_LIST, this.PLAYER_INDEX);
                 this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
                 let decryptedPackets: IPacket[];
-                new SyncPlayers81(player, this.PLAYER_LIST, this.PLAYER_INDEX); // Send initial p81
-                // Change move type to default, (0)
-                player.movementType = 0;
-                player.playerUpdated = false;
+
+
 
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
-                    new SyncPlayers81(player, this.PLAYER_LIST, this.PLAYER_INDEX);
+                    // Decrypt all packets in our buffer and store them here
                     decryptedPackets = PacketReader.getDecryptedPackets(player);
-                    console.log(decryptedPackets);
-                    player.packetBuffer = [];
+                    // Packet writer responds to all packets in the packet buffer
+                    PacketWriter.respondToPackets(decryptedPackets, player, this.PLAYER_LIST, this.PLAYER_INDEX,);
+
                 });
 
                 // LOGGED OUT
@@ -166,18 +166,6 @@ export default class GameServer {
             }
         });
         return otherPlayerList;
-    }
-
-    /**
-     * DEBUG
-     */
-    public sendRegionPacket(player: Player): void {
-        // sending region packet for testing
-        const bb = Buffer.alloc(5);
-        bb[0] = 73 + player.outStreamEncryptor.nextKey();
-        WriteShort.BES(((3200 / 8) + 6), bb, 1);
-        WriteShort.BE(((3200 / 8) + 6), bb, 3);
-        player.socket.write(bb);
     }
 
 }
