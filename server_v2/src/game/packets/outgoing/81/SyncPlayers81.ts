@@ -47,7 +47,6 @@ export default class SyncPlayers81 {
         this.syncOtherPlayerMovement();
         this.updatePlayerList();
         this.writePlayerSyncMasks();
-        this.flushPacket81();
     }
 
     /**
@@ -151,13 +150,13 @@ export default class SyncPlayers81 {
      * Writes the bitBuffer of our bitWriter into a buffer of bytes
      * and emits it through the socket.
      */
-    public flushPacket81(): void {
+    public getPacket81(): Buffer {
         const payloadLength = this._bitWriter.bufferLength / 8;
         const b = Buffer.alloc(payloadLength + 3); // opcode and plength shrot
         b[0] = 81 + this._localPlayer.outStreamEncryptor.nextKey();
         b.writeInt16BE(payloadLength, 1);
         this._bitWriter.writeBitsToBuffer(b, 3);
-        this._localPlayer.socket.write(b);
+        return b;
     }
 
 }

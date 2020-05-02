@@ -17,8 +17,8 @@ export default class PacketWriter {
      * @param playerIndex the total player index list
      */
     public static respondToPackets(packets: IPacket[], player: Player, playerList: Player[], playerIndex: Set<number>): void {
-        console.log(packets);
-        new SyncPlayers81(player, playerList, playerIndex);
+        packets.forEach(p => console.log(p.opcode));
+        player.socket.write(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
         // Wipe our buffer for next cycle
         player.packetBuffer = [];
     }
@@ -27,8 +27,10 @@ export default class PacketWriter {
      * @param player the local player
      */
     public static sendInitialPackets(player: Player, playerList: Player[], playerIndex: Set<number>): void {
-        new UpdateRegion73(player).updateRegion(3200, 3200);
-        new SyncPlayers81(player, playerList, playerIndex);
+        const totalPackets = [];
+        totalPackets.push(new UpdateRegion73(player).updateRegion(3200, 3200).getPacket73());
+        totalPackets.push(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
+        player.socket.write(Buffer.concat(totalPackets));
         // Finally reset our movement to type 0, because we can't move on login
         player.movementType = 0;
         player.playerUpdated = false;

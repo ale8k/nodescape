@@ -10,6 +10,10 @@ export default class UpdateRegion73 {
      * The local player sending this packet
      */
     private _localPlayer: Player;
+    /**
+     * The buffer for this packet
+     */
+    private _b: Buffer;
 
     constructor(player: Player) {
         this._localPlayer = player;
@@ -20,14 +24,19 @@ export default class UpdateRegion73 {
      * @param regionx region x
      * @param regiony region y
      */
-    public updateRegion(regionx: number, regiony: number): void {
+    public updateRegion(regionx: number, regiony: number): UpdateRegion73 {
         const player = this._localPlayer;
-
-        const b = Buffer.alloc(5);
-        b[0] = 73 + player.outStreamEncryptor.nextKey();
-        WriteShort.BES(((regionx / 8) + 6), b, 1);
-        WriteShort.BE(((regiony / 8) + 6), b, 3);
-        player.socket.write(b);
+        this._b = Buffer.alloc(5);
+        this._b[0] = 73 + player.outStreamEncryptor.nextKey();
+        WriteShort.BES(((regionx / 8) + 6), this._b, 1);
+        WriteShort.BE(((regiony / 8) + 6), this._b, 3);
+        return this;
+    }
+    /**
+     * Gets the buffer from this packets
+     */
+    public getPacket73(): Buffer {
+        return this._b;
     }
 
 }

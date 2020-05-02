@@ -71,8 +71,6 @@ export default class GameServer {
                 this.PLAYER_LIST[player.localPlayerIndex] = player; // Adds our local player inst object to the servers player list
                 let decryptedPackets: IPacket[];
 
-
-
                 // GAME CYCLE
                 const playerSub = this._gameCycle$.subscribe(() => {
                     // Decrypt all packets in our buffer and store them here
