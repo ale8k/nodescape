@@ -59,6 +59,10 @@ export default class LoginHandler {
                 p.plane = 0;
                 p.movementType = 3;
                 p.playerUpdated = true;
+                p.playerMoving = false;
+                p.destinationX = p.x;
+                p.destinationY = p.y;
+                p.pathCoords = [];
                 this._clientEmitter$.emit("successful-login", p);
             }
         });

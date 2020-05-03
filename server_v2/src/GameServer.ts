@@ -77,13 +77,13 @@ export default class GameServer {
                     decryptedPackets = PacketReader.getDecryptedPackets(player);
                     // Packet writer responds to all packets in the packet buffer
                     PacketWriter.respondToPackets(decryptedPackets, player, this.PLAYER_LIST, this.PLAYER_INDEX,);
-
                 });
 
                 // LOGGED OUT
                 player.socket.on("close", () => {
                     playerSub.unsubscribe();
                     this.PLAYER_INDEX.delete(player.localPlayerIndex);
+                    // todo, figure a way to remove players from the playerlist without use of undefined.
                     console.log("Client disconnected and unsubscribed to gamecycle....");
                 });
             });

@@ -39,4 +39,23 @@ export default class Player extends Client {
      * appending to their next packet 81
      */
     public playerUpdated: boolean;
+    /**
+     * A flag representing if the player is moving, i.e., they have queued co-ordinates
+     * to walk to
+     * - Please note, this only applies to movement types 1 and 2, not 3
+     */
+    public playerMoving: boolean;
+    /**
+     * Players final x co-ord
+     */
+    public destinationX: number;
+    /**
+     * Players final y co-ord
+     */
+    public destinationY: number;
+    /**
+     * If the player attempted to walk, and pathing was required, this will be filled
+     * with pathing co-ordinates which lead upto destination x/y
+     */
+    public pathCoords: number[];
 }

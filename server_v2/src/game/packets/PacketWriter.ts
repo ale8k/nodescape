@@ -2,6 +2,7 @@ import IPacket from "./interfaces/IPacket";
 import Player from "../entities/game/Player";
 import SyncPlayers81 from "./outgoing/81/SyncPlayers81";
 import UpdateRegion73 from "./outgoing/UpdateRegion73";
+import ParseWalkByTile164 from "./incoming/ParseWalkByTile164";
 
 /**
  * A static helper class which handles responding to incoming game packets
@@ -17,7 +18,35 @@ export default class PacketWriter {
      * @param playerIndex the total player index list
      */
     public static respondToPackets(packets: IPacket[], player: Player, playerList: Player[], playerIndex: Set<number>): void {
-        packets.forEach(p => console.log(p.opcode));
+        const bufferArray: Buffer[] = []; // A place to push each buffer onto for our final response
+
+        packets.forEach(p => {
+            /**
+             * P164
+             */
+            if (p.opcode === 164) {
+                // Parse the packet
+                const walkPacket = ParseWalkByTile164(p);
+                // Set the final x/y co-ord
+                player.destinationX = walkPacket.baseXwithX - player.regionx;
+                player.destinationY = walkPacket.baseYwithY - player.regiony;
+
+                // If client sent pathing bytes, parse them baby and add them to our local players path
+                if (walkPacket.pathCoords.length > 0) {
+                    player.pathCoords = walkPacket.pathCoords.map((coord, i) => {
+                        return i % 2 === 0 ? coord + player.destinationX & 0xff : coord + player.destinationY & 0xff;
+                    });
+                }
+
+                // Set our player to moving
+                player.playerMoving = true;
+                // Hardcode type 1 for now, until we support running
+                player.movementType = 1;
+            }
+        });
+
+
+
         player.socket.write(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
         // Wipe our buffer for next cycle
         player.packetBuffer = [];
