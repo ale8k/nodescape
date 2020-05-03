@@ -43,7 +43,7 @@ export default class SyncPlayers81 {
         this._playerList = playerList;
         this._playerIndex = playerIndex;
         // The update procedure
-        this.syncLocalPlayerMovement();
+        this.syncLocalPlayerMovement(direction, direction2);
         this.syncOtherPlayerMovement();
         this.updatePlayerList();
         this.writePlayerSyncMasks();

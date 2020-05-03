@@ -80,7 +80,7 @@ export default class BitWriter {
      */
     public writeNumberOver(num: number, amount: number, index: number): BitWriter {
         const bitArr = this.convertToBitArray(num);
-        const bitArrLength = bitArr.length; // remembers the initial length
+        const bitArrLength = bitArr.length; // remembers the initial lengthh
 
         if (bitArr.length < amount) {
             for (let i = 0; i < amount - bitArrLength; i++) {
