@@ -23,6 +23,19 @@ export default class PacketWriter {
     public static respondToPackets(packets: IPacket[], player: Player, playerList: Player[], playerIndex: Set<number>): void {
         const bufferArray: Buffer[] = []; // A place to push each buffer onto for our final response
 
+        // Pushes needed response packets on here
+        // Please note: movement is different and isn't pushed on, as it's a part of our
+        // 81 updates, which are basically everything related to a player.
+        // I do think we may be able to push masks on here though, currently the packet 81
+        // implementation handles it, I think this is wrong. We could do something like...
+        // bufferArray.push(base81)
+        // bufferArray.push(mask 0x10)
+        // bufferArray.push(regionupdate 73)
+        // write bufferArray
+        // This ^ seems like the most sensible solution, as our masks will be synchronized into a set
+        // order based on the array push. May need to adjust p81!
+        // The only issue we may have is we'll need to go into bufferArray[index of p81] and adjust
+        // the size of the total buffer to accomodate the masks, but that's not that bad I guess
         while (packets.length > 0) {
             const readPacket = packets.shift();
             const responsePacket = PacketWriter.routePacketToHandler(readPacket, player);
