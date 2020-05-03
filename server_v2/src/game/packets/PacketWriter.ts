@@ -32,8 +32,32 @@ export default class PacketWriter {
             } else {
                 console.log("No response for packet: ", readPacket?.opcode);
             }
-        }
 
+        }
+        // Empty points of memory to pass to 81, unless we're walking/running
+        let direction;
+        let direction2;
+
+        // Update direction 1/2 if the players moving
+        // Also, do we really need a playerMoving flag? I wonder if the type is enough...
+        // I think we may do incase they switch to running maybe?
+        if (player.playerMoving) {
+            if (player.x === player.destinationX && player.y === player.destinationY) {
+                console.log("Movement ended");
+                player.playerMoving = false;
+                player.movementType = 0;
+            } else {
+                player.movementType = 1; // No running for now, shouldn't be hard to update though
+                direction = 1; // write a getDirection method
+            }
+        }
+        // Push 81 on always, it'll always be needed, notice the direction 1/2
+        // these can be undefined if move type is 0
+        bufferArray.push(new SyncPlayers81(player, playerList, playerIndex, direction, direction2).getPacket81());
+        // Write our buffered array of packets in one big chunk
+        player.socket.write(Buffer.concat(bufferArray));
+        // Clear the incoming packet buffer for our local player
+        player.packetBuffer = [];
         /**
          * Movement
          * Movement works like so:
@@ -45,11 +69,6 @@ export default class PacketWriter {
          *      rinse repeat until empty
          *      set player to not moving
          */
-
-        // Flush packets and wipe buffer for next cycle
-        bufferArray.push(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
-        player.socket.write(Buffer.concat(bufferArray));
-        player.packetBuffer = [];
     }
     /**
      * Updates the local player with all the initial packets required upon login
@@ -99,8 +118,6 @@ export default class PacketWriter {
 
         // Set our player to moving
         player.playerMoving = true;
-        // Hardcode type 1 for now, until we support running
-        player.movementType = 1;
         console.log("player path coords", player.pathCoords);
         return 0;
     }
