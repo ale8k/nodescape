@@ -39,7 +39,8 @@ export default class PacketWriter {
         while (packets.length > 0) {
             const readPacket = packets.shift();
             const responsePacket = PacketWriter.routePacketToHandler(readPacket, player);
-
+            // If the packet requires a packet in response other than 81, push it onto
+            // the response buffer array
             if (responsePacket !== 0) {
                 bufferArray.push(responsePacket as Buffer);
             } else {
@@ -47,44 +48,18 @@ export default class PacketWriter {
             }
 
         }
-
-        // Empty points of memory to pass to 81, unless we're walking/running
-        // Perhaps place these on the player entity?
-        let direction;
-        let direction2;
-
-        // Update direction 1/2 if the players moving
-        // Also, do we really need a playerMoving flag? I wonder if the type is enough...
-        // I think we may do incase they switch to running maybe?
+        // If player is moving, process their movement for next P81
         if (player.playerMoving) {
-            if (player.x === player.destinationX && player.y === player.destinationY) {
-                console.log("Movement ended");
-                player.playerMoving = false;
-                player.movementType = 0;
-            } else {
-                player.movementType = 1; // No running for now, shouldn't be hard to update though
-                direction = PacketWriter.getNextMovementDirection(player);
-                PacketWriter.updatePlayersXY(player);
-            }
+            Player.processPlayerMovement(player);
         }
+
         // Push 81 on always, it'll always be needed, notice the direction 1/2
         // these can be undefined if move type is 0/3
-        bufferArray.push(new SyncPlayers81(player, playerList, playerIndex, direction, direction2).getPacket81());
+        bufferArray.push(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
         // Write our buffered array of packets in one big chunk
         player.socket.write(Buffer.concat(bufferArray));
         // Clear the incoming packet buffer for our local player
         player.packetBuffer = [];
-        /**
-         * Movement
-         * Movement works like so:
-         *      player is at x/y
-         *      player destination x/y updates
-         *      while player x/y !== x/y, walk in z direction
-         *      check if pathcoord exist
-         *      update destination x/y
-         *      rinse repeat until empty
-         *      set player to not moving
-         */
     }
     /**
      * Updates the local player with all the initial packets required upon login
@@ -117,13 +92,11 @@ export default class PacketWriter {
      * Temp place for 164 handle
      */
     private static HandleWalkByTile164(packet: IPacket, player: Player): Buffer | number {
-        console.log("Handling 164 brav");
         // Parse the packet
         const walkPacket = ParseWalkByTile164(packet);
         // Set the final/first x/y co-ord
         player.destinationX = walkPacket.baseXwithX - player.regionx;
         player.destinationY = walkPacket.baseYwithY - player.regiony;
-        console.log("player x", player.x, "player y", player.y, "player dx", player.destinationX, "player dy", player.destinationY);
 
         // If client sent pathing bytes, parse them baby and add them to our local players path
         if (walkPacket.pathCoords.length > 0) {
@@ -134,79 +107,7 @@ export default class PacketWriter {
 
         // Set our player to moving
         player.playerMoving = true;
-        console.log("player path coords", player.pathCoords);
+        // console.log("player path coords", player.pathCoords);
         return 0;
-    }
-    /**
-     * Gets the next movement direction for the player to move in
-     * 0 - Top left
-     * 1 - Top
-     * 2 - Top right
-     * 3 - Left
-     * 4 - Right
-     * 5 - Bottom left
-     * 6 - Bottom
-     * 7 - Bottom right
-     * 8 - Our clause, same tile
-     * @todo move this into Player entity
-     * @param player local player
-     */
-    private static getNextMovementDirection(player: Player): number {
-        const x = player.x;
-        const y = player.y;
-        const dX = player.destinationX;
-        const dY = player.destinationY;
-
-        if (x > dX && y < dY) {
-            return 0;
-        } else if (x < dX && y > dY) {
-            return 7;
-        } else if (x < dX && y < dY) {
-            return 2;
-        } else if (x > dX && y > dY) {
-            return 5;
-        } else if (x < dX && y === dY) {
-            return 4;
-        } else if (x > dX && y === dY) {
-            return 3;
-        } else if (y < dY && x === dX) {
-            return 1;
-        } else if (y > dY && x === dX) {
-            return 6;
-        } else {
-            // Represents we have not moved (i.e., clicked same tile)
-            return 8;
-        }
-    }
-    /**
-     * Updates the players current x/y co-ordinates (relative to the region)
-     * based on the direction they are going to move in
-     * @todo move this into the Player entity
-     * @param player local player
-     */
-    private static updatePlayersXY(player: Player): void {
-        const dX = player.destinationX;
-        const dY = player.destinationY;
-        if (player.x > dX && player.y < dY) {
-            player.x--;
-            player.y++;
-        } else if (player.x < dX && player.y > dY) {
-            player.x++;
-            player.y--;
-        } else if (player.x < dX && player.y < dY) {
-            player.x++;
-            player.y++;
-        } else if (player.x > dX && player.y > dY) {
-            player.x--;
-            player.y--;
-        } else if (player.x < dX && player.y === dY) {
-            player.x++;
-        } else if (player.x > dX && player.y === dY) {
-            player.x--;
-        } else if (player.y < dY && player.x === dX) {
-            player.y++;
-        } else if (player.y > dY && player.x === dX) {
-            player.y--;
-        }
     }
 }

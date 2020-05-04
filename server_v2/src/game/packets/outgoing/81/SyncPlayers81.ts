@@ -38,12 +38,12 @@ export default class SyncPlayers81 {
      */
     private _playerIndex: Set<number>;
 
-    constructor(player: Player, playerList: Player[], playerIndex: Set<number>, direction?: number, direction2?: number) {
+    constructor(player: Player, playerList: Player[], playerIndex: Set<number>) {
         this._localPlayer = player;
         this._playerList = playerList;
         this._playerIndex = playerIndex;
         // The update procedure
-        this.syncLocalPlayerMovement(direction, direction2);
+        this.syncLocalPlayerMovement(player);
         this.syncOtherPlayerMovement();
         this.updatePlayerList();
         this.writePlayerSyncMasks();
@@ -52,10 +52,9 @@ export default class SyncPlayers81 {
     /**
      * Determines the movement update type
      * and appends any data it needs to to our bitWriter
-     * @param direction the direction the player moved in
-     * @param direction2 the second direction for movement type 2 (a.k.a running)
+     * @param player local player
      */
-    public syncLocalPlayerMovement(direction?: number, direction2?: number): SyncPlayers81 {
+    public syncLocalPlayerMovement(player: Player): SyncPlayers81 {
         const br = this._bitWriter;
         const lp = this._localPlayer;
         const playerUpdate = lp.playerUpdated ? 1 : 0;
@@ -66,13 +65,13 @@ export default class SyncPlayers81 {
                 break;
             case 1:
                 br.writeNumber(1, 2);
-                br.writeNumber(direction as number, 3);
+                br.writeNumber(player.direction as number, 3);
                 br.writeBit(playerUpdate); // update mask
                 break;
             case 2:
                 br.writeNumber(2, 2);
-                br.writeNumber(direction as number, 3);
-                br.writeNumber(direction2 as number, 3);
+                br.writeNumber(player.direction as number, 3);
+                br.writeNumber(player.direction2 as number, 3);
                 br.writeBit(playerUpdate); // update mask
                 break;
             case 3:

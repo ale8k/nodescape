@@ -50,7 +50,7 @@ export default class LoginHandler {
                 // so we know we're safe emitting the client back here
                 this._client.loginStage = 3;
                 console.log("LOGIN STAGE IS: ", this._client.loginStage);
-                const p = (this._client as Player);
+                const p = (this._client as Player); // This down cast is necessary
                 p.packetBuffer = [];
                 p.x = 22;
                 p.y = 20;
@@ -67,7 +67,6 @@ export default class LoginHandler {
             }
         });
     }
-
     /**
      * Handles the first stage response of the login protocol
      * @param client the client for this connection instance
@@ -82,7 +81,6 @@ export default class LoginHandler {
             client.loginStage = 1;
         }
     }
-
     /**
      * Handles the second stage response of the login protocol
      * Breaks up the second response from the client and assigns it to our local Client object
@@ -136,5 +134,4 @@ export default class LoginHandler {
             console.log("Reconnection is not handled.");
         }
     }
-
 }
