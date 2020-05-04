@@ -3,6 +3,7 @@ import Player from "../entities/game/Player";
 import SyncPlayers81 from "./outgoing/81/SyncPlayers81";
 import UpdateRegion73 from "./outgoing/UpdateRegion73";
 import ParseWalkByTile164 from "./incoming/ParseWalkByTile164";
+import MovementHandler from "../../handlers/MovementHandler";
 
 /**
  * A static helper class which handles responding to incoming game packets
@@ -50,7 +51,7 @@ export default class PacketWriter {
         }
         // If player is moving, process their movement for next P81
         if (player.playerMoving) {
-            Player.processPlayerMovement(player);
+            MovementHandler.processPlayerMovement(player);
         }
 
         // Push 81 on always, it'll always be needed, notice the direction 1/2
