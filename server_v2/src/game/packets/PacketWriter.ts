@@ -8,7 +8,6 @@ import MovementHandler from "../../handlers/MovementHandler";
 /**
  * A static helper class which handles responding to incoming game packets
  * by writing the correct responses
- * @todo place handlers in their own classes
  * @author ale8k
  */
 export default class PacketWriter {
