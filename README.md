@@ -13,3 +13,6 @@ I used a number of resources to get this running:
 - Block-flag discovery: https://www.rune-server.ee/runescape-development/rs2-server/help/692068-block-flag-based-updating-0x10-render-failing.html
 - Manually going through the client for packet sizes: https://www.rune-server.ee/runescape-development/rs2-server/informative-threads/692158-317-client-server-packet-list.html
 - Update list mask consideration: https://www.rune-server.ee/runescape-development/rs2-server/help/692560-player-list-updating-should-consider-masks-loop.html
+
+# Tests
+- TODO

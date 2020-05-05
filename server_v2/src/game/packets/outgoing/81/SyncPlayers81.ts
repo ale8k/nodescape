@@ -3,6 +3,7 @@ import Player from "src/game/entities/game/Player";
 import RSString from "../../../../utils/RSString";
 import Masks from "./Masks";
 import MovementHandler from "../../../../handlers/MovementHandler";
+import PlayerHandler from "../../../../handlers/PlayerHandler";
 
 /**
  * This packet is responsible for our local players appearance and location, as well as
@@ -120,10 +121,13 @@ export default class SyncPlayers81 {
          * and check their co-ords relative to ours?
          * Then we know which masks?
          */
-        // The playerList excluding our local player
+        // The playerList excluding our local player, to be passed to the PlayerHandler
+        // so that it may get all the players in our region
         const filteredPlayerList = this._playerList.filter((player) => {
             return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
         });
+        // We need tests now, this is becoming unmanageable...
+        PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
 
         // If the index is 1, we know there's only us to update for
         if (this._playerIndex.size === 1) {

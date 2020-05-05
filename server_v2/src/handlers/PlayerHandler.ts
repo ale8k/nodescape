@@ -10,8 +10,9 @@ export default class PlayerHandler {
      * Checks our local players region and returns a list {@link playerList Player[]} of
      * all the players in that region (excluding our local player)
      * @param {Player} player local player
+     * @param {Player[]} totalPlayerList the entire list of currently connected player instances
      */
-    public static getPlayersInLocalPlayersRegion(player: Player): void {
+    public static getPlayersInLocalPlayersRegion(player: Player, totalPlayerList: Player[]): void {
 
     }
     /**
