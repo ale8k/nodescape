@@ -40,11 +40,6 @@ export default class GameServer {
      * I think async subject be more appropriate, test it Alex
      */
     private readonly _gameCycle$: Subject<string> = new Subject<string>();
-    /**
-     * DEBUG
-     */
-    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0,
-        0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 0];
 
     /**
      * Please note:
@@ -62,6 +57,7 @@ export default class GameServer {
             const clientEmitter$: EventEmitter = new EventEmitter();
             const client: Client = new Client(socket);
             new LoginHandler(client, clientEmitter$);
+
 
             // LOGGED IN
             clientEmitter$.on("successful-login", (player: Player) => {

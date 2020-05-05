@@ -58,6 +58,7 @@ export default class LoginHandler {
                 p.regiony = 3200;
                 p.plane = 0;
                 p.movementType = 3;
+                p.updateOurPlayer = true;
                 p.playerUpdated = true;
                 p.playerMoving = false;
                 p.destinationX = p.x;

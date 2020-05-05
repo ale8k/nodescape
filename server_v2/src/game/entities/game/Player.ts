@@ -35,6 +35,10 @@ export default class Player extends Client {
      */
     public movementType: number;
     /**
+     * A flag representing whether or not to sync our local players movement at all
+     */
+    public updateOurPlayer: boolean;
+    /**
      * A flag representing if the player has updated and requires a bitmask
      * appending to their next packet 81
      */

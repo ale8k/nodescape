@@ -2,6 +2,7 @@ import BitWriter from "../../../../utils/write-data/BitWriter";
 import Player from "src/game/entities/game/Player";
 import RSString from "../../../../utils/RSString";
 import Masks from "./Masks";
+import MovementHandler from "../../../../handlers/MovementHandler";
 
 /**
  * This packet is responsible for our local players appearance and location, as well as
@@ -12,7 +13,8 @@ export default class SyncPlayers81 {
     /**
      * DEBUG MASK
      */
-    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338, ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
+    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338,
+        ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
     /**
      * The bit writer which writes up until the masks
      */
@@ -57,8 +59,9 @@ export default class SyncPlayers81 {
     public syncLocalPlayerMovement(player: Player): SyncPlayers81 {
         const br = this._bitWriter;
         const lp = this._localPlayer;
+        const updateOurPlayer = lp.updateOurPlayer ? 1 : 0;
         const playerUpdate = lp.playerUpdated ? 1 : 0;
-        br.writeBit(1); // update our player always for now
+        br.writeBit(updateOurPlayer); // update our player always for now
         switch (lp.movementType) {
             case 0:
                 br.writeNumber(0, 2);
@@ -83,7 +86,7 @@ export default class SyncPlayers81 {
                 br.writeNumber(lp.x, 7);
                 break;
         }
-        if (playerUpdate === 1 || lp.movementType === 0) {
+        if (playerUpdate === 1 || lp.movementType === 0 && updateOurPlayer === 1) {
             this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         }
         return this;
@@ -113,13 +116,14 @@ export default class SyncPlayers81 {
         if (this._playerIndex.size === 1) {
             this._bitWriter.writeNumber(2047, 11);
         } else {
-            // hardcoding values for testing
             filteredPlayerList.forEach(otherPlayer => {
+                const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
+                const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
                 this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
                 this._bitWriter.writeBit(1); // mask update
                 this._bitWriter.writeBit(0); // teleport
-                this._bitWriter.writeNumber(0, 5); // y
-                this._bitWriter.writeNumber(0, 5); // x
+                this._bitWriter.writeNumber(otherY, 5);
+                this._bitWriter.writeNumber(otherX, 5);
             });
             // Crucial, after our players have been written, we not pass 2047 to END the loop
             this._bitWriter.writeNumber(2047, 11);

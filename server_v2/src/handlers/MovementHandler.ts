@@ -1,12 +1,37 @@
 import Player from "src/game/entities/game/Player";
 
 /**
- * Handles updating the {@link Player}'s movement flags,
- * such that when their next update comes the appropriate movement type and direction
+ * Handles updating the players {@link Player}'s movement flags & other {@link Player} relative co-ords,
+ * such that when their next update comes the appropriate movement type and direction or relative co-ords
  * can be selected and set.
  * @author ale8k
  */
 export default class MovementHandler {
+    /**
+     * Gets the relative co-ordinates for another playing in relation to our local player
+     * - Used in player list updating
+     * @param {Player} localPlayer local player
+     * @param {Player} otherPlayer other player to grab relative co-ordinates for
+     * @param {string} xOrY whether to grab x or y
+     */
+    public static getOtherPlayerRelativeXY(localPlayer: Player, otherPlayer: Player, xOrY: string): number {
+        const tileRange = 32;
+        let otherXY = 0;
+
+        if (xOrY === "x") {
+            otherXY = localPlayer.x - otherPlayer.x;
+        } else {
+            otherXY = localPlayer.y - otherPlayer.y;
+        }
+
+        if (otherXY < 0) {
+            otherXY = Math.abs(otherXY);
+        } else if (otherXY > 0) {
+            otherXY = tileRange - otherXY;
+        }
+
+        return otherXY;
+    }
     /**
      * Processes player movement if required
      * If the player's moving flag has updated, this will fire and update
