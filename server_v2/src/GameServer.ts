@@ -47,7 +47,6 @@ export default class GameServer {
      *  for the length of that connection
      */
     constructor() {
-
         // TURN GAME CYCLE ON
         this.startGameCycle(this.GAME_CYCLE_RATE, this._gameCycle$);
 
