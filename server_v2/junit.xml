@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="2" failures="0" time="3.397">
-  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-05T16:12:37" time="3.125" tests="2">
-    <testcase classname=" Reads username/password from login stage" name=" Reads username/password from login stage" time="0.005">
+<testsuites name="jest tests" tests="3" failures="0" time="3.7">
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-05T17:15:51" time="3.183" tests="1">
+    <testcase classname=" Player list should filter by local player regions both x and y" name=" Player list should filter by local player regions both x and y" time="0.006">
+    </testcase>
+  </testsuite>
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-05T17:15:54" time="0.259" tests="2">
+    <testcase classname=" Reads username/password from login stage" name=" Reads username/password from login stage" time="0.004">
     </testcase>
     <testcase classname=" Encodes a string into correct Base37 encoding" name=" Encodes a string into correct Base37 encoding" time="0.001">
     </testcase>

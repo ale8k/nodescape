@@ -12,8 +12,10 @@ export default class PlayerHandler {
      * @param {Player} player local player
      * @param {Player[]} totalPlayerList the entire list of currently connected player instances
      */
-    public static getPlayersInLocalPlayersRegion(player: Player, totalPlayerList: Player[]): void {
-
+    public static getPlayersInLocalPlayersRegion(player: Player, totalPlayerList: Player[]): Player[] {
+        return totalPlayerList.filter((otherPlayer) => {
+            return otherPlayer.regionx === player.regionx && otherPlayer.regiony === player.regiony;
+        });
     }
     /**
      * Filters a player list of players in our region but are not in our local players
