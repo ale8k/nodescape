@@ -107,6 +107,19 @@ export default class SyncPlayers81 {
      * @param playerList the list of player instances
      */
     public updatePlayerList(): SyncPlayers81 {
+        /**
+         * So, when updating we should only update those in
+         * a) our region
+         * b) in range of our local player
+         * This complicates things a little... But shouldn't be too hard
+         * At the moment we know who to write a mask far because they're all in consecutive order
+         * in the player list, now we'll no longer know at all
+         * So...
+         * Maybe...
+         * We loop through all players in the region
+         * and check their co-ords relative to ours?
+         * Then we know which masks?
+         */
         // The playerList excluding our local player
         const filteredPlayerList = this._playerList.filter((player) => {
             return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
@@ -124,11 +137,12 @@ export default class SyncPlayers81 {
                 this._bitWriter.writeBit(0); // teleport
                 this._bitWriter.writeNumber(otherY, 5);
                 this._bitWriter.writeNumber(otherX, 5);
+                // After this, we push the updated mask data for *this* player onto the mask array
+                this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
             });
             // Crucial, after our players have been written, we not pass 2047 to END the loop
             this._bitWriter.writeNumber(2047, 11);
-            // After this, we push the updated mask data for *this* player onto the mask array
-            this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+
         }
 
         // Because this part requires padding, we're going to pad it off.
