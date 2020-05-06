@@ -1,15 +1,9 @@
 import LoginHandler from "./handlers/LoginHandler";
 import Client from "./game/entities/Client";
 import Player from "./game/entities/game/Player";
-import WriteShort from "./utils/write-data/WriteShort";
-import RSString from "./utils/RSString";
 import { Server } from "net";
 import { EventEmitter } from "events";
-import { Subject, of, merge, forkJoin, Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import SyncPlayers81 from "./game/packets/outgoing/81/SyncPlayers81";
-import { once } from "cluster";
-import BitWriter from "./utils/write-data/BitWriter";
+import { Subject } from "rxjs";
 import PacketReader from "./game/packets/PacketReader";
 import IPacket from "./game/packets/interfaces/IPacket";
 import PacketWriter from "./game/packets/PacketWriter";

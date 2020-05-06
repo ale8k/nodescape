@@ -4,6 +4,7 @@ import SyncPlayers81 from "./outgoing/81/SyncPlayers81";
 import UpdateRegion73 from "./outgoing/UpdateRegion73";
 import ParseWalkByTile164 from "./incoming/ParseWalkByTile164";
 import MovementHandler from "../../handlers/MovementHandler";
+import RegionHandler from "../../handlers/RegionHandler";
 
 /**
  * A static helper class which handles responding to incoming game packets
@@ -37,8 +38,10 @@ export default class PacketWriter {
         }
 
         // If player is moving, process their movement for next P81
+        // If player leaves current region, update their region
         if (player.playerMoving) {
             MovementHandler.processPlayerMovement(player);
+            RegionHandler.watchForRegionChange(player);
         }
 
         // Push 81 on always, it'll always be needed, notice the direction 1/2
@@ -55,7 +58,7 @@ export default class PacketWriter {
      */
     public static sendInitialPackets(player: Player, playerList: Player[], playerIndex: Set<number>): void {
         const totalPackets = [];
-        totalPackets.push(new UpdateRegion73(player).updateRegion(3200, 3200).getPacket73());
+        totalPackets.push(new UpdateRegion73(player).updateRegion(player.regionx, player.regiony).getPacket73());
         totalPackets.push(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
         player.socket.write(Buffer.concat(totalPackets));
         // Finally reset our movement to type 0, because we can't move on login

@@ -35,10 +35,6 @@ prefilteredList[1].regionx = 0;
 prefilteredList[1].regiony = 0;
 const filteredList: Player[] = [{...dummyPlayer}];
 
-/**
- * We have 4 in the list, one is of a different region, we expect
- * the list length to be 3 and all players region x/y's to be 3200
- */
 test("Player list should filter by local player regions both x and y", () => {
     expect(PlayerHandler.getPlayersInLocalPlayersRegion(dummyPlayer, prefilteredList)).toHaveLength(1);
     expect(PlayerHandler.getPlayersInLocalPlayersRegion(dummyPlayer, prefilteredList)).toEqual(filteredList);
