@@ -14,10 +14,10 @@ import RegionHandler from "../../handlers/RegionHandler";
 export default class PacketWriter {
     /**
      * Responds to each packet within the current local player packet buffer
-     * @param packets the decrypted array of current cached packets
-     * @param player the local player
-     * @param playerList the total player list
-     * @param playerIndex the total player index list
+     * @param {IPacket[]} packets the decrypted array of current cached packets
+     * @param {Player} player the local player
+     * @param {Player[]} playerList the total player list
+     * @param {Set<number>} playerIndex the total player index list
      * @todo When looping through or shifting the packet array, filter out duplicates and only take the
      * latest one. Otherwise we're gonna stack up a shitload of pointless packets to send...
      */
@@ -54,7 +54,9 @@ export default class PacketWriter {
     }
     /**
      * Updates the local player with all the initial packets required upon login
-     * @param player the local player
+     * @param {Player} player the local player
+     * @param {Player[]} playerList the total player list
+     * @param {Set<number>} playerIndex the total player index list
      */
     public static sendInitialPackets(player: Player, playerList: Player[], playerIndex: Set<number>): void {
         const totalPackets = [];
@@ -68,8 +70,11 @@ export default class PacketWriter {
     /**
      * Takes an individual packet and directs it to the correct handler,
      * this ultimately returns the buffer/data we need to update our outgoing packets
-     * @param packet the packet being read
-     * @param player local player
+     * @param {IPacket | undefined} packet the packet being read, note this may be undefined in the case there are no more
+     * packets to route
+     * @param {Player} player local player
+     * @returns {Buffer | number} returns either a response buffer or 0, note 0 represents packet 81 will respond
+     * to this packet
      */
     private static routePacketToHandler(packet: IPacket | undefined, player: Player): Buffer | number {
         switch (packet?.opcode) {

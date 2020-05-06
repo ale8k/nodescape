@@ -21,6 +21,7 @@ export default class RegionHandler {
      * The region change flags in this method work as so:
      *  -1 Represents a negative change, 0 represents no change and +1 represents a positive change
      * @param {Player} player local player
+     * @returns {number[]} an array determining whether to apply a pos/neg change to the players current region
      */
     public static watchForRegionChange(player: Player): number[] {
         let regionXChange = 0;
@@ -33,7 +34,6 @@ export default class RegionHandler {
         } else if (player.x > maxTile) {
             regionXChange = 1;
         }
-
 
         if (player.y < minTile) {
             regionYChange = -1;

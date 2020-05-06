@@ -15,6 +15,7 @@ export default class BitWriter {
     /**
      * Returns the bit array length, this will be used
      * in sizing correction
+     * @returns {number} the length of the internal BitWriter buffer
      */
     public get bufferLength(): number {
         return this._bitArr.length;
@@ -22,8 +23,8 @@ export default class BitWriter {
 
     /**
      * Converts the interal bit array into a byte array and writes the bytes to a given buffer
-     * @param byteIndex the index to start writing the bits from
-     * @param b the buffer to perform the method on
+     * @param {number} byteIndex the index to start writing the bits from
+     * @param {Buffer} b the buffer to perform the method on
      */
     public writeBitsToBuffer(b: Buffer, byteIndex: number): void {
         let bitIndex = 7;
@@ -40,7 +41,8 @@ export default class BitWriter {
     }
     /**
      * Writes a bit to the interal BitWriter buffer
-     * @param num the bit value
+     * @param {number} num the bit value
+     * @returns {BitWriter} returns this BitWriter instance
      */
     public writeBit(num: number): BitWriter {
         if (num === 0 || num === 1) {
@@ -56,8 +58,9 @@ export default class BitWriter {
      * Please note, if you pass a number that has a minimum bits of
      * say 4, and try to fix it to size 1. This will not work.
      * Pushes the bits onto the interal bit array.
-     * @param num the number to convert into a bit arr
-     * @param amount the amount of bits to emit
+     * @param {number} num the number to convert into a bit arr
+     * @param {number} amount the amount of bits to emit
+     * @returns {BitWriter} returns this BitWriter instance
      */
     public writeNumber(num: number, amount: number): BitWriter {
         const bitArr = this.convertToBitArray(num);
@@ -74,9 +77,10 @@ export default class BitWriter {
     /**
      * Converts a number into bits and overwrites bits in the cached buffer
      * with a brand new value. This is used in sizing a variable frame.
-     * @param num the number we wish to write into bits
-     * @param amount the length of how far to replace
-     * @param index the index to begin replacing the bits currently written from
+     * @param {number} num the number we wish to write into bits
+     * @param {number} amount the length of how far to replace
+     * @param {number} index the index to begin replacing the bits currently written from
+     * @returns {BitWriter} returns this BitWriter instance
      */
     public writeNumberOver(num: number, amount: number, index: number): BitWriter {
         const bitArr = this.convertToBitArray(num);
@@ -98,7 +102,8 @@ export default class BitWriter {
     }
     /**
      * Takes a whole integer values and parses it into an array of bits
-     * @param number the integer
+     * @param {number} number the integer
+     * @returns {number[]} the number converted into an array of bits
      */
     private convertToBitArray(number: number): number[] {
         const numBitArr = (number)?.toString(2).split("").map(numString => {
@@ -109,10 +114,10 @@ export default class BitWriter {
     /**
      * Write a bit to a NodeJS Buffer
      * The naming is to stop collision with writeBit to our internal bit buffer
-     * @param buffer the buffer
-     * @param i buffer index
-     * @param bit bit index
-     * @param value bit value
+     * @param {Buffer | uint8Array} buffer the buffer
+     * @param {number} i buffer index
+     * @param {number} bit bit index
+     * @param {number} value bit value
      */
     private writeBitInteral(b: Buffer | Uint8Array, index: number, bit: number, value: number): void {
         if (value === 0) {

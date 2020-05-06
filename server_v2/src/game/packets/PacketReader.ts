@@ -13,7 +13,8 @@ export default class PacketReader {
      * This object has the decrypted id, packet length and payload
      * Now because it's returning the packet itself, it also clears the buffer here
      * as it's just convenient, sorry :P
-     * @param player our local player instance
+     * @param {Player} player our local player instance
+     * @returns {IPacket[]} an array of decrypted packets
      */
     public static getDecryptedPackets(player: Player): IPacket[] {
         const playerBuffer = player.packetBuffer;
@@ -70,6 +71,9 @@ export default class PacketReader {
     }
     /**
      * Parses an encrypted opcode into a decrypted one
+     * @param {number} opcode the opcode we wish to decrypt
+     * @param {IsaacCipher} inStreamDecryption the ISAAC decryption instance for this player
+     * @returns {number} returns the decrypted opcode
      */
     private static parsePacketOpcode(opcode: number, inStreamDecryption: IsaacCipher): number {
         const encryptedOpcode = opcode & 0xff;
@@ -78,7 +82,8 @@ export default class PacketReader {
     }
     /**
      * Returns packet length for a packet denoted with a byte declaring its length
-     * @param packet the packet
+     * @param {number[]} packet the packet in number[] format (taken from the buffer directly)
+     * @returns {number} the packet size for a variable sized packet
      */
     private static getVarBytePacketLength(packet: number[]): number {
         // + 2 for opcode and sizing byte
@@ -86,7 +91,8 @@ export default class PacketReader {
     }
     /**
      * Returns packet fixed length for a given [decrypted] opcode
-     * @param opcode the [decrypted] opcode
+     * @param {number} opcode the [decrypted] opcode
+     * @returns {number} the packet size for a fixed size packet
      */
     private static getFixedPacketLength(opcode: number): number {
         switch (opcode) {

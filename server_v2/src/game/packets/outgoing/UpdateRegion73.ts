@@ -21,8 +21,9 @@ export default class UpdateRegion73 {
     /**
      * Sends an independent packet which updates the local players
      * current region
-     * @param regionx region x
-     * @param regiony region y
+     * @param {number} regionx region x
+     * @param {number} regiony region y
+     * @returns {UpdateRegion73} returns this instance, to be used in extension
      */
     public updateRegion(regionx: number, regiony: number): UpdateRegion73 {
         const player = this._localPlayer;
@@ -34,6 +35,7 @@ export default class UpdateRegion73 {
     }
     /**
      * Gets the buffer from this packets
+     * @returns {Buffer} the buffer used by this packet builder
      */
     public getPacket73(): Buffer {
         return this._b;

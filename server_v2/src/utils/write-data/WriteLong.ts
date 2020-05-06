@@ -6,6 +6,9 @@
 export default class WriteLong {
     /**
      * Writes a Big-endian long at specified index
+     * @param {number} value the value we wish to write
+     * @param {Buffer} b the buffer we wish to write to
+     * @param {number} index the byte index we wish to start at when writing the value
      */
     public BE(value: number, b: Buffer, index: number): void {
         b[index] = (value >> 56);

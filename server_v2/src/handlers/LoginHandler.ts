@@ -29,7 +29,8 @@ export default class LoginHandler {
 
     /**
      * Sets up a data event to handle incoming login associated data
-     * @param client the client attempting to login
+     * @param {Client} client the client attempting to login
+     * @param {EventEmitter} clientEmitter the {@link EventEmitter} to emit the response of a clients attempted login to
      */
     constructor(client: Client, clientEmitter: EventEmitter) {
         this._client = client;
@@ -70,10 +71,10 @@ export default class LoginHandler {
     }
     /**
      * Handles the first stage response of the login protocol
-     * @param client the client for this connection instance
-     * @param data incoming data for this client
+     * @param {Client} client the client for this connection instance
+     * @param {Buffer} data incoming data for this client
      */
-    private handleFirstStage(client: Client, data: Buffer) {
+    private handleFirstStage(client: Client, data: Buffer): void {
         if (data[0] === 14) {
             const b = Buffer.alloc(17);
             this._serverSessionKey = BigInt(Math.ceil(Math.random() * 999999999));
@@ -88,10 +89,10 @@ export default class LoginHandler {
      * @todo Currently it will only connect status code 16 (new session), extend this
      * to support 18 (reconnection). We also want to check if the username/password exists,
      * for now I've hardcoded here some username/password combos
-     * @param client the client for this connection instance
-     * @param data incoming data for this client
+     * @param {Client} client the client for this connection instance
+     * @param {Buffer} data incoming data for this client
      */
-    private handleSecondStage(client: Client, data: Buffer) {
+    private handleSecondStage(client: Client, data: Buffer): void {
         if (data[0] === 16) {
             const rsaBlock = data.toJSON().data.slice(43);
             const clientSessionKey = Long.fromBytes(rsaBlock.slice(1, 9));

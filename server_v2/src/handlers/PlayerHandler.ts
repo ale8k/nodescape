@@ -11,6 +11,7 @@ export default class PlayerHandler {
      * all the players in that region (excluding our local player)
      * @param {Player} player local player
      * @param {Player[]} totalPlayerList the entire list of currently connected player instances
+     * @returns {Player[]} an array of the players in our local players current region
      */
     public static getPlayersInLocalPlayersRegion(player: Player, totalPlayerList: Player[]): Player[] {
         return totalPlayerList.filter((otherPlayer) => {
@@ -22,6 +23,7 @@ export default class PlayerHandler {
      * visible range
      * @param {Player} player local player
      * @param {Player[]} playerList the list of all players in our local players region
+     * @returns {Player[]} an array of the players in our local players visible range
      */
     public static getPlayersInVisibleRange(player: Player, playerList: Player[]): void {
 

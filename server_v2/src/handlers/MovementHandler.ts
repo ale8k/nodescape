@@ -13,6 +13,7 @@ export default class MovementHandler {
      * @param {Player} localPlayer local player
      * @param {Player} otherPlayer other player to grab relative co-ordinates for
      * @param {string} xOrY whether to grab x or y
+     * @returns {number} the correct value of an x/y from another players relative to our local player
      */
     public static getOtherPlayerRelativeXY(localPlayer: Player, otherPlayer: Player, xOrY: string): number {
         const tileRange = 32;
@@ -36,7 +37,7 @@ export default class MovementHandler {
      * Processes player movement if required
      * If the player's moving flag has updated, this will fire and update
      * the players movement direction and movement type
-     * @param player local player
+     * @param {Player} player local player
      */
     public static processPlayerMovement(player: Player): void {
         player.movementType = 1;
@@ -67,7 +68,8 @@ export default class MovementHandler {
      * 6 - Bottom
      * 7 - Bottom right
      * 8 - Our clause, same tile
-     * @param player local player
+     * @param {Player} player local player
+     * @returns {number} the direction to move in respective of the given x-dX/y-dY
      */
     private static getNextMovementDirection(player: Player): number {
         const x = player.x;
@@ -100,7 +102,7 @@ export default class MovementHandler {
      * Updates the destination x/y with the next set of x/y path co-ords, i.e.,
      * If there are path co-ordinates to further step to, update them into our current
      * destination X/Y
-     * @param player local player
+     * @param {Player} player local player
      */
     private static updatePlayersDestinationXY(player: Player): void {
         if (player.pathCoords.length !== 0) {
@@ -113,7 +115,7 @@ export default class MovementHandler {
     /**
      * Updates the players current x/y co-ordinates (relative to the region)
      * based on the direction they are going to move in
-     * @param player local player
+     * @param {Player} player local player
      */
     private static updatePlayersXY(player: Player): void {
         const dX = player.destinationX;

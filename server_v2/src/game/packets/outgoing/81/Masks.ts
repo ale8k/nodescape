@@ -3,9 +3,8 @@ import BitWriter from "src/utils/write-data/BitWriter";
 export default class Masks {
     /**
      * Writes the mask 0x10 into a BitWriter
-     * @param maskData the data to append
-     * @param bitWriter the bitWriter to write to
-     * @param p81 a reference back to the packet81
+     * @param {number[]} maskData the data to append
+     * @param {BitWriter} bitWriter the bitWriter to write to
      */
     public append0x10(maskData: number[], bitWriter: BitWriter): void {
         bitWriter.writeNumber(0x10, 8);

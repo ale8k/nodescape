@@ -10,7 +10,8 @@ export default class RSString {
      * Reads through an array of bytes until the delimiter,
      * this delimit the username, we then read the password
      * and return an array with them both
-     * @param array the array of bytes representing the string(s)
+     * @param {string[]} array the array of bytes representing the string(s)
+     * @return {string[]} the username and password strings parsed and wrapped in an array
      */
     public static readRSStringUsernameAndPassword(array: number[]): string[] {
         const copy: number[] = JSON.parse(JSON.stringify(array));
@@ -26,13 +27,16 @@ export default class RSString {
     }
     /**
      * Writes a string into a long size sets of bytes, encoded in base37
+     * @param {string} name the string we wish to encode
+     * @returns {number[]} the encoded37 string to size {@link Long} in bytes
      */
     public static writeStringToLongBytes37(name: string): number[] {
         return Long.fromNumber(this.encodeBase37(name)).toBytes();
     }
     /**
      * Encodes a string into Base37
-     * @param str the string to encode
+     * @param {string} str the string to encode
+     * @returns {number} the string encoded37 into an integer
      */
     private static encodeBase37(str: string): number {
         // grabs the character code

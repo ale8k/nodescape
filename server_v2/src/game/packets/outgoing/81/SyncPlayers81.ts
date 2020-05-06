@@ -41,6 +41,12 @@ export default class SyncPlayers81 {
      */
     private _playerIndex: Set<number>;
 
+    /**
+     *
+     * @param {Player} player local player
+     * @param {Player[]} playerList total list of all player instances
+     * @param {Set<number>} playerIndex total list of all connected player indexes
+     */
     constructor(player: Player, playerList: Player[], playerIndex: Set<number>) {
         this._localPlayer = player;
         this._playerList = playerList;
@@ -55,7 +61,8 @@ export default class SyncPlayers81 {
     /**
      * Determines the movement update type
      * and appends any data it needs to to our bitWriter
-     * @param player local player
+     * @param {Player} player local player
+     * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public syncLocalPlayerMovement(player: Player): SyncPlayers81 {
         const br = this._bitWriter;
@@ -94,6 +101,7 @@ export default class SyncPlayers81 {
     }
     /**
      * Handles 0 other players movements for now
+     * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public syncOtherPlayerMovement(): SyncPlayers81 {
         // Ideally it'll go through each Player in our playerlist and write their co-ordinates. For now,
@@ -106,6 +114,7 @@ export default class SyncPlayers81 {
      * @todo Needs cleaning up.
      * @param playerIndex the list of indexes
      * @param playerList the list of player instances
+     * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public updatePlayerList(): SyncPlayers81 {
         /**
@@ -160,6 +169,7 @@ export default class SyncPlayers81 {
     }
     /**
      * Should only be called if mobsAwaitingUpdate > 0
+     * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public writePlayerSyncMasks(): SyncPlayers81 {
         this._playersWhoNeedUpdatesMasks.forEach(mask => {
@@ -170,6 +180,7 @@ export default class SyncPlayers81 {
     /**
      * Writes the bitBuffer of our bitWriter into a buffer of bytes
      * and emits it through the socket.
+     * @returns {Buffer} the buffer for this packet builder instance
      */
     public getPacket81(): Buffer {
         const payloadLength = this._bitWriter.bufferLength / 8;

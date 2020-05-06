@@ -6,6 +6,9 @@
 export default class ReadInt {
     /**
      * Reads a Big-endian int at specified index
+     * @param {Buffer} b the buffer to read from
+     * @param {number} index the index to begin reading from
+     * @returns {number} the accumulated value in integer format
      */
     public static BE(b: Buffer, index: number): number {
         return ((b[(index)] & 0xff) << 24) +

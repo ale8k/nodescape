@@ -3,7 +3,9 @@ import IPacket from "../interfaces/IPacket";
 /**
  * Parses packet 164, retrieves the basex+x, basey+y and additional pathing bytes
  * if a pathing route
- * @param { opcode, payload } packet the contents of a Packet : <IPacket>
+ * @param {IPacket} packet the contents of a Packet
+ * @returns {opcode: number, baseXwithX: number, baseYwithY: number, pathCoords: number[], randomByteOnTheEndLol: number}
+ * an object representing the structure of what a parsed packet 164 should look like (needs typing?)
  * @author ale8k
  */
 export default function ParseWalkByTile164({ opcode, payload }: IPacket): { opcode: number, baseXwithX: number, baseYwithY: number, pathCoords: number[], randomByteOnTheEndLol: number} {

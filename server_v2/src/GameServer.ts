@@ -94,8 +94,9 @@ export default class GameServer {
     }
 
     /**
-     * Set _gameCycle$ to emit 'tick' every 600ms
-     * This represents our game loop, and allows sockets to subscribe briefly.
+     * This represents our game loop, and allows sockets to subscribe briefly
+     * @param {number} cycleRate The cycle rate to read/respond to packets at
+     * @param {Subject<string>} cycleSubject the subject to emit to in which our players will subscribe
      */
     private startGameCycle(cycleRate: number, cycleSubject: Subject<string>): void {
         setInterval(() => {
@@ -105,7 +106,7 @@ export default class GameServer {
 
     /**
      * Updates the PLAYER_INDEX with this local players index
-     * @param player the local player
+     * @param {Player} player the local player
      */
     private updatePlayerIndex(player: Player): void {
         player.localPlayerIndex = this.getNextConnectionIndex();
@@ -116,6 +117,7 @@ export default class GameServer {
      * Adds the next index to the PLAYER_INDEX
      * It checks if there's any gaps between 0-2047 and fills them
      * This would be a usecase for when a player logsout.
+     * @returns {number} the next index a player can be indexed at upon connection
      */
     private getNextConnectionIndex(): number {
         const maxPlayers = 2046;
@@ -134,16 +136,19 @@ export default class GameServer {
     /**
      * Sets up the listener which listens for incoming packets
      * and stores them in the players packetBuffer (it's actually an array lol)
+     * @param {Player} player local player
      */
     private collectGamePackets(player: Player): void {
         player.socket.on("data", (data) => {
-            //console.log("ENCRYPTED OPCODE: ", data[0]);
             player.packetBuffer.push(...data.toJSON().data);
         });
     }
 
     /**
      * Gets the other indexes currently connected, i.e., it skips our local players
+     * @param {Set<number>} playerIndexList the total index list for the server
+     * @param {Player} player local player, used to compare this players indexes vs others
+     * @return {number[]} the total amount of connected indexes (excluding our player)
      */
     private getConnectedIndexes(playerIndexList: Set<number>, player: Player): number[] {
         const otherPlayerList: number[] = [];
