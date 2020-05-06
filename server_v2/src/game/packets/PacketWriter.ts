@@ -41,7 +41,12 @@ export default class PacketWriter {
         // If player leaves current region, update their region
         if (player.playerMoving) {
             MovementHandler.processPlayerMovement(player);
-            RegionHandler.watchForRegionChange(player);
+            const [regionXChanged, regionYChanged] = RegionHandler.watchForRegionChange(player);
+
+            if (regionXChanged || regionYChanged) {
+                RegionHandler.updatePlayersRegion(player, regionXChanged, regionYChanged);
+                //
+            }
         }
 
         // Push 81 on always, it'll always be needed, notice the direction 1/2

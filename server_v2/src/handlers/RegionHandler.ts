@@ -43,4 +43,38 @@ export default class RegionHandler {
 
         return [regionXChange, regionYChange];
     }
+    /**
+     * Updates the player's instance regionx/y properties to their new region
+     * @param {Player} player local player
+     * @param {number} regionXChange 0/-1/1 representing direction to update region co-ordinate
+     * @param {number} regionYChange 0/-1/1 representing direction to update region co-ordinate
+     */
+    public static updatePlayersRegion(player: Player, regionXChange: number, regionYChange: number): void {
+        switch(regionXChange) {
+            case 0:
+                break;
+            case 1:
+                player.regionx += 64;
+                break;
+            case -1:
+                player.regionx -= 64;
+                break;
+        }
+        switch(regionYChange) {
+            case 0:
+                break;
+            case 1:
+                player.regiony += + 64;
+                break;
+            case -1:
+                player.regiony -= 64;
+                break;
+        }
+    }
+    /**
+     *
+     */
+    public static updatePlayersNewRegionCoordinates(player: Player): void {
+
+    }
 }
