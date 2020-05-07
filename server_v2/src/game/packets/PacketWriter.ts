@@ -38,7 +38,7 @@ export default class PacketWriter {
         }
 
         // If player is moving, process their movement for next P81
-        // If player leaves current region, update their region
+        // If player leaves current region, update their region and new region co-ordsd
         if (player.playerMoving) {
             MovementHandler.processPlayerMovement(player);
             const [regionXChanged, regionYChanged] = RegionHandler.watchForRegionChange(player);

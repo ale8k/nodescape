@@ -136,7 +136,8 @@ export default class SyncPlayers81 {
             return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
         });
         // We need tests now, this is becoming unmanageable...
-        PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
+        const playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
+        PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
 
         // If the index is 1, we know there's only us to update for
         if (this._playerIndex.size === 1) {

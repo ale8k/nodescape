@@ -53,7 +53,7 @@ export default class LoginHandler {
                 console.log("LOGIN STAGE IS: ", this._client.loginStage);
                 const p = (this._client as Player); // This down cast is necessary
                 p.packetBuffer = [];
-                p.x = 86;
+                p.x = 67;
                 p.y = 86;
                 p.regionx = 3200;
                 p.regiony = 3200;
