@@ -92,6 +92,8 @@ export default class RegionHandler {
     /**
      * Updates the players x/y path co-ordinates relative to their new region
      * @param {Player} player local player
+     * @param {string} xOrY whether to update the x/y co-ordinates of the pathing array
+     * @param {number} posOrNeg determines whether or not to +/- 64 depending on the region change value (0, -1, 1)
      */
     private static updatePlayersPathCoords(player: Player, xOrY: string, posOrNeg: number): void {
         const pathCoords = player.pathCoords;
