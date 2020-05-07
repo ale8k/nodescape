@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="21" failures="0" time="3.783">
-  <testsuite name="RegionHandlers watchForChange should change correctly according to players x/y" errors="0" failures="0" skipped="0" timestamp="2020-05-06T15:38:31" time="3.008" tests="18">
+<testsuites name="jest tests" tests="21" failures="0" time="4.079">
+  <testsuite name="RegionHandlers watchForChange should change correctly according to players x/y" errors="0" failures="0" skipped="0" timestamp="2020-05-07T14:45:14" time="3.276" tests="18">
     <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region" time="0.005">
     </testcase>
     <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the northern region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the northern region" time="0.001">
@@ -9,15 +9,15 @@
     </testcase>
     <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the east region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the east region" time="0.001">
     </testcase>
-    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-east region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-east region" time="0.002">
+    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-east region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-east region" time="0.001">
     </testcase>
     <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the southern region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the southern region" time="0.001">
     </testcase>
-    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-west region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-west region" time="0.001">
+    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-west region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the south-west region" time="0">
     </testcase>
-    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the west region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the west region" time="0.001">
+    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the west region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the west region" time="0.002">
     </testcase>
-    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the north-west region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the north-west region" time="0.001">
+    <testcase classname="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the north-west region" name="RegionHandlers watchForChange should change correctly according to players x/y Should not change the region to the north-west region" time="0">
     </testcase>
     <testcase classname="RegionHandlers updatePlayersRegion should add/take 64 according to the given region change Should not mutate the players region co-ordinates" name="RegionHandlers updatePlayersRegion should add/take 64 according to the given region change Should not mutate the players region co-ordinates" time="0.001">
     </testcase>
@@ -38,14 +38,14 @@
     <testcase classname="RegionHandlers updatePlayersRegion should add/take 64 according to the given region change Should mutate the players region co-ordinates to the south-east region" name="RegionHandlers updatePlayersRegion should add/take 64 according to the given region change Should mutate the players region co-ordinates to the south-east region" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-06T15:38:34" time="0.241" tests="2">
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-07T14:45:18" time="0.235" tests="2">
     <testcase classname=" Reads username/password from login stage" name=" Reads username/password from login stage" time="0.004">
     </testcase>
     <testcase classname=" Encodes a string into correct Base37 encoding" name=" Encodes a string into correct Base37 encoding" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-06T15:38:34" time="0.227" tests="1">
-    <testcase classname=" Player list should filter by local player regions both x and y" name=" Player list should filter by local player regions both x and y" time="0.004">
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2020-05-07T14:45:18" time="0.237" tests="1">
+    <testcase classname=" Player list should filter by local player regions both x and y" name=" Player list should filter by local player regions both x and y" time="0.005">
     </testcase>
   </testsuite>
 </testsuites>

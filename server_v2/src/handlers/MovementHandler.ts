@@ -49,6 +49,7 @@ export default class MovementHandler {
             console.log("dest xy reached");
 
             if (player.pathCoords.length > 0) {
+                console.log("PATH CO-ORDS:", player.pathCoords);
                 MovementHandler.updatePlayersDestinationXY(player);
                 player.playerMoving = true;
                 player.movementType = 1;

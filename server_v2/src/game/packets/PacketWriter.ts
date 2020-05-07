@@ -44,9 +44,11 @@ export default class PacketWriter {
             const [regionXChanged, regionYChanged] = RegionHandler.watchForRegionChange(player);
 
             if (regionXChanged || regionYChanged) {
+                console.log("Region change fired");
                 RegionHandler.updatePlayersRegion(player, regionXChanged, regionYChanged);
-                //
+                bufferArray.push(new UpdateRegion73(player).updateRegion().getPacket73());
             }
+
         }
 
         // Push 81 on always, it'll always be needed, notice the direction 1/2
@@ -65,7 +67,7 @@ export default class PacketWriter {
      */
     public static sendInitialPackets(player: Player, playerList: Player[], playerIndex: Set<number>): void {
         const totalPackets = [];
-        totalPackets.push(new UpdateRegion73(player).updateRegion(player.regionx, player.regiony).getPacket73());
+        totalPackets.push(new UpdateRegion73(player).updateRegion().getPacket73());
         totalPackets.push(new SyncPlayers81(player, playerList, playerIndex).getPacket81());
         player.socket.write(Buffer.concat(totalPackets));
         // Finally reset our movement to type 0, because we can't move on login

@@ -45,19 +45,29 @@ export default class RegionHandler {
     }
     /**
      * Updates the player's instance regionx/y properties to their new region
+     * Also calls updatePlayersCoordsForNewRegion
      * @param {Player} player local player
      * @param {number} regionXChange 0/-1/1 representing direction to update region co-ordinate
      * @param {number} regionYChange 0/-1/1 representing direction to update region co-ordinate
      */
     public static updatePlayersRegion(player: Player, regionXChange: number, regionYChange: number): void {
+        let xPathCoordChange = 0;
+        let yPathCoordChange = 0;
+
         switch(regionXChange) {
             case 0:
                 break;
             case 1:
                 player.regionx += 64;
+                player.x -= 64;
+                player.destinationX -= 64;
+                xPathCoordChange = 1;
                 break;
             case -1:
                 player.regionx -= 64;
+                player.x += 64;
+                player.destinationX += 64;
+                xPathCoordChange = -1;
                 break;
         }
         switch(regionYChange) {
@@ -65,16 +75,57 @@ export default class RegionHandler {
                 break;
             case 1:
                 player.regiony += + 64;
+                player.y -= 64;
+                player.destinationY -= 64;
+                yPathCoordChange = 1;
                 break;
             case -1:
                 player.regiony -= 64;
+                player.y += 64;
+                player.destinationY += 64;
+                yPathCoordChange = -1;
                 break;
         }
+        xPathCoordChange !== 0 ? this.updatePlayersPathCoords(player, "x", xPathCoordChange) : null;
+        yPathCoordChange !== 0 ? this.updatePlayersPathCoords(player, "y", yPathCoordChange) : null;
     }
     /**
-     *
+     * Updates the players x/y path co-ordinates relative to their new region
+     * @param {Player} player local player
      */
-    public static updatePlayersNewRegionCoordinates(player: Player): void {
-
+    private static updatePlayersPathCoords(player: Player, xOrY: string, posOrNeg: number): void {
+        const pathCoords = player.pathCoords;
+        if (pathCoords.length > 0) {
+            if (xOrY === "x") {
+                pathCoords.forEach((coord, i) => {
+                    if (i % 2 === 0) {
+                        switch (posOrNeg) {
+                            case 1:
+                                pathCoords[i] -= 64;
+                                break;
+                            case -1:
+                                pathCoords[i] += 64;
+                                break;
+                        }
+                    }
+                });
+            }
+            if (xOrY === "y") {
+                pathCoords.forEach((coord, i) => {
+                    if (i % 2 !== 0) {
+                        switch (posOrNeg) {
+                            case 1:
+                                pathCoords[i] -= 64;
+                                break;
+                            case -1:
+                                pathCoords[i] += 64;
+                                break;
+                        }
+                    }
+                });
+            }
+        }
+        player.pathCoords = pathCoords;
     }
+
 }
