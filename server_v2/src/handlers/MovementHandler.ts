@@ -45,13 +45,14 @@ export default class MovementHandler {
         console.log("players xy:", player.x, player.y, "players dest xy:", player.destinationX, player.destinationY, "players path coords:", player.pathCoords);
         if (player.x === player.destinationX && player.y === player.destinationY) {
             player.playerMoving = false;
-            player.movementType = 0;
+            player.updateOurPlayer = false;
             console.log("dest xy reached");
 
             if (player.pathCoords.length > 0) {
                 console.log("PATH CO-ORDS:", player.pathCoords);
                 MovementHandler.updatePlayersDestinationXY(player);
                 player.playerMoving = true;
+                player.updateOurPlayer = true;
                 player.movementType = 1;
                 player.direction = MovementHandler.getNextMovementDirection(player);
             }

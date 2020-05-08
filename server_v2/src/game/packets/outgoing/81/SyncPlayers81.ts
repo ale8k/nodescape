@@ -69,34 +69,40 @@ export default class SyncPlayers81 {
         const lp = this._localPlayer;
         const updateOurPlayer = lp.updateOurPlayer ? 1 : 0;
         const playerUpdate = lp.updateLocalPlayer ? 1 : 0;
-        br.writeBit(updateOurPlayer); // update our player always for now
-        switch (lp.movementType) {
-            case 0:
-                br.writeNumber(0, 2);
-                break;
-            case 1:
-                br.writeNumber(1, 2);
-                br.writeNumber(player.direction as number, 3);
-                br.writeBit(playerUpdate); // update mask
-                break;
-            case 2:
-                br.writeNumber(2, 2);
-                br.writeNumber(player.direction as number, 3);
-                br.writeNumber(player.direction2 as number, 3);
-                br.writeBit(playerUpdate); // update mask
-                break;
-            case 3:
-                br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
-                br.writeNumber(lp.plane, 2);
-                br.writeBit(1); // always teleported
-                br.writeBit(playerUpdate); // update mask
-                br.writeNumber(lp.y, 7);
-                br.writeNumber(lp.x, 7);
-                break;
+        br.writeBit(updateOurPlayer);
+        if (updateOurPlayer === 1) {
+            switch (lp.movementType) {
+                case 0:
+                    br.writeNumber(0, 2);
+                    break;
+                case 1:
+                    br.writeNumber(1, 2);
+                    br.writeNumber(player.direction as number, 3);
+                    br.writeBit(playerUpdate); // update mask
+                    break;
+                case 2:
+                    br.writeNumber(2, 2);
+                    br.writeNumber(player.direction as number, 3);
+                    br.writeNumber(player.direction2 as number, 3);
+                    br.writeBit(playerUpdate); // update mask
+                    break;
+                case 3:
+                    br.writeNumber(3, 2); // type 3 - we have a teleport flag to determine that bit
+                    br.writeNumber(lp.plane, 2);
+                    br.writeBit(1); // always teleported
+                    br.writeBit(playerUpdate); // update mask
+                    br.writeNumber(lp.y, 7);
+                    br.writeNumber(lp.x, 7);
+                    break;
+            }
         }
         if (playerUpdate === 1 || lp.movementType === 0 && updateOurPlayer === 1) {
             this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
         }
+        // Turn player update off for next packet, only an interaction should be turning it back on
+        lp.updateLocalPlayer = false;
+        // Don't update our player anymore, movetype 0 is for updating our appearance when stood still...
+        lp.updateOurPlayer = false;
         return this;
     }
     /**
