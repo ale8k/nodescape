@@ -2,8 +2,6 @@ import IEquipment from "./IEquipment";
 import IBodyColours from "./IBodyColours";
 import IAnimIndices from "./IAnimIndices";
 
-
-
 /**
  * Represents a {@link localPlayer Player}'s .appearance; With the data pre-binary.
  * @author ale8k

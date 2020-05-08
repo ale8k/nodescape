@@ -12,9 +12,9 @@ import PlayerHandler from "../../../../handlers/PlayerHandler";
  */
 export default class SyncPlayers81 {
     /**
-     * DEBUG MASK
+     * DEBUG MASK 1042
      */
-    public maskData = [0, 0, 1183, 1127, 0, 1059, 1079, 4131, 10, 0, 0, 0, 0, 1163, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338,
+    public maskData = [0, 0, 4716, 1052, 1704, 4151, 4720, 4224, 4759, 1059, 4131, 0, 0, 0, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338,
         ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
     /**
      * The bit writer which writes up until the masks
