@@ -42,7 +42,13 @@ export default class Player extends Client {
      * A flag representing if the player has updated and requires a bitmask
      * appending to their next packet 81
      */
-    public playerUpdated: boolean;
+    public updateLocalPlayer: boolean;
+    /**
+     * To other clients, we are a referenced player instance and as such,
+     * they manage an indepdnent set of update masks for our reference
+     * This flag enables them to determine if they should update us in their playerlist updating
+     */
+    public updateReferencePlayer: boolean;
     /**
      * A flag representing if the player is moving, i.e., they have queued co-ordinates
      * to walk to

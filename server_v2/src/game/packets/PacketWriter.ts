@@ -72,7 +72,7 @@ export default class PacketWriter {
         player.socket.write(Buffer.concat(totalPackets));
         // Finally reset our movement to type 0, because we can't move on login
         player.movementType = 0;
-        player.playerUpdated = false;
+        player.updateLocalPlayer = false;
     }
     /**
      * Takes an individual packet and directs it to the correct handler,

@@ -68,7 +68,7 @@ export default class SyncPlayers81 {
         const br = this._bitWriter;
         const lp = this._localPlayer;
         const updateOurPlayer = lp.updateOurPlayer ? 1 : 0;
-        const playerUpdate = lp.playerUpdated ? 1 : 0;
+        const playerUpdate = lp.updateLocalPlayer ? 1 : 0;
         br.writeBit(updateOurPlayer); // update our player always for now
         switch (lp.movementType) {
             case 0:

@@ -60,7 +60,8 @@ export default class LoginHandler {
                 p.plane = 0;
                 p.movementType = 3;
                 p.updateOurPlayer = true;
-                p.playerUpdated = true;
+                p.updateLocalPlayer = true;
+                p.updateReferencePlayer = true; // Will always be initially true
                 p.playerMoving = false;
                 p.destinationX = p.x;
                 p.destinationY = p.y;
