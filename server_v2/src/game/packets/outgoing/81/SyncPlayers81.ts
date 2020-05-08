@@ -137,13 +137,13 @@ export default class SyncPlayers81 {
         });
         // We need tests now, this is becoming unmanageable...
         const playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
-        PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
+        const playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
 
         // If the index is 1, we know there's only us to update for
         if (this._playerIndex.size === 1) {
             this._bitWriter.writeNumber(2047, 11);
         } else {
-            filteredPlayerList.forEach(otherPlayer => {
+            playersInRange.forEach(otherPlayer => {
                 const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
                 const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
                 this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index

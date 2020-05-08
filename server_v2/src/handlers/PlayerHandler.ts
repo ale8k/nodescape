@@ -26,13 +26,13 @@ export default class PlayerHandler {
      * @param {Player[]} playerList the list of all players in our local players region
      * @returns {Player[]} an array of the players in our local players visible range
      */
-    public static getPlayersInVisibleRange(player: Player, playerList: Player[]): void {
+    public static getPlayersInVisibleRange(player: Player, playerList: Player[]): Player[] {
         const lpXMaxRange = player.x + 17;
         const lpXMinRange = player.x - 17;
         const lpYMaxRange = player.y + 17;
         const lpYMinRange = player.y - 17;
         // Both their x and y need to be in range, otherwise remove them
-        playerList.filter((otherPlayer) => {
+        return playerList.filter((otherPlayer) => {
             if (otherPlayer.x  < lpXMaxRange && otherPlayer.x > lpXMinRange
                 && otherPlayer.y < lpYMaxRange && otherPlayer.y > lpYMinRange) {
                     console.log("Filtered a player into range");
