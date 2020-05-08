@@ -153,12 +153,17 @@ export default class SyncPlayers81 {
                 const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
                 const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
                 this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
-                this._bitWriter.writeBit(1); // mask update
+                // Mask updates
+                if (otherPlayer.updateReferencePlayer) {
+                    this._bitWriter.writeBit(1);
+                    otherPlayer.updateReferencePlayer = false;
+                    this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+                } else {
+                    this._bitWriter.writeBit(0);
+                }
                 this._bitWriter.writeBit(0); // teleport
                 this._bitWriter.writeNumber(otherY, 5);
                 this._bitWriter.writeNumber(otherX, 5);
-                // After this, we push the updated mask data for *this* player onto the mask array
-                this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
             });
             // Crucial, after our players have been written, we not pass 2047 to END the loop
             this._bitWriter.writeNumber(2047, 11);
