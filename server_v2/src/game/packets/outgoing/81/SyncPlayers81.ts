@@ -135,7 +135,13 @@ export default class SyncPlayers81 {
         const filteredPlayerList = this._playerList.filter((player) => {
             return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
         });
-        // We need tests now, this is becoming unmanageable...
+
+        // We don't actually care about getting player's only in 'our region' we care if their co-ordinates
+        // coincide in the overflow, for example, as the regions wrap 64x64 but hit 102 over on the top right and top
+        // axis, we need to calculate if that player is loaded in one of them regions, but still visible for our local player
+        // and vice-versa. As such this method needs adjusting or it requires another method which grabs all players
+        // in adjacent regions too? and converts all adjacent players co-ordinates for their region to be relative
+        // to our local players instead. Then we can perform the check of range and update it as WE change region.
         const playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
         const playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
 
