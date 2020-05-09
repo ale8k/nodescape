@@ -51,7 +51,6 @@ export default class GameServer {
             const client: Client = new Client(socket);
             new LoginHandler(client, clientEmitter$);
 
-
             // LOGGED IN
             clientEmitter$.on("successful-login", (player: Player) => {
                 this.updatePlayerIndex(player); // Adds our local players index to the index list

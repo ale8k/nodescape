@@ -4,6 +4,11 @@ import RSString from "../../../../utils/RSString";
 import Masks from "./Masks";
 import MovementHandler from "../../../../handlers/MovementHandler";
 import PlayerHandler from "../../../../handlers/PlayerHandler";
+// TESTING UTIL INSPECTION
+// We have circular references when stringifying a socket, we don't actually care about the socket. We care about the player
+// including their local index and the rest of their respective object properties, inspect(obj) parses circular references,
+// symbols and the like etc into [TYPE/REF TYPE]. Ultimately this should fix our problem.
+import { inspect } from "util";
 
 /**
  * This packet is responsible for our local players appearance and location, as well as
@@ -14,8 +19,12 @@ export default class SyncPlayers81 {
     /**
      * DEBUG MASK 1042
      */
-    public maskData = [0, 0, 4716, 1052, 1704, 4151, 4720, 4224, 4759, 1059, 4131, 0, 0, 0, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338,
-        ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69];
+    public maskData = [
+        /** appearance mask */
+        0, 0, 4716, 1052, 1704, 4151, 4720, 4224, 4759, 1059, 4131, 0, 0, 0, 7, 4, 9, 5, 0, 0x328, 0x337, 0x333, 0x334, 0x335, 0x336, 0x338,
+        ...RSString.writeStringToLongBytes37("DEBUG"), 10, 69
+        /** end of appearance */
+    ];
     /**
      * The bit writer which writes up until the masks
      */
@@ -123,19 +132,6 @@ export default class SyncPlayers81 {
      * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public updatePlayerList(): SyncPlayers81 {
-        /**
-         * So, when updating we should only update those in
-         * a) our region
-         * b) in range of our local player
-         * This complicates things a little... But shouldn't be too hard
-         * At the moment we know who to write a mask far because they're all in consecutive order
-         * in the player list, now we'll no longer know at all
-         * So...
-         * Maybe...
-         * We loop through all players in the region
-         * and check their co-ords relative to ours?
-         * Then we know which masks?
-         */
         // The playerList excluding our local player, to be passed to the PlayerHandler
         // so that it may get all the players in our region
         const filteredPlayerList = this._playerList.filter((player) => {
@@ -151,30 +147,32 @@ export default class SyncPlayers81 {
         const playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
         const playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
 
-        // If the index is 1, we know there's only us to update for
-        if (this._playerIndex.size === 1) {
-            this._bitWriter.writeNumber(2047, 11);
-        } else {
-            playersInRange.forEach(otherPlayer => {
-                const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
-                const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
-                this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
-                // Mask updates
-                if (otherPlayer.updateReferencePlayer) {
-                    this._bitWriter.writeBit(1);
-                    otherPlayer.updateReferencePlayer = false;
-                    this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
-                } else {
-                    this._bitWriter.writeBit(0);
-                }
-                this._bitWriter.writeBit(0); // teleport
-                this._bitWriter.writeNumber(otherY, 5);
-                this._bitWriter.writeNumber(otherX, 5);
-            });
-            // Crucial, after our players have been written, we not pass 2047 to END the loop
-            this._bitWriter.writeNumber(2047, 11);
+        // Update our players in range
+        this._localPlayer.playersInRange = playersInRange;
+        // console.log(inspect(this._localPlayer)); // Test circ ref fix
+        // Compare players to snapshot
+        // If same, skip
+        // If not, update snapshot and update players
 
-        }
+
+        this._localPlayer.playersInRange.forEach(otherPlayer => {
+            const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
+            const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
+            this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
+            // Mask updates
+            if (otherPlayer.updateReferencePlayer) {
+                this._bitWriter.writeBit(1);
+                otherPlayer.updateReferencePlayer = false;
+                this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+            } else {
+                this._bitWriter.writeBit(0);
+            }
+            this._bitWriter.writeBit(0); // teleport
+            this._bitWriter.writeNumber(otherY, 5);
+            this._bitWriter.writeNumber(otherX, 5);
+        });
+        // Crucial, after our players have been written, we not pass 2047 to END the loop or end if none were written
+        this._bitWriter.writeNumber(2047, 11);
 
         // Because this part requires padding, we're going to pad it off.
         // It requires padding due to the bitaccess being ended here, i.e., it'll begin
@@ -191,6 +189,9 @@ export default class SyncPlayers81 {
      */
     public writePlayerSyncMasks(): SyncPlayers81 {
         this._playersWhoNeedUpdatesMasks.forEach(mask => {
+            this._bitWriter.writeNumber(0x10, 8);
+            // Mask write-order
+            // 0x400, 0x100, 0x08, 0x04, 0x80, 0x01, 0x10, 0x02, 0x20, 0x200
             this._masks.append0x10(mask, this._bitWriter);
         });
         return this;

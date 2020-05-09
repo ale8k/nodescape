@@ -4,7 +4,6 @@ export default interface IBodyColours {
     colour3: colour3Range;
     colour4: colour4Range;
     colour5: colour5Range;
-
 }
 
 type colour1Range = 6798 | 107 | 10283 | 16 | 4797 | 774 | 5799 | 4634 | 33697 | 22433 | 2983 | 54193;

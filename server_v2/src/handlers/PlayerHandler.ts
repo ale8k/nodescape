@@ -35,7 +35,6 @@ export default class PlayerHandler {
         return playerList.filter((otherPlayer) => {
             if (otherPlayer.x  < lpXMaxRange && otherPlayer.x > lpXMinRange
                 && otherPlayer.y < lpYMaxRange && otherPlayer.y > lpYMinRange) {
-                    console.log("Filtered a player into range");
                     return true;
             }
         });
