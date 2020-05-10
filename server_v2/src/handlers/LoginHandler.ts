@@ -66,8 +66,7 @@ export default class LoginHandler {
                 p.destinationX = p.x;
                 p.destinationY = p.y;
                 p.pathCoords = [];
-                p.playersInRange = [];
-                p.playersInRangeSnapshot = [];
+                p.playersInRangeIndices = [];
                 this._clientEmitter$.emit("successful-login", p);
             }
         });

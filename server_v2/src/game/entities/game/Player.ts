@@ -50,14 +50,9 @@ export default class Player extends Client {
      */
     public updateReferencePlayer: boolean;
     /**
-     * A store of all other players within range
+     * A store of all other players indexes within range from the last update
      */
-    public playersInRange: Player[];
-    /**
-     * A snapshot of the players in range previously, used in comparison for updating new
-     * players into our local players {@link playersInRange Players.playersInRange}
-     */
-    public playersInRangeSnapshot: Player[];
+    public playersInRangeIndices: number[];
     /**
      * A flag representing if the player is moving, i.e., they have queued co-ordinates
      * to walk to

@@ -7,7 +7,6 @@ import { Subject } from "rxjs";
 import PacketReader from "./game/packets/PacketReader";
 import IPacket from "./game/packets/interfaces/IPacket";
 import PacketWriter from "./game/packets/PacketWriter";
-
 /**
  * Entry point
  * @author ale8k
