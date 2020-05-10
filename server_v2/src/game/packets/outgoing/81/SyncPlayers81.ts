@@ -138,8 +138,22 @@ export default class SyncPlayers81 {
      * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public syncOtherPlayerMovement(): SyncPlayers81 {
-        // We gather all players in range and write them as other movements to synchronize
+        // We gather all players that have loaded in range and write them as other movements to synchronize
+        // const playersInLoadedRange: Player[] = [];
+
+        // this._playersInRange.forEach(otherPlayer => {
+        //     if (otherPlayer.regionLoaded) {
+        //         playersInLoadedRange.push(otherPlayer);
+        //     }
+        // });
+
+        // this._bitWriter.writeNumber(playersInLoadedRange.length, 8);
+
+        // playersInLoadedRange.forEach(otherPlayer => {
+        //     this._bitWriter.writeBit(0);
+        // });
         this._bitWriter.writeNumber(0, 8);
+
         return this;
     }
     /**

@@ -90,6 +90,10 @@ export default class PacketWriter {
         switch (packet?.opcode) {
             case 164:
                 return PacketWriter.HandleWalkByTile164(packet, player);
+            case 121:
+                return PacketWriter.HandleRegionLoaded121(player);
+            case 210:
+                return PacketWriter.HandleRegionLoading210(player);
             default:
                 return 0;
         }
@@ -114,6 +118,20 @@ export default class PacketWriter {
         // Set our player to moving
         player.playerMoving = true;
         // console.log("player path coords", player.pathCoords);
+        return 0;
+    }
+    /**
+     * Temp place for 121 handle
+     */
+    private static HandleRegionLoaded121(player: Player) {
+        player.regionLoaded = true;
+        return 0;
+    }
+    /**
+     * Temp place for 121 handle
+     */
+    private static HandleRegionLoading210(player: Player) {
+        player.regionLoaded = false;
         return 0;
     }
 }

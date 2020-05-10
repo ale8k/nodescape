@@ -76,4 +76,8 @@ export default class Player extends Client {
      * The second direction the player will move in (and only this if running)
      */
     public direction2: number;
+    /**
+     * A flag to determine if the player is loading/has finished loading into a new region
+     */
+    public regionLoaded: boolean;
 }
