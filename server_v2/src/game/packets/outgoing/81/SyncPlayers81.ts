@@ -49,35 +49,19 @@ export default class SyncPlayers81 {
      * The indexes of each currently logged in player
      */
     private _playerIndex: Set<number>;
-    /**
-     * The playerlist excluding our player
-     */
-    private _filteredPlayerList: Player[];
-    /**
-     * All the players within our current region
-     */
-    private _playersInRegion: Player[];
-    /**
-     * All the players within our 32x32 local area
-     */
-    private _playersInRange: Player[];
 
     /**
+     *
      * @param {Player} player local player
      * @param {Player[]} playerList total list of all player instances
      * @param {Set<number>} playerIndex total list of all connected player indexes
      */
-    constructor(localPlayer: Player, playerList: Player[], playerIndex: Set<number>) {
-        this._localPlayer = localPlayer;
-        this._filteredPlayerList = this._playerList.filter((otherPlayer) => {
-            return otherPlayer.localPlayerIndex !== this._localPlayer.localPlayerIndex;
-        });
-        this._playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, this._filteredPlayerList);
-        this._playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, this._playersInRegion);
+    constructor(player: Player, playerList: Player[], playerIndex: Set<number>) {
+        this._localPlayer = player;
         this._playerList = playerList;
         this._playerIndex = playerIndex;
         // The update procedure
-        this.syncLocalPlayerMovement(localPlayer);
+        this.syncLocalPlayerMovement(player);
         this.syncOtherPlayerMovement();
         this.updatePlayerList();
         this.writePlayerSyncMasks();
@@ -148,49 +132,40 @@ export default class SyncPlayers81 {
      * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public updatePlayerList(): SyncPlayers81 {
+        // The playerList excluding our local player, to be passed to the PlayerHandler
+        // so that it may get all the players in our region
+        const filteredPlayerList = this._playerList.filter((player) => {
+            return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
+        });
+
         // We don't actually care about getting player's only in 'our region' we care if their co-ordinates
         // coincide in the overflow, for example, as the regions wrap 64x64 but hit 102 over on the top right and top
         // axis, we need to calculate if that player is loaded in one of them regions, but still visible for our local player
         // and vice-versa. As such this method needs adjusting or it requires another method which grabs all players
         // in adjacent regions too? and converts all adjacent players co-ordinates for their region to be relative
         // to our local players instead. Then we can perform the check of range and update it as WE change region.
-        const playersInRange = this._playersInRange;
+        const playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
+        const playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
 
-        // Grab the indexes of the current players in range
-        const playersInRangeIndicesString: number[] = [];
+        // Update our players in range
         playersInRange.forEach(otherPlayer => {
-            playersInRangeIndicesString.push(otherPlayer.localPlayerIndex);
+            const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
+            const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
+            this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
+            // Mask updates
+            if (otherPlayer.updateReferencePlayer) {
+                this._bitWriter.writeBit(1);
+                otherPlayer.updateReferencePlayer = false;
+                this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
+            } else {
+                this._bitWriter.writeBit(0);
+            }
+            this._bitWriter.writeBit(0); // teleport
+            this._bitWriter.writeNumber(otherY, 5);
+            this._bitWriter.writeNumber(otherX, 5);
         });
-
-        // Check if update required
-        if (JSON.stringify(playersInRangeIndicesString) !== JSON.stringify(this._localPlayer.playersInRangeIndices)) {
-            // Reset our snapshot
-            this._localPlayer.playersInRangeIndices = [];
-            // Update our players in range
-            playersInRange.forEach(otherPlayer => {
-                // Update the current index list of players in range
-                this._localPlayer.playersInRangeIndices.push(otherPlayer.localPlayerIndex);
-                const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
-                const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
-                this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
-                // Mask updates
-                if (otherPlayer.updateReferencePlayer) {
-                    this._bitWriter.writeBit(1);
-                    otherPlayer.updateReferencePlayer = false;
-                    this._playersWhoNeedUpdatesMasks.push(this.maskData); // just debug data
-                } else {
-                    this._bitWriter.writeBit(0);
-                }
-                this._bitWriter.writeBit(0); // teleport
-                this._bitWriter.writeNumber(otherY, 5);
-                this._bitWriter.writeNumber(otherX, 5);
-            });
-            // Crucial, after our players have been written, we not pass 2047 to END the loop or end if none were written
-            this._bitWriter.writeNumber(2047, 11);
-        } else {
-            // Simply end the loop
-            this._bitWriter.writeNumber(2047, 11);
-        }
+        // Crucial, after our players have been written, we not pass 2047 to END the loop or end if none were written
+        this._bitWriter.writeNumber(2047, 11);
 
         // Because this part requires padding, we're going to pad it off.
         // It requires padding due to the bitaccess being ended here, i.e., it'll begin

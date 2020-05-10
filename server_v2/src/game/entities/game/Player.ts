@@ -50,10 +50,6 @@ export default class Player extends Client {
      */
     public updateReferencePlayer: boolean;
     /**
-     * A store of all other players indexes within range from the last update
-     */
-    public playersInRangeIndices: number[];
-    /**
      * A flag representing if the player is moving, i.e., they have queued co-ordinates
      * to walk to
      * - Please note, this only applies to movement types 1 and 2, not 3

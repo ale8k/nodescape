@@ -11881,13 +11881,12 @@ public final class Client extends GameApplet {
 
 	private final void synchronizeOtherPlayerMovement(Buffer buffer) {
 		int count = buffer.readBits(8);
-		System.out.println("Amount of other player movements to sync: " + count);
+		System.out.println("Amount of other player movements to sync: " + count + "total player count: " + playerCount);
 		if (count < playerCount) {
 			for (int index = count; index < playerCount; index++) {
 				removedMobs[removedMobCount++] = playerList[index];
 			}
 		}
-
 		if (count > playerCount) {
 			SignLink.reportError(username + " Too many players");
 			throw new RuntimeException("eek");
