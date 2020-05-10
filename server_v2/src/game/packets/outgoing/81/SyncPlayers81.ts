@@ -49,6 +49,18 @@ export default class SyncPlayers81 {
      * The indexes of each currently logged in player
      */
     private _playerIndex: Set<number>;
+    /**
+     * The entire player list, excluding our player
+     */
+    private _filteredPlayerList: Player[];
+    /**
+     * The list of all players in our region
+     */
+    private _playersInRegion: Player[];
+    /**
+     * The list of all players in range
+     */
+    private _playersInRange: Player[];
 
     /**
      *
@@ -56,12 +68,19 @@ export default class SyncPlayers81 {
      * @param {Player[]} playerList total list of all player instances
      * @param {Set<number>} playerIndex total list of all connected player indexes
      */
-    constructor(player: Player, playerList: Player[], playerIndex: Set<number>) {
-        this._localPlayer = player;
+    constructor(localPlayer: Player, playerList: Player[], playerIndex: Set<number>) {
+        // General setup
+        this._localPlayer = localPlayer;
         this._playerList = playerList;
         this._playerIndex = playerIndex;
+        // Player range gathering
+        this._filteredPlayerList = this._playerList.filter((player) => {
+            return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
+        });
+        this._playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, this._filteredPlayerList);
+        this._playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, this._playersInRegion);
         // The update procedure
-        this.syncLocalPlayerMovement(player);
+        this.syncLocalPlayerMovement(this._localPlayer);
         this.syncOtherPlayerMovement();
         this.updatePlayerList();
         this.writePlayerSyncMasks();
@@ -119,36 +138,19 @@ export default class SyncPlayers81 {
      * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public syncOtherPlayerMovement(): SyncPlayers81 {
-        // Ideally it'll go through each Player in our playerlist and write their co-ordinates. For now,
-        // we hardcode 0. As this would be the final step in the process for us.
+        // We gather all players in range and write them as other movements to synchronize
         this._bitWriter.writeNumber(0, 8);
         return this;
     }
     /**
      * Writes each player who requires an update to the bitWriter
-     * @todo Needs cleaning up.
      * @param playerIndex the list of indexes
      * @param playerList the list of player instances
      * @returns {SyncPlayers81} a reference to the instance of this packet builder, for use in extension methods
      */
     public updatePlayerList(): SyncPlayers81 {
-        // The playerList excluding our local player, to be passed to the PlayerHandler
-        // so that it may get all the players in our region
-        const filteredPlayerList = this._playerList.filter((player) => {
-            return player.localPlayerIndex !== this._localPlayer.localPlayerIndex;
-        });
-
-        // We don't actually care about getting player's only in 'our region' we care if their co-ordinates
-        // coincide in the overflow, for example, as the regions wrap 64x64 but hit 102 over on the top right and top
-        // axis, we need to calculate if that player is loaded in one of them regions, but still visible for our local player
-        // and vice-versa. As such this method needs adjusting or it requires another method which grabs all players
-        // in adjacent regions too? and converts all adjacent players co-ordinates for their region to be relative
-        // to our local players instead. Then we can perform the check of range and update it as WE change region.
-        const playersInRegion = PlayerHandler.getPlayersInLocalPlayersRegion(this._localPlayer, filteredPlayerList);
-        const playersInRange = PlayerHandler.getPlayersInVisibleRange(this._localPlayer, playersInRegion);
-
         // Update our players in range
-        playersInRange.forEach(otherPlayer => {
+        this._playersInRange.forEach(otherPlayer => {
             const otherX = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "x");
             const otherY = MovementHandler.getOtherPlayerRelativeXY(this._localPlayer, otherPlayer, "y");
             this._bitWriter.writeNumber(otherPlayer.localPlayerIndex, 11); // players index
@@ -164,7 +166,7 @@ export default class SyncPlayers81 {
             this._bitWriter.writeNumber(otherY, 5);
             this._bitWriter.writeNumber(otherX, 5);
         });
-        // Crucial, after our players have been written, we not pass 2047 to END the loop or end if none were written
+        // End the loop, note: if the playerList is [], then this will fire. I.e., a solo player in a 32x32 area
         this._bitWriter.writeNumber(2047, 11);
 
         // Because this part requires padding, we're going to pad it off.
@@ -173,7 +175,6 @@ export default class SyncPlayers81 {
         while (this._bitWriter.bufferLength % 8 !== 0) {
             this._bitWriter.writeBit(0);
         }
-
         return this;
     }
     /**
