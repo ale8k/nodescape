@@ -1,7 +1,7 @@
 import Player from "src/game/entities/game/Player";
-import IsaacCipher from "src/IsaacCipher";
 import { Socket } from "net";
 import RegionHandler from "../RegionHandler";
+import { ISAACGenerator } from "isaac-crypto";
 
 let dummyPlayer: Player;
 
@@ -9,8 +9,8 @@ beforeEach(() => {
     dummyPlayer = {
         socket: {} as Socket,
         loginStage: 0,
-        inStreamDecryptor: {} as IsaacCipher,
-        outStreamEncryptor: {} as IsaacCipher,
+        inStreamDecryptor: {} as ISAACGenerator,
+        outStreamEncryptor: {} as ISAACGenerator,
         userId: 0,
         username: "string",
         password: "string",

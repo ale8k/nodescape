@@ -1,4 +1,4 @@
-import IsaacCipher from "../../IsaacCipher";
+import { ISAACGenerator } from "isaac-crypto";
 import Player from "../entities/game/Player";
 import IPacket from "./interfaces/IPacket";
 
@@ -72,12 +72,12 @@ export default class PacketReader {
     /**
      * Parses an encrypted opcode into a decrypted one
      * @param {number} opcode the opcode we wish to decrypt
-     * @param {IsaacCipher} inStreamDecryption the ISAAC decryption instance for this player
+     * @param {ISAACGenerator} inStreamDecryption the ISAAC decryption instance for this player
      * @returns {number} returns the decrypted opcode
      */
-    private static parsePacketOpcode(opcode: number, inStreamDecryption: IsaacCipher): number {
+    private static parsePacketOpcode(opcode: number, inStreamDecryption: ISAACGenerator): number {
         const encryptedOpcode = opcode & 0xff;
-        const decryptedOpcode = encryptedOpcode - inStreamDecryption.nextKey() & 0xff;
+        const decryptedOpcode = encryptedOpcode - inStreamDecryption.getNextResult() & 0xff;
         return decryptedOpcode;
     }
     /**

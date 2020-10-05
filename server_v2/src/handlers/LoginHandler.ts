@@ -1,9 +1,9 @@
-import Client from "../game/entities/Client";
+import { ISAACGenerator } from "isaac-crypto";
 import * as Long from "long";
-import IsaacCipher from "../IsaacCipher";
-import RSString from "../utils/RSString";
 import { EventEmitter } from "events";
-import Player from "src/game/entities/game/Player";
+import Client from "../game/entities/Client";
+import RSString from "../utils/RSString";
+import Player from "../game/entities/game/Player";
 
 /**
  * Handles the login procedure for a single client
@@ -115,8 +115,8 @@ export default class LoginHandler {
                 (serverSessionKey.toInt()) + 50
             ];
 
-            client.inStreamDecryptor = new IsaacCipher(inSessionKey);
-            client.outStreamEncryptor = new IsaacCipher(outSessionKey);
+            client.inStreamDecryptor = new ISAACGenerator(inSessionKey);
+            client.outStreamEncryptor = new ISAACGenerator(outSessionKey);
 
             const usernameAndPassword = RSString.readRSStringUsernameAndPassword(rsaBlock.splice(18));
             console.log(usernameAndPassword);

@@ -1,5 +1,5 @@
+import { ISAACGenerator } from "isaac-crypto";
 import { Socket } from "net";
-import IsaacCipher from "../../IsaacCipher";
 
 /**
  * Represents a client attempting to login/reconnect
@@ -18,11 +18,11 @@ export default class Client {
     /**
      * The inStream opcode decryptor
      */
-    public inStreamDecryptor: IsaacCipher;
+    public inStreamDecryptor: ISAACGenerator;
     /**
      * The outStream opcode decryptor
      */
-    public outStreamEncryptor: IsaacCipher;
+    public outStreamEncryptor: ISAACGenerator;
     /**
      * User id
      */
