@@ -1,13 +1,13 @@
 import PlayerHandler from "../PlayerHandler";
 import Player from "../../game/entities/game/Player";
 import { Socket } from "net";
-import IsaacCipher from "../../IsaacCipher";
+import { ISAACGenerator } from "isaac-crypto";
 
 const dummyPlayer: Player = {
     socket: {} as Socket,
     loginStage: 0,
-    inStreamDecryptor: {} as IsaacCipher,
-    outStreamEncryptor: {} as IsaacCipher,
+    inStreamDecryptor: {} as ISAACGenerator,
+    outStreamEncryptor: {} as ISAACGenerator,
     userId: 0,
     username: "string",
     password: "string",
